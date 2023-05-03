@@ -1,14 +1,15 @@
 # El Invernadero inteligente: una oportunidad para la evolución del productor patagónico
 
-English clarification: all contents in this repository, including comments, function and variable names, as well as any documentation are (mostly) in Spanish. And they will continue to be. All units are metric as well.
+English clarification: all contents in this repository, including comments, function and variable names, as well as any documentation are (mostly) in Spanish. All units are metric as well.
 
 ___
+
 ### Introducción
-Este es el código basado en el entorno Arduino del módulo controlador del Invernadero inteligente, un proyecto grupal del Centro de Educación Técnica N.º 2 "Jorge Newbery" para la mejora de la productividad y calidad de vida de los productores agrícolas regionales. Actualmente cuenta con conectividad a internet y control por comandos mediante Telegram, y autonomía de riego y ventilación basado en sensores de temperatura y humedad.  
-Se encuentra en una fase temprana, cambiando sus capacidades desde prototipo hasta diseño funcional, por lo que muchas características básicas cambiarán.
+Este es el código completo (con sus posibles/futuras aplicaciones asociadas) del Invernadero inteligente, un proyecto institucional grupal del Centro de Educación Técnica N.º 2 "Jorge Newbery" para la mejora de la productividad y calidad de vida de los productores agrícolas regionales.  
+Actualmente cuenta con conectividad a internet y control por comandos mediante Telegram, y autonomía de riego y ventilación basado en sensores de temperatura y humedad. Se encuentra en una fase temprana, cambiando sus capacidades desde prototipo hasta diseño funcional, por lo que muchas características fundamentales cambiarán.
 
 ### Estructura
-En la carpeta Código/src se encuentra el código del controlador del invernadero (y otro README.md explicándolo), mientras que otros archivos relacionado a otras partes del proyecto (posibles apps) se encuentran en diferentes carpetas del repositorio.
+En la carpeta [Código/src](https://github.com/Quintana-S-E/Invernadero-inteligente-C.E.T.-N.-2/tree/master/Controlador/src) se encuentra el código del controlador del invernadero (y otro README.md explicándolo), mientras que otros archivos relacionados a otras partes del proyecto (posibles apps) se encuentran en diferentes carpetas del repositorio.
 
 ### Próximos cambios (software)
 #### Por implementar
