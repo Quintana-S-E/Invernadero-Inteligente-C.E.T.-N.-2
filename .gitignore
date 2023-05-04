@@ -4,3 +4,4 @@ Controlador/include
 Controlador/lib
 Controlador/test
 platformio.ini
+Controlador/src/Claves.h
