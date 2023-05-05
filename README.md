@@ -5,7 +5,7 @@ English clarification: all contents in this repository, including comments, func
 ___
 
 ### Introducción
-Este es el código completo (con sus posibles/futuras aplicaciones asociadas) del Invernadero inteligente, un proyecto institucional grupal del Centro de Educación Técnica N.º 2 "Jorge Newbery" para la mejora de la productividad y calidad de vida de los productores agrícolas regionales.  
+Este es el código completo (con sus posibles/futuras apps asociadas) del Invernadero inteligente, un proyecto institucional grupal del Centro de Educación Técnica N.º 2 "Jorge Newbery" para la mejora de la productividad y calidad de vida de los productores agrícolas regionales.  
 Actualmente cuenta con conectividad a internet y control por comandos mediante Telegram, y autonomía de riego y ventilación basado en sensores de temperatura y humedad. Se encuentra en una fase temprana, cambiando sus capacidades desde prototipo hasta diseño funcional, por lo que muchas características fundamentales cambiarán.
 
 ### Estructura
@@ -13,8 +13,8 @@ En la carpeta [Código/src](https://github.com/Quintana-S-E/Invernadero-intelige
 
 ### Próximos cambios (software)
 #### Por implementar
-+ [ ] Definir posible utilización de una app para comandos y/o gráficos.
-+ [ ] Adaptación del teclado para introducir configuraciones en un menú inicial (teclas estilo nokia 3 toques).
++ [x] Definir posible utilización de una app para comandos y/o gráficos.
++ [ ] Definir adaptación del teclado para introducir configuraciones en un menú inicial (teclas estilo nokia 3 toques).
 + [ ] Que los datos del display no cambien solos, sino con un botón (del teclado, si es posible) y un interrupt.
 + [ ] Ajustar los porcentajes de humedad del suelo probando tierra real.
 + [ ] Mejorar el aviso de “No se encuentra red WiFi” (de mantenerse el sistema).

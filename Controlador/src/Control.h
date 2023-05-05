@@ -26,6 +26,12 @@ void chequearVentilacion() // en "loop()"
 // Regar y esperar el tiempo necesario para la filtración del agua antes de medir de nuevo
 void chequearRiego() // en "loop()"
 {
+
+
+	/*if (riego_forzado) // idea centralita
+		return;*/
+
+
 	// apagar la bomba después del tiempo definido
 	if (millis() - ultima_vez_bomba_encendio >= (tiempo_bombeo_segundos * 1000UL))
 		digitalWrite(PIN_BOMBA, HIGH);

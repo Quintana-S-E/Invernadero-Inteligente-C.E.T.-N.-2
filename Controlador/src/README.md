@@ -19,7 +19,8 @@ De este modo, para cambiar una funcionalidad del controlador, casi siempre basta
 + Arduino Wire
 + [CTBot (Stefano Ledda)](https://github.com/shurillu/CTBot)
 + [ESP32 Servo (Kevin Harrington)](https://github.com/jkb-git/ESP32Servo)
-+ [ThingSpeak (MathWorks)](https://github.com/mathworks/thingspeak-arduino)  
++ [ThingSpeak (MathWorks)](https://github.com/mathworks/thingspeak-arduino)
+
 \+ cualquier dependencia.
 
 ### Changelog
