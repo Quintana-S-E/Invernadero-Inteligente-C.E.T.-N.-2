@@ -47,6 +47,12 @@ unsigned long ultima_vez_invernadero_funciono = 0;
 unsigned long ultima_vez_display_cambio = 0;
 
 // Flags de estado generales
+/* -------------------------IDEA:-------------------------
+Posiblemente crear class Salida con flags: activada, desactivada, forzada, ultima_vez_activada/desactivada.
+Y crear child classes con los métodos propios: abrir(), chequear(), prender(), apagar(), abrir un ángulo(), esperando, temp_max, etc;
+declarando Riego, Calefa, Ventilación y quizás Alarma. Ver cómo incorporar los valores de la EEPROM (fácil, pero declararlos todos
+en el mismo lugar que los otros valores de la EEPROM [humedad suelo es el único no relacionado con una salida]).
+*/
 bool ventilacion_forzada	= false; // si el estado de ventilación está siendo forzado por telegram
 bool ventilando				= false;
 bool esperando_riego		= false; // para chequearRiego()
