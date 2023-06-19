@@ -1,5 +1,5 @@
 # Código del controlador
-Este es el código del módulo controlador del Invernadero inteligente, diseñado para una placa basada en el microcontrolador ESP32, con sensores de humedad del suelo capacitivos, así como también de temperatura y humedad del aire DHT22.
+Este es el código del módulo controlador del Invernadero inteligente, diseñado para una placa basada en el microcontrolador ESP32, con sensores de humedad del suelo capacitivos, así como también de temperatura y humedad del aire AHT10.
 
 ### Estructura
 El archivo [main.cpp](https://github.com/Quintana-S-E/Invernadero-inteligente-C.E.T.-N.-2/blob/master/Controlador/src/main.cpp) contiene las funciones `setup()` y `loop()`, y refleja el flujo del código mediante llamadas a funciones definidas en los archivos header ".h". Los mismos utilizan variables globales y definen funciones declaradas en el archivo [Declaraciones.h](https://github.com/Quintana-S-E/Invernadero-inteligente-C.E.T.-N.-2/blob/master/Controlador/src/Declaraciones.h), que también contiene todas las librerías utilizadas.  
@@ -12,7 +12,7 @@ De este modo, para cambiar una funcionalidad del controlador, casi siempre basta
 + [Adafruit_GFX](https://github.com/adafruit/Adafruit-GFX-Library)
 + [Adafruit_Sensor](https://github.com/adafruit/Adafruit_Sensor)
 + [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
-+ [Adafruit DHT](https://github.com/adafruit/DHT-sensor-library)
++ [AHT10 (enjoyneering)](https://github.com/enjoyneering/AHT10)
 + Arduino
 + Arduino EEPROM
 + Arduino Json

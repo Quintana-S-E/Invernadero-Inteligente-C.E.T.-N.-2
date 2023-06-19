@@ -23,6 +23,11 @@ void setup()
 	pinMode(LED_ROJO, OUTPUT);
 	pinMode(PIN_BOMBA, OUTPUT);
 	pinMode(PIN_VENTILADOR, OUTPUT);
+	pinMode(MUX_EN, OUTPUT);
+	pinMode(MUX_S0, OUTPUT);
+	pinMode(MUX_S1, OUTPUT);
+	pinMode(MUX_S2, OUTPUT);
+	pinMode(MUX_S3, OUTPUT);
 	digitalWrite(PIN_BOMBA, HIGH);
 	digitalWrite(PIN_VENTILADOR, HIGH);
 	// ver, para el futuro https://forum.arduino.cc/t/digitalwritefast-digitalreadfast-pinmodefast-etc/47037
@@ -37,9 +42,7 @@ void setup()
 	Ventana.write(ANGULO_CERRADO); // ya que "ventilando" se inicializa como false
 
 	// inicializar los sensores
-	DhtInteriorLow.begin();
-	DhtInteriorHigh.begin();
-	DhtExterior.begin();
+	inicializarSensores();
 
 	// inicializar display
 	inicializarDisplay();

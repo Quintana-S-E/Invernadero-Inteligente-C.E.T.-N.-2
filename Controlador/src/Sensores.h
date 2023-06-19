@@ -2,50 +2,95 @@
 
 #include "Declaraciones.h"
 
+AHT10Mux::AHT10Mux(uint8_t Asalida_del_mux) {	salida_del_mux = Asalida_del_mux;	}
+
+bool AHT10Mux::begin()
+{
+	establecerSalidaMUX(salida_del_mux);
+	return AhtSeleccionado.begin();
+}
+
+float AHT10Mux::readTemperature(bool readI2C = AHT10_FORCE_READ_DATA)
+{
+	establecerSalidaMUX(salida_del_mux);
+	return AhtSeleccionado.readTemperature(readI2C);
+}
+
+float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
+{
+	establecerSalidaMUX(salida_del_mux);
+	return AhtSeleccionado.readHumidity(readI2C);
+}
+
+//==================================================================================================================//
+
+void establecerSalidaMUX(uint8_t salida)
+{
+	bool bits[4]; // últimos 4 bits del número
+	for (int i = 0;  i < 4;  ++i)
+		bits[i] =  0 != (salida & (1 << i));
+
+	digitalWrite(MUX_EN, LOW);
+	digitalWrite(MUX_S0, bits[0]);
+	digitalWrite(MUX_S1, bits[1]);
+	digitalWrite(MUX_S2, bits[2]);
+	digitalWrite(MUX_S3, bits[3]);
+}
+
+//==================================================================================================================//
+
+void inicializarSensores()
+{
+	const uint8_t CANTIDAD_SENSORES_AHT = 5;
+	bool sensor[CANTIDAD_SENSORES_AHT];
+	sensor[0] = AhtInteriorHigh.begin();
+	sensor[1] = AhtInteriorMid.begin();
+	sensor[2] = AhtInteriorLow.begin();
+	sensor[3] = AhtExterior.begin();
+	sensor[4] = AhtExteriorGeotermico.begin();
+	if (!sensor[0] || !sensor[1] || !sensor[2] || !sensor[3] || !sensor[4])
+	{
+		imprimir("Error inicializando AHT10: ");
+		for (uint8_t i = 0; i < CANTIDAD_SENSORES_AHT; i++)
+			imprimir(sensor[i]);
+		imprimirln();
+	}
+}
+
+//==================================================================================================================//
+
 void leerSensores() // en "loop()"
 {
 	// setea   humedad_aire_interior_promedio  y  temp_interior_promedio
-	leerDHT22Interiores();
+	leerAHT10Interiores();
 	// setea   humedad_suelo_interior
 	leerSoilInteriores();
 
 	// setea   humedad_aire_exterior  y  temp_exterior
-	leerDHT22Exteriores();
+	leerAHT10Exteriores();
 	// setea   humedad_suelo_exterior
 	leerSoilExteriores();
 }
 
 //==================================================================================================================//
 
-void leerDHT22Interiores() // en leerSensores()
+void leerAHT10Interiores() // en leerSensores()
 {
-	// cada lectura toma alrededor de 250 ms, y puede tener hasta 2 segundos de antigüedad
-	float humedad_aire_interior[2];
-	float temp_interior[2];
+	float humedad_aire_interior[3];
+	float temp_interior[3];
 
-	// leer a DhtInteriorLow
-	humedad_aire_interior[0] = DhtInteriorLow.readHumidity(); // %
-	temp_interior[0] = DhtInteriorLow.readTemperature();	  // Celsius
+	// leer a AhtInteriorHigh
+	humedad_aire_interior[0] = AhtInteriorHigh.readHumidity(); // %
+	temp_interior[0] = AhtInteriorHigh.readTemperature();	  // Celsius
+	// leer a AhtInteriorMid
+	humedad_aire_interior[1] = AhtInteriorMid.readHumidity();
+	temp_interior[1] = AhtInteriorMid.readTemperature();
+	// leer a AhtInteriorLow
+	humedad_aire_interior[2] = AhtInteriorLow.readHumidity();
+	temp_interior[2] = AhtInteriorLow.readTemperature();
 
-	/* leer a DhtInteriorMid
-	humedad_aire_interior[0] = DhtInteriorMid.readHumidity();
-	temp_interior[0] = DhtInteriorMid.readTemperature();
-	*/
-
-	// leer a DhtInteriorHigh
-	humedad_aire_interior[1] = DhtInteriorHigh.readHumidity();
-	temp_interior[1] = DhtInteriorHigh.readTemperature();
-
-	// mirar si alguna lectura falló y finalizar antes (para empezar de nuevo).
-	/*
-	if (isnan(humedad_aire_interior[0]) || isnan(temp_interior[0]))
-		imprimirln("Fallo al leer el DHT22 interior bajo");
-	if (isnan(humedad_aire_interior[1]) || isnan(temp_interior[1]))
-		imprimirln("Fallo al leer el DHT22 interior alto");
-	*/
-
-	humedad_aire_interior_promedio = (humedad_aire_interior[0] + humedad_aire_interior[1]) / 2;
-	temp_interior_promedio = (temp_interior[0] + temp_interior[1]) / 2;
+	humedad_aire_interior_promedio = (humedad_aire_interior[0] + humedad_aire_interior[1] + humedad_aire_interior[2]) / 3;
+	temp_interior_promedio = (temp_interior[0] + temp_interior[1] + temp_interior[2]) / 3;
 }
 
 //==================================================================================================================//
@@ -66,19 +111,13 @@ void leerSoilInteriores() // en leerSensores()
 
 //==================================================================================================================//
 
-void leerDHT22Exteriores() // en leerSensores()
+void leerAHT10Exteriores() // en leerSensores()
 {
-	// leer a DhtExterior
-	humedad_aire_exterior = DhtExterior.readHumidity(); // %
-	temp_exterior = DhtExterior.readTemperature();		// Celsius
-
-	// mirar si alguna lectura falló y finalizar antes (para empezar de nuevo).
-	/*
-	if (isnan(humedad_aire_exterior) || isnan(temp_exterior))
-		imprimirln("Fallo al leer el DHT22 exterior");
-	*/
-
-	// con más sensores exteriores aquí haríamos el promedio
+	// leer a AhtExterior
+	humedad_aire_exterior = AhtExterior.readHumidity(); // %
+	temp_exterior = AhtExterior.readTemperature();		// Celsius
+	// leer a AhtExteriorGeotermico
+	temp_exterior_geotermica = AhtExteriorGeotermico.readTemperature();
 }
 
 //==================================================================================================================//

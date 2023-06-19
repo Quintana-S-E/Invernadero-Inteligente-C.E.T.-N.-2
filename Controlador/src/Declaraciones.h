@@ -4,9 +4,9 @@
 #include <Adafruit_GFX.h>	  // display OLED
 #include <Adafruit_Sensor.h>
 #include <Adafruit_SSD1306.h> // display OLED
+#include <AHT10.h>
 #include <ArduinoJson.h>
 #include <CTBot.h>
-#include <DHT.h>
 #include <EEPROM.h>
 #include <ESP32Servo.h>
 #include <ThingSpeak.h>
@@ -34,10 +34,18 @@
 #define PIN_BOMBA 18
 #define PIN_VENTILADOR 19
 #define PIN_SERVO 23
-// de los sensores DHT
-#define DHT_INT_LOW_PIN 27
-#define DHT_INT_HIGH_PIN 14
-#define DHT_EXT_PIN 13 //#define DHT_INT_MID_PIN // Para el domo
+// del multiplexor
+#define MUX_EN 32
+#define MUX_S0 33
+#define MUX_S1 25
+#define MUX_S2 26
+#define MUX_S3 27
+// de los sensores AHT10
+#define AHT_INT_HIGH_MUX_PIN 0
+#define AHT_INT_MID_MUX_PIN 1
+#define AHT_INT_LOW_MUX_PIN 2
+#define AHT_EXT_MUX_PIN 3
+#define AHT_EXT_GEOTERMICO_MUX_PIN 4
 // de los sensores humedad suelo
 #define SOIL_EXT_PIN A0
 #define SOIL_INT_PIN A3 //#define SOIL_INT_2_PIN A6 // Para el domo
@@ -63,21 +71,34 @@ String mensajeSegundosATiempo(unsigned long segundos);
 
 // Sensores.h
 #define MUESTRAS_HUMEDAD_SUELO 16		// 16 máximo
+void establecerSalidaMUX(uint8_t salida);
+void inicializarSensores();
 void leerSensores();
-void leerDHT22Interiores();
+void leerAHT10Interiores();
 void leerSoilInteriores();
-void leerDHT22Exteriores();
+void leerAHT10Exteriores();
 void leerSoilExteriores();
 // variables
-// DHTs interiores
+// AHTs interiores
 float temp_interior_promedio;
 float humedad_aire_interior_promedio;
-// DHTs exteriores
+// AHTs exteriores
 float temp_exterior;
 float humedad_aire_exterior;
+float temp_exterior_geotermica;
 // soil moisture sensors
 int humedad_suelo_interior;
 int humedad_suelo_exterior;
+class AHT10Mux
+{
+	public:
+		AHT10Mux(uint8_t Asalida_del_mux);
+		bool     begin();
+		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
+		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
+	private:
+		uint8_t salida_del_mux;
+};
 
 
 // Control.h
@@ -219,7 +240,9 @@ CTBot Bot;
 Servo Ventana;
 WiFiClient Cliente;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-DHT DhtInteriorLow(DHT_INT_LOW_PIN, DHT22);
-DHT DhtInteriorHigh(DHT_INT_HIGH_PIN, DHT22);
-DHT DhtExterior(DHT_EXT_PIN, DHT22);
-//DHT DhtInteriorMid(DHT_INT_MID_PIN, DHT22); // Para el domo
+AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
+AHT10Mux AhtInteriorHigh(AHT_INT_HIGH_MUX_PIN);
+AHT10Mux AhtInteriorMid(AHT_INT_MID_MUX_PIN);
+AHT10Mux AhtInteriorLow(AHT_INT_LOW_MUX_PIN);
+AHT10Mux AhtExterior(AHT_EXT_MUX_PIN);
+AHT10Mux AhtExteriorGeotermico(AHT_EXT_GEOTERMICO_MUX_PIN);
