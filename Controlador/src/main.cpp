@@ -48,8 +48,8 @@ void setup()
 	inicializarDisplay();
 
 	// conectarse al Wi-Fi, conectarse al bot, e inicializar ThingSpeak
-	imprimirln("Conectando a WIFI...");
-	conectarWIFI(true);
+	imprimirln("Conectando a WiFi...");
+	conectarWiFi(true);
 
 	// leer o escribir la EEPROM
 	chequearEEPROMProgramada();

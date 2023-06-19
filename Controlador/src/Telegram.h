@@ -487,7 +487,7 @@ bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad)
 	return false;
 }
 
-//==================================================ALARMA Y WIFI===================================================//
+//==================================================ALARMA Y WiFi===================================================//
 
 void chequearAlarma() // en "loop()"
 {
@@ -518,9 +518,9 @@ void chequearAlarma() // en "loop()"
 
 void chequearConexion()
 {
-	if (millis() - ultima_vez_comprobacion_WIFI >= DELAY_COMPROBACION_WIFI)
+	if (millis() - ultima_vez_comprobacion_wifi >= DELAY_COMPROBACION_WIFI)
 	{
-		ultima_vez_comprobacion_WIFI = millis();
+		ultima_vez_comprobacion_wifi = millis();
 
 		// si no hay conexión con el bot, se fue el WiFi
 		if (Bot.testConnection() != true)
@@ -528,58 +528,58 @@ void chequearConexion()
 			// imprimir el error
 			imprimirln("Bot desconectado. Reconectando...");
 			// reconectar
-			conectarWIFI(false);
+			conectarWiFi(false);
 		}
 	}
 }
 
 //==================================================================================================================//
 
-void conectarWIFI(bool parar_programa)
+void conectarWiFi(bool parar_programa)
 {
-	displayConectandoWIFI();
+	displayConectandoWiFi();
 
 	Bot.setMaxConnectionRetries(15);
-	bool status_WIFI = false;
+	bool status_wifi = false;
 	// probar con cada red (imprime y muestra en el display si se conectó)
-	if (!status_WIFI)
-		status_WIFI = conectarWIFICon(CLAVES_SSID_ESCUELA, CLAVES_PASSWORD_ESCUELA); // conectar al WIFI de la escuela
-	if (!status_WIFI)
-		status_WIFI = conectarWIFICon(CLAVES_SSID_NONI, CLAVES_PASSWORD_NONI); // si no se pudo, probar con el de noni
-	if (!status_WIFI)
-		status_WIFI = conectarWIFICon(CLAVES_SSID_santi, CLAVES_PASSWORD_SANTI); // si no se pudo, probar con el de santi
-	if (!status_WIFI)
+	if (!status_wifi)
+		status_wifi = conectarWiFiCon(CLAVES_SSID_ESCUELA, CLAVES_PASSWORD_ESCUELA); // conectar al WiFi de la escuela
+	if (!status_wifi)
+		status_wifi = conectarWiFiCon(CLAVES_SSID_NONI, CLAVES_PASSWORD_NONI); // si no se pudo, probar con el de noni
+	if (!status_wifi)
+		status_wifi = conectarWiFiCon(CLAVES_SSID_santi, CLAVES_PASSWORD_SANTI); // si no se pudo, probar con el de santi
+	if (!status_wifi)
 	{
-		imprimirln("No se encuentra red WIFI.");
-		displayErrorWIFI();
+		imprimirln("No se encuentra red WiFi.");
+		displayErrorWiFi();
 		if (parar_programa) { while (1) ; }
-		// TODO: mejorar el aviso de no encuentro de red WIFI
+		// TODO: mejorar el aviso de no encuentro de red WiFi
 	}
 	else
 	{
 		// conectar el bot a Telegram e inicializar ThingSpeak
 		Bot.setTelegramToken(CLAVES_BOT_TOKEN);
 		inicializarThingSpeak();
-		inicializarTiempoUnix(); // IMPORTANTE LLAMAR A ESTA FUNCIÓN AL TENER WIFI
+		inicializarTiempoUnix(); // IMPORTANTE LLAMAR A ESTA FUNCIÓN AL TENER WiFi
 	}
 }
 
 //==================================================================================================================//
 
-bool conectarWIFICon(const String& Assid, const String& Apassword) // en "setup()"
+bool conectarWiFiCon(const String& Assid, const String& Apassword) // en "setup()"
 {
-	bool stat_WIFI;
-	String res_WIFI;
-	stat_WIFI = Bot.wifiConnect(Assid, Apassword);
-	res_WIFI = stat_WIFI ? "Conectado a la red:\n" : "No se pudo conectar a: ";
+	bool stat_WiFi;
+	String res_WiFi;
+	stat_WiFi = Bot.wifiConnect(Assid, Apassword);
+	res_WiFi = stat_WiFi ? "Conectado a la red:\n" : "No se pudo conectar a: ";
 
 	// imprimir el resultado de cada intento
-	imprimirln(res_WIFI + String(Assid));
+	imprimirln(res_WiFi + String(Assid));
 	// si se pudo conectar, imprimir un mensaje en el display (con el SSID conectado)
-	if (stat_WIFI)
-		displayConexionWIFI(res_WIFI, Assid);
+	if (stat_WiFi)
+		displayConexionWiFi(res_WiFi, Assid);
 
-	return stat_WIFI;
+	return stat_WiFi;
 }
 
 // anterior sistema para recibir un mensaje de cambio de parámetros (int)

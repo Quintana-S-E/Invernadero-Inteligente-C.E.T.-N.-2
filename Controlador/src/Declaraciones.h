@@ -123,9 +123,9 @@ void desactivarVentilacion();
 unsigned long ultima_vez_display_actualizo = 0;
 void inicializarDisplay();
 void cambiarDatoDisplay();
-void displayConectandoWIFI();
-void displayErrorWIFI();
-void displayConexionWIFI(String Amensaje_conectado_a, String Assid_conectada);
+void displayConectandoWiFi();
+void displayErrorWiFi();
+void displayConexionWiFi(String Amensaje_conectado_a, String Assid_conectada);
 void actualizarDisplay();
 void displayHumedadAire();
 void displayHumedadSuelo();
@@ -159,15 +159,15 @@ inline bool inicializarThingSpeak();
 #define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
 #define DELAY_COMPROBACION_WIFI				60000UL		// cada un minuto comprueba la conexión a WiFi
 unsigned long ultima_vez_alarma_funciono = 0;
-unsigned long ultima_vez_comprobacion_WIFI = 0;
+unsigned long ultima_vez_comprobacion_wifi = 0;
 String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()
 uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en chequearAlarma()
 uint16_t 	chat_numero_entrada_int;	// cuando preguntamos por un número entero de entrada
 float		chat_numero_entrada_float;	// cuando preguntamos por un número con decimal de entrada
 bool		chat_primer_mensaje = true; // para chequearMensajesRecibidosTelegram()
 // WiFi
-void conectarWIFI(bool parar_programa);
-bool conectarWIFICon(const String& Assid, const String& Apassword);
+void conectarWiFi(bool parar_programa);
+bool conectarWiFiCon(const String& Assid, const String& Apassword);
 void chequearConexion();
 // funciones varias
 void chequearMensajesRecibidosTelegram();

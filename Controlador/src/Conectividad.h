@@ -3,7 +3,7 @@
 #include "Declaraciones.h"
 
 /*
-Función conectarWIFI():
+Función conectarWiFi():
 Queremos que inicialice bluetooth por un tiempo definido (2 minutos) y que espere a que le lleguen serial strings desde la app.
 Necesitamos SSID, PASS, username y pass de firebase (usar wifiMulti.addAP()). Usaremos WiFiMulti Tutorial de la App:
 

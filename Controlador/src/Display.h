@@ -37,29 +37,29 @@ void cambiarDatoDisplay()
 
 //==================================================================================================================//
 
-void displayConectandoWIFI() // en "setup()"
+void displayConectandoWiFi() // en "setup()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2);
 	Display.setCursor(0, 0);
-	Display.print("Conectando\na WIFI...");
+	Display.print("Conectando\na WiFi...");
 	Display.display();
 }
 
 //==================================================================================================================//
 
-void displayErrorWIFI() // en "setup()"
+void displayErrorWiFi() // en "setup()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2);
 	Display.setCursor(0, 0);
-	Display.print("No se\nencuentra\nred WIFI.");
+	Display.print("No se\nencuentra\nred WiFi.");
 	Display.display();
 }
 
 //==================================================================================================================//
 
-void displayConexionWIFI(String Amensaje_conectado_a, String Assid_conectada) // en "conectarWIFICon()"
+void displayConexionWiFi(String Amensaje_conectado_a, String Assid_conectada) // en "conectarWiFiCon()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2); // en grande:
