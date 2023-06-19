@@ -560,6 +560,7 @@ void conectarWIFI(bool parar_programa)
 		// conectar el bot a Telegram e inicializar ThingSpeak
 		Bot.setTelegramToken(CLAVES_BOT_TOKEN);
 		inicializarThingSpeak();
+		inicializarTiempoUnix(); // IMPORTANTE LLAMAR A ESTA FUNCIÓN AL TENER WIFI
 	}
 }
 

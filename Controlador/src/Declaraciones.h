@@ -10,6 +10,7 @@
 #include <EEPROM.h>
 #include <ESP32Servo.h>
 #include <ThingSpeak.h>
+#include "time.h" // tiempo unix
 #include <Wire.h> // I2C
 #include <WiFi.h> // Gráficos.h
 
@@ -66,6 +67,10 @@ bool ventilando				= false;
 bool esperando_riego		= false; // para chequearRiego()
 
 // Tiempo.h
+#define SERVIDOR_NTP "pool.ntp.org"
+bool tiempo_unix_configurado = false;
+inline void inicializarTiempoUnix();
+unsigned long obtenerTiempoUnix();
 String mensajeSegundosATiempo(unsigned long segundos);
 
 

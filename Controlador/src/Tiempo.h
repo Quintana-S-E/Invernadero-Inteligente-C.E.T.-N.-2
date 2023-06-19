@@ -2,6 +2,31 @@
 
 #include "Declaraciones.h"
 
+void inicializarTiempoUnix()
+{
+	if (!tiempo_unix_configurado)
+	{
+		configTime(0, 0, SERVIDOR_NTP);
+		tiempo_unix_configurado = true;
+	}
+}
+
+//==================================================================================================================//
+
+unsigned long obtenerTiempoUnix()
+{
+	time_t ahora;
+	struct tm timeinfo;
+	if (!getLocalTime(&timeinfo)) {
+		// no se obtuvo el tiempo
+		return(0);
+	}
+	time(&ahora);
+	return ahora;
+}
+
+//==================================================================================================================//
+
 String mensajeSegundosATiempo(unsigned long segundos)
 {
 	int minutos =			segundos / 60;
