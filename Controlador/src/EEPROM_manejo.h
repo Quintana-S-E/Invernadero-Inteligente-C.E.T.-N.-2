@@ -51,6 +51,8 @@ void leerEEPROMProgramada() // en "chequearEEPROMProgramada()"
 	EEPROM.get(direccion[DIR_ALARMA_ACTIVADA],			alarma_activada);
 	EEPROM.get(direccion[DIR_TIEMPO_BOMBEO_SEGUNDOS],	tiempo_bombeo_segundos);
 	EEPROM.get(direccion[DIR_TIEMPO_ESPERA_MINUTOS],	tiempo_espera_minutos);
+	EEPROM.get(direccion[DIR_TIENE_CONFIG_INICIAL],		tiene_config_inicial);
+	EEPROM.get(direccion[DIR_TIENE_WIFI],				tiene_wifi);
 	EEPROM.end();
 }
 //	*1 no es necesario, ya que en chequearEEPROMProgramada se le asignó true para poder entrar a esta función, y
@@ -68,6 +70,8 @@ void cargarValoresPorDefecto()
 	alarma_activada =			ALARMA_ACTIVADA_DEFECTO;
 	tiempo_bombeo_segundos =	TIEMPO_BOMBEO_SEGUNDOS_DEFECTO;
 	tiempo_espera_minutos =		TIEMPO_ESPERA_MINUTOS_DEFECTO;
+	tiene_config_inicial =		TIENE_CONFIG_INICIAL_DEFECTO;
+	tiene_wifi =				TIENE_WIFI_DEFECTO;
 
 	EEPROM.begin(espacios_EEPROM);
 	EEPROM.put(direccion[DIR_EEPROM_PROGRAMADA],		EEPROM_programada);
@@ -79,6 +83,8 @@ void cargarValoresPorDefecto()
 	EEPROM.put(direccion[DIR_ALARMA_ACTIVADA],			alarma_activada);
 	EEPROM.put(direccion[DIR_TIEMPO_BOMBEO_SEGUNDOS],	tiempo_bombeo_segundos);
 	EEPROM.put(direccion[DIR_TIEMPO_ESPERA_MINUTOS],	tiempo_espera_minutos);
+	EEPROM.put(direccion[DIR_TIENE_CONFIG_INICIAL],		tiene_config_inicial);
+	EEPROM.put(direccion[DIR_TIENE_WIFI],				tiene_wifi);
 	EEPROM.commit(); // efectivamente escribir
 	EEPROM.end();
 }
@@ -109,6 +115,8 @@ void imprimirEEPROMValsDirsReads()
 	Serial.println(alarma_activada);
 	Serial.println(tiempo_bombeo_segundos);
 	Serial.println(tiempo_espera_minutos);
+	Serial.println(tiene_config_inicial);
+	Serial.println(tiene_wifi);
 	Serial.println();
 
 	Serial.println("Valores de las direcciones:");
@@ -147,11 +155,12 @@ void setDireccionesEEPROM()
 	direccion[1] = direccion[0] + 1;//bool EEPROM_programada
 	direccion[2] = direccion[1] + 4;//float	temp_maxima_alarma
 	direccion[3] = direccion[2] + 4;//float	temp_minima_alarma
-	direccion[5] = direccion[3] + 4;//float	temp_maxima_ventilacion
-	direccion[6] = direccion[4] + 1;//int	humedad_suelo_minima
-	direccion[7] = direccion[5] + 2;//int	lapso_alarma_minutos
-	direccion[8] = direccion[6] + 1;//bool	alarma_activada
-	direccion[9] = direccion[7] + 2;//int	tiempo_bombeo_segundos
- espacios_EEPROM = direccion[8] + 2;//int	tiempo_espera_minutos
+	direccion[4] = direccion[3] + 4;//float	temp_maxima_ventilacion
+	direccion[5] = direccion[4] + 1;//int	humedad_suelo_minima
+	direccion[6] = direccion[5] + 2;//int	lapso_alarma_minutos
+	direccion[7] = direccion[6] + 1;//bool	alarma_activada
+	direccion[8] = direccion[7] + 2;//int	tiempo_bombeo_segundos
+	direccion[9] = direccion[8] + 2;//int	tiempo_espera_minutos
+ espacios_EEPROM = direccion[9] + 1;//bool	tiene_config_inicial
 }
 */

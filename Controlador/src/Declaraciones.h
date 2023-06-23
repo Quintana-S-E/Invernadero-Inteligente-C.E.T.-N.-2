@@ -6,13 +6,15 @@
 #include <Adafruit_SSD1306.h> // display OLED
 #include <AHT10.h>
 #include <ArduinoJson.h>
+#include "BluetoothSerial.h"
 #include <CTBot.h>
 #include <EEPROM.h>
 #include <ESP32Servo.h>
 #include <ThingSpeak.h>
 #include "time.h" // tiempo unix
 #include <Wire.h> // I2C
-#include <WiFi.h> // Gráficos.h
+#include <WiFi.h>
+#include <WiFiMulti.h>
 
 //#define DEBUGserial // Comentar para eliminar los Serial.print
 #ifdef DEBUGserial
@@ -154,6 +156,23 @@ inline bool inicializarThingSpeak();
 #define FIELD_HUM_SUELO_INT	5
 #define FIELD_HUM_SUELO_EXT	6
 
+
+// Conectividad.h
+#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION		60000UL // 4 minutos
+#define BLUETOOTH_PRIMER_LINEA_SIN_WIFI			"NW" // No WiFi
+#define BLUETOOTH_PRIMER_LINEA_SOLO_WIFI		"SW" // Solo WiFi
+#define BLUETOOTH_PRIMER_LINEA_WIFI_FIREBASE	"WF" // WiFi Firebase
+#define BLUETOOTH_TEST_CARACTER					'$'
+#define BLUETOOTH_NOMBRE						"Invernadero Inteligente"
+bool configuracionInicial();
+bool decodificarMensaje(char primer_caracter);
+void configSinWiFi();
+void configWiFi();
+void configWiFiFirebase();
+void guardarRedWiFi(const char* ssid, const char *password_wifi = NULL);
+void guardarDatosFirebase(String email, String password_firebase, String api_key);
+
+
 // Telegram.h
 // variables
 #define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
@@ -211,6 +230,8 @@ void escribirEEPROM(int Adireccion, T Adato); // template <typename T> T leerEEP
 #define ALARMA_ACTIVADA_DEFECTO			true
 #define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
 #define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
+#define TIENE_CONFIG_INICIAL_DEFECTO	false
+#define TIENE_WIFI_DEFECTO				true
 bool		EEPROM_programada;			// 0.	para verificar si está programada o no la EEPROM
 float		temp_maxima_alarma;			// 1.
 float		temp_minima_alarma;			// 2.
@@ -220,6 +241,8 @@ uint16_t	lapso_alarma_minutos;		// 5.	60 minutos (máx 65535 min o 1092 horas o 
 bool		alarma_activada;			// 6.
 uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
 uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
+bool		tiene_config_inicial;		// 9.
+bool		tiene_wifi;					//10.
 // manejo de las direcciones de la EEPROM
 enum EEPROMDireccionesVariables
 {
@@ -232,10 +255,12 @@ enum EEPROMDireccionesVariables
 	DIR_ALARMA_ACTIVADA,
 	DIR_TIEMPO_BOMBEO_SEGUNDOS,
 	DIR_TIEMPO_ESPERA_MINUTOS,
+	DIR_TIENE_CONFIG_INICIAL,
+	DIR_TIENE_WIFI,
 	CANT_VARIABLES_EEPROM
 };
-										// bool, float, float, float, int8, int, bool, int, int
-const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 4, 4, 4, 1, 2, 1, 2, 2};
+										// bool, float, float, float, int8, int, bool, int, int, bool, bool
+const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 4, 4, 4, 1, 2, 1, 2, 2, 1, 1};
 int direccion[CANT_VARIABLES_EEPROM];
 int espacios_EEPROM;
 
@@ -243,7 +268,8 @@ int espacios_EEPROM;
 // Clases
 CTBot Bot;
 Servo Ventana;
-WiFiClient Cliente;
+WiFiMulti WiFiMultiO;
+BluetoothSerial BTSerial;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
 AHT10Mux AhtInteriorHigh(AHT_INT_HIGH_MUX_PIN);
