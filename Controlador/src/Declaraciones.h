@@ -162,7 +162,7 @@ inline bool inicializarThingSpeak();
 #define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010 // (·) No WiFi
 #define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101 // (≡) Si WiFi
 #define BLUETOOTH_TEST_BYTE					0b11111111 // ( ) non-breaking space
-#define BLUETOOTH_NOMBRE					"Invernadero Inteligente"
+#define BLUETOOTH_NOMBRE					"Invernadero inteligente"
 int8_t intentos_bluetooth = 0;
 bool configuracionInicial();
 bool decodificarMensaje(byte primer_byte);

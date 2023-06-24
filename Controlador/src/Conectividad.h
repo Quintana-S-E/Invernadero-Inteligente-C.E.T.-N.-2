@@ -15,6 +15,7 @@ bool configuracionInicial()
 		return false;
 	}
 	BTSerial.begin(BLUETOOTH_NOMBRE);
+	//Serial.println("Bluetooth encendido");
 	unsigned long tiempo_0_bluetooth = millis();
 	byte byte_prueba = 0;
 	do
@@ -22,6 +23,7 @@ bool configuracionInicial()
 		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIGURACION)
 		{
 			// timeout
+			//Serial.println("Pasó demasiado tiempo");
 			BTSerial.end();
 			tiene_wifi = false; // si no tiene wifi?
 			return false;
@@ -29,8 +31,12 @@ bool configuracionInicial()
 		if (BTSerial.available() > 0)
 			byte_prueba = BTSerial.read();
 	} while (BTSerial.available() == 0 || byte_prueba == BLUETOOTH_TEST_BYTE  ||  byte_prueba == 0); // Por el \0
+	//Serial.println("Mensaje distinto del byte de prueba");
 	if(!decodificarMensaje(byte_prueba))
+	{
 		configuracionInicial();
+		//Serial.println("no es ninguno, volviendo a llamar");
+	}
 	BTSerial.end();
 	return true;
 }
@@ -40,6 +46,7 @@ bool configuracionInicial()
 // Devuelve verdadero si se decodificó qué tipo de mensaje envió la aplicación. Falso si no.
 bool decodificarMensaje(byte primer_byte)
 {
+	//Serial.println(primer_byte);
 	BTSerial.read(); // deshacernos del \n
 	// si es el byte de sin WiFi o si no se envió nada más que ese byte
 	if (primer_byte == BLUETOOTH_PRIMER_BYTE_SIN_WIFI  ||  !BTSerial.available())
@@ -57,6 +64,7 @@ bool decodificarMensaje(byte primer_byte)
 
 void configSinWiFi()
 {
+	//Serial.println("config sin wifi");
 	tiene_wifi = false;
 	escribirEEPROM(direccion[DIR_TIENE_WIFI], tiene_wifi);
 	// poner mensaje en display
@@ -70,6 +78,10 @@ void configConWiFi()
 	char password_wifi[32];
 	BTSerial.readBytesUntil('\n', ssid, sizeof(ssid));
 	BTSerial.readBytesUntil('\n', password_wifi, sizeof(password_wifi));
+	Serial.print("SSID: ");
+	//Serial.println(ssid);
+	//Serial.print("PASS: ");
+	//Serial.println(password_wifi);
 	guardarRedWiFi(ssid, password_wifi);
 }
 
