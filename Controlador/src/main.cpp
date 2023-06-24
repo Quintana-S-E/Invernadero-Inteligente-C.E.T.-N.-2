@@ -54,6 +54,8 @@ void setup()
 	// leer o escribir la EEPROM
 	chequearEEPROMProgramada();
 
+	// Después de leer la eeprom debemos hacer configuración inicial y conexión a WiFi
+
 	delay(5000);
 	imprimirln("Setup finalizado!");
 }

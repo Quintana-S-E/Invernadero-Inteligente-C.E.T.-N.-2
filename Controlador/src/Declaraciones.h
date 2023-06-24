@@ -159,19 +159,16 @@ inline bool inicializarThingSpeak();
 
 // Conectividad.h
 #define BLUETOOTH_TIEMPO_MAX_CONFIGURACION	60000UL // 4 minutos
-#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111110 // (■) No WiFi
-#define BLUETOOTH_PRIMER_BYTE_SOLO_WIFI		0b11111010 // (·) Solo WiFi
-#define BLUETOOTH_PRIMER_BYTE_WIFI_FIREBASE	0b11101010 // (Ω) WiFi Firebase
+#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010 // (·) No WiFi
+#define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101 // (≡) Si WiFi
 #define BLUETOOTH_TEST_BYTE					0b11111111 // ( ) non-breaking space
 #define BLUETOOTH_NOMBRE					"Invernadero Inteligente"
 int8_t intentos_bluetooth = 0;
 bool configuracionInicial();
-bool decodificarMensaje(char primer_caracter);
+bool decodificarMensaje(byte primer_byte);
 void configSinWiFi();
-void configWiFi();
-void configWiFiFirebase();
+void configConWiFi();
 void guardarRedWiFi(const char* ssid, const char *password_wifi = NULL);
-void guardarDatosFirebase(String email, String password_firebase, String api_key);
 
 
 // Telegram.h
