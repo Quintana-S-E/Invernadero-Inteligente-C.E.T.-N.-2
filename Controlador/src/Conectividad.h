@@ -7,13 +7,16 @@ bool configuracionInicial()
 {
 	if (tiene_config_inicial)
 		return true;
+	intentos_bluetooth++; // Es recursiva. decodificarMensaje() puede re-llamarla si no se identifica el tipo de dato enviado
+    if (intentos_bluetooth > 15)
+      return false;
 	BTSerial.begin(BLUETOOTH_NOMBRE);
 	unsigned long tiempo_0_bluetooth = millis();
-	char caracter_prueba;
+	byte byte_prueba = 0;
 	do
 	{
 		if (BTSerial.available() > 0)
-			caracter_prueba = BTSerial.read();
+			byte_prueba = BTSerial.read();
 		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIGURACION)
 		{
 			// pasó el tiempo
@@ -21,8 +24,8 @@ bool configuracionInicial()
 			tiene_wifi = false; // si no tiene wifi?
 			return false;
 		}
-	} while (BTSerial.available() == 0 || caracter_prueba == BLUETOOTH_TEST_CARACTER  ||  caracter_prueba == '\0');
-	bool resultado = decodificarMensaje(caracter_prueba);
+	} while (BTSerial.available() == 0 || byte_prueba == BLUETOOTH_TEST_BYTE  ||  byte_prueba == 0); // Por el \0
+	bool resultado = decodificarMensaje(byte_prueba);
 	BTSerial.end();
 	return resultado;
 }
@@ -30,28 +33,27 @@ bool configuracionInicial()
 //==================================================================================================================//
 
 // Devuelve verdadero si se obtuvo el dato que se quería de la aplicación. Falso si no.
-bool decodificarMensaje(char primer_caracter)
+bool decodificarMensaje(byte primer_byte)
 {
 	bool resultado_esperado = false;
-	char mensaje_primer_linea[2];
-	mensaje_primer_linea[0] = primer_caracter;
-	mensaje_primer_linea[1] = BTSerial.read();
 	BTSerial.read(); // deshacernos del \n
-	if (mensaje_primer_linea == BLUETOOTH_PRIMER_LINEA_SIN_WIFI)
+	if (primer_byte == BLUETOOTH_PRIMER_BYTE_SIN_WIFI)
 	{
 		configSinWiFi();
 		resultado_esperado = true;
 	}
-	else if (mensaje_primer_linea == BLUETOOTH_PRIMER_LINEA_SOLO_WIFI)
+	else if (primer_byte == BLUETOOTH_PRIMER_BYTE_SOLO_WIFI)
 	{
 		configWiFi();
 		resultado_esperado = true;
 	}
-	else if (mensaje_primer_linea == BLUETOOTH_PRIMER_LINEA_WIFI_FIREBASE)
+	else if (primer_byte == BLUETOOTH_PRIMER_BYTE_WIFI_FIREBASE)
 	{
 		configWiFiFirebase();
 		resultado_esperado = true;
 	}
+	else
+		configuracionInicial(); // Hubo un error, volvemos a establecer comunicación
 	if (!resultado_esperado)
 		return false;
 	tiene_config_inicial = true;

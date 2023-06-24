@@ -158,12 +158,13 @@ inline bool inicializarThingSpeak();
 
 
 // Conectividad.h
-#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION		60000UL // 4 minutos
-#define BLUETOOTH_PRIMER_LINEA_SIN_WIFI			"NW" // No WiFi
-#define BLUETOOTH_PRIMER_LINEA_SOLO_WIFI		"SW" // Solo WiFi
-#define BLUETOOTH_PRIMER_LINEA_WIFI_FIREBASE	"WF" // WiFi Firebase
-#define BLUETOOTH_TEST_CARACTER					'$'
-#define BLUETOOTH_NOMBRE						"Invernadero Inteligente"
+#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION	60000UL // 4 minutos
+#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111110 // (■) No WiFi
+#define BLUETOOTH_PRIMER_BYTE_SOLO_WIFI		0b11111010 // (·) Solo WiFi
+#define BLUETOOTH_PRIMER_BYTE_WIFI_FIREBASE	0b11101010 // (Ω) WiFi Firebase
+#define BLUETOOTH_TEST_BYTE					0b11111111 // ( ) non-breaking space
+#define BLUETOOTH_NOMBRE					"Invernadero Inteligente"
+int8_t intentos_bluetooth = 0;
 bool configuracionInicial();
 bool decodificarMensaje(char primer_caracter);
 void configSinWiFi();
