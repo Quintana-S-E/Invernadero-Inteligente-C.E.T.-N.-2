@@ -35,6 +35,7 @@ bool configuracionInicial()
 	{
 		limpiarBufferBluetooth();
 		//Serial.println("no es ninguno, volviendo a llamar");
+		// TODO IMPORTANTE: MOSTRAR EN EL DISPLAY QUE HAY QUE REPETIR LA CONFIGURACIÓN
 		configuracionInicial();
 	}
 	BTSerial.end();
@@ -66,7 +67,7 @@ void decodificarSinWiFi()
 	//Serial.println("config sin wifi");
 	tiene_wifi = false;
 	escribirEEPROM(direccion[DIR_TIENE_WIFI], tiene_wifi);
-	// poner mensaje en display
+	// TODO: poner mensaje en display
 }
 
 //==================================================================================================================//
@@ -111,6 +112,7 @@ void decodificarConWiFi()
 	//Serial.println(ssid);
 	//Serial.print("PASS: ");
 	//Serial.println(password_wifi);
+	//TODO: MOSTRAR EN EL DISPLAY LAS CREDENCIALES AÑADIDAS 
 	guardarRedWiFi(ssid, password_wifi);
 }
 
@@ -123,7 +125,7 @@ void guardarRedWiFi(const char *ssid, const char *password_wifi)
 		WiFiMultiO.addAP(ssid);
 	else
 		WiFiMultiO.addAP(ssid, password_wifi);
-	// y acá hacemos lo de JSON
+	// TODO: y acá hacemos lo de JSON
 }
 
 //==================================================================================================================//
