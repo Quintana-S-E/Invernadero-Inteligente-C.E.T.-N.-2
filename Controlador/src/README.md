@@ -10,17 +10,15 @@ De este modo, para cambiar una funcionalidad del controlador, casi siempre basta
 
 ### Librerías utilizadas (sujeto a cambios y dependiente de la versión)
 + [Adafruit_GFX](https://github.com/adafruit/Adafruit-GFX-Library)
-+ [Adafruit_Sensor](https://github.com/adafruit/Adafruit_Sensor)
 + [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
 + [AHT10 (enjoyneering)](https://github.com/enjoyneering/AHT10)
 + Arduino
 + Arduino EEPROM
 + Arduino Json
 + Arduino Wire
++ [BluetoothSerial (arduino-esp32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/BluetoothSerial)
 + [CTBot (Stefano Ledda)](https://github.com/shurillu/CTBot)
-+ [ESP32 Servo (Kevin Harrington)](https://github.com/jkb-git/ESP32Servo)
-+ [ThingSpeak (MathWorks)](https://github.com/mathworks/thingspeak-arduino)
-
++ [WiFi (arduino-esp32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi)
 \+ cualquier dependencia.
 
 ### Changelog

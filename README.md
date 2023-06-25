@@ -14,8 +14,6 @@ En la carpeta [Código/src](https://github.com/Quintana-S-E/Invernadero-intelige
 ### Próximos cambios (software)
 #### Por implementar
 + [x] Definir posible utilización de una app para comandos y/o gráficos.
-+ [ ] Definir adaptación del teclado para introducir configuraciones en un menú inicial (teclas estilo nokia 3 toques).
-+ [ ] Que los datos del display no cambien solos, sino con un botón (del teclado, si es posible) y un interrupt.
 + [ ] Ajustar los porcentajes de humedad del suelo probando tierra real.
 + [ ] Mejorar el aviso de “No se encuentra red WiFi” (de mantenerse el sistema).
 + [ ] Añadir en /info el tiempo que pasó desde el último riego (todo escrito y comentado en el final de Telegram.h).

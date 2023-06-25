@@ -2,15 +2,12 @@
 
 #include <Arduino.h>
 #include <Adafruit_GFX.h>	  // display OLED
-#include <Adafruit_Sensor.h>
 #include <Adafruit_SSD1306.h> // display OLED
 #include <AHT10.h>
 #include <ArduinoJson.h>
 #include "BluetoothSerial.h"
 #include <CTBot.h>
 #include <EEPROM.h>
-#include <ESP32Servo.h>
-#include <ThingSpeak.h>
 #include "time.h" // tiempo unix
 #include <Wire.h> // I2C
 #include <WiFi.h>
@@ -266,7 +263,6 @@ int espacios_EEPROM;
 
 // Clases
 CTBot Bot;
-Servo Ventana;
 WiFiMulti WiFiMultiO;
 BluetoothSerial BTSerial;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
