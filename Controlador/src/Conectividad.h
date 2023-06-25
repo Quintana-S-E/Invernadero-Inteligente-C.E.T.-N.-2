@@ -22,20 +22,20 @@ bool configuracionInicial()
 	{
 		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIGURACION)
 		{
-			// timeout
 			//Serial.println("Pasó demasiado tiempo");
 			BTSerial.end();
-			tiene_wifi = false; // si no tiene wifi?
+			tiene_wifi = false;
 			return false;
 		}
 		if (BTSerial.available() > 0)
 			byte_prueba = BTSerial.read();
-	} while (BTSerial.available() == 0 || byte_prueba == BLUETOOTH_TEST_BYTE  ||  byte_prueba == 0); // Por el \0
+	} while (BTSerial.available() == 0 || byte_prueba == BLUETOOTH_TEST_BYTE);
 	//Serial.println("Mensaje distinto del byte de prueba");
 	if(!decodificarMensaje(byte_prueba))
 	{
-		configuracionInicial();
+		limpiarBufferBluetooth();
 		//Serial.println("no es ninguno, volviendo a llamar");
+		configuracionInicial();
 	}
 	BTSerial.end();
 	return true;
@@ -48,11 +48,10 @@ bool decodificarMensaje(byte primer_byte)
 {
 	//Serial.println(primer_byte);
 	BTSerial.read(); // deshacernos del \n
-	// si es el byte de sin WiFi o si no se envió nada más que ese byte
-	if (primer_byte == BLUETOOTH_PRIMER_BYTE_SIN_WIFI  ||  !BTSerial.available())
-		configSinWiFi();
+	if (primer_byte == BLUETOOTH_PRIMER_BYTE_SIN_WIFI)
+		decodificarSinWiFi();
 	else if (primer_byte == BLUETOOTH_PRIMER_BYTE_CON_WIFI)
-		configConWiFi();
+		decodificarConWiFi();
 	else
 		return false; // No se identificó el tipo de dato
 	tiene_config_inicial = true;
@@ -62,7 +61,7 @@ bool decodificarMensaje(byte primer_byte)
 
 //==================================================================================================================//
 
-void configSinWiFi()
+void decodificarSinWiFi()
 {
 	//Serial.println("config sin wifi");
 	tiene_wifi = false;
@@ -72,13 +71,43 @@ void configSinWiFi()
 
 //==================================================================================================================//
 
-void configConWiFi()
+void decodificarConWiFi()
 {
+	// Muy sucio, pero no me meto con pointers para hacer una función que lea el buffer. BTSerial.readBytesUntil no funcionaba :S
 	char ssid[32];
 	char password_wifi[32];
-	BTSerial.readBytesUntil('\n', ssid, sizeof(ssid));
-	BTSerial.readBytesUntil('\n', password_wifi, sizeof(password_wifi));
-	Serial.print("SSID: ");
+	static byte ndx = 0;
+    char incom_char;
+    bool llenando_password = false, listo_password = false;
+    while (BTSerial.available() > 0 && !listo_password)
+	{
+        incom_char = BTSerial.read();
+        if (incom_char != '\n')
+		{
+			if (llenando_password)
+				password_wifi[ndx] = incom_char;
+			else
+            	ssid[ndx] = incom_char;
+            ndx++;
+            if (ndx >= 32)
+                ndx = 32 - 1;
+        }
+        else
+		{
+			if (llenando_password)
+			{
+				password_wifi[ndx] = '\0';
+				listo_password = true;
+			}
+			else
+			{
+            	ssid[ndx] = '\0';
+				llenando_password = true;
+				ndx = 0;
+			}
+        }
+	}
+	//Serial.print("SSID: ");
 	//Serial.println(ssid);
 	//Serial.print("PASS: ");
 	//Serial.println(password_wifi);
@@ -87,7 +116,8 @@ void configConWiFi()
 
 //==================================================================================================================//
 
-void guardarRedWiFi(const char *ssid, const char *password_wifi = "NULL")
+// Enviar "NULL" si es WiFi público
+void guardarRedWiFi(const char *ssid, const char *password_wifi)
 {
 	if (password_wifi == "NULL")
 		WiFiMultiO.addAP(ssid);
@@ -98,7 +128,13 @@ void guardarRedWiFi(const char *ssid, const char *password_wifi = "NULL")
 
 //==================================================================================================================//
 
-
+void limpiarBufferBluetooth()
+{
+	while(BTSerial.available() > 0)
+	{
+		BTSerial.read();
+	}
+}
 
 /*
 Función conectarWiFi():

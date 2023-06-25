@@ -166,9 +166,10 @@ inline bool inicializarThingSpeak();
 int8_t intentos_bluetooth = 0;
 bool configuracionInicial();
 bool decodificarMensaje(byte primer_byte);
-void configSinWiFi();
-void configConWiFi();
-void guardarRedWiFi(const char* ssid, const char *password_wifi = NULL);
+void decodificarSinWiFi();
+void decodificarConWiFi();
+void guardarRedWiFi(const char* ssid, const char *password_wifi);
+void limpiarBufferBluetooth();
 
 
 // Telegram.h
