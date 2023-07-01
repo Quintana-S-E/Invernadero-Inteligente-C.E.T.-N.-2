@@ -74,46 +74,36 @@ void decodificarSinWiFi()
 
 void decodificarConWiFi()
 {
-	// Muy sucio, pero no me meto con pointers para hacer una función que lea el buffer. BTSerial.readBytesUntil no funcionaba :S
 	char ssid[32];
 	char password_wifi[32];
-	static byte ndx = 0;
-    char incom_char;
-    bool llenando_password = false, listo_password = false;
-    while (BTSerial.available() > 0 && !listo_password)
-	{
-        incom_char = BTSerial.read();
-        if (incom_char != '\n')
-		{
-			if (llenando_password)
-				password_wifi[ndx] = incom_char;
-			else
-            	ssid[ndx] = incom_char;
-            ndx++;
-            if (ndx >= 32)
-                ndx = 32 - 1;
-        }
-        else
-		{
-			if (llenando_password)
-			{
-				password_wifi[ndx] = '\0';
-				listo_password = true;
-			}
-			else
-			{
-            	ssid[ndx] = '\0';
-				llenando_password = true;
-				ndx = 0;
-			}
-        }
-	}
+	// BTSerial.readBytesUntil no funcionaba :S
+	leerBTSerialHasta('\n', ssid, sizeof(ssid));
+	leerBTSerialHasta('\n', password_wifi, sizeof(password_wifi));
 	//Serial.print("SSID: ");
 	//Serial.println(ssid);
 	//Serial.print("PASS: ");
 	//Serial.println(password_wifi);
 	//TODO: MOSTRAR EN EL DISPLAY LAS CREDENCIALES AÑADIDAS 
 	guardarRedWiFi(ssid, password_wifi);
+}
+
+//==================================================================================================================//
+
+void leerBTSerialHasta(char terminador, char* array, int array_size)
+{
+	char incom_char;
+	for (int i = 0; i < array_size; i++)
+	{
+		incom_char = BTSerial.read();
+		if (incom_char != terminador)
+			array[i] = incom_char;
+		else
+		{
+			array[i] = '\0';
+			break;
+		}
+	}
+
 }
 
 //==================================================================================================================//

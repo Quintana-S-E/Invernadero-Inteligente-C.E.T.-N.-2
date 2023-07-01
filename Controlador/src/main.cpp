@@ -18,7 +18,9 @@
 void setup()
 {
 	// inicializaciones varias
-	Serial.begin(9600);
+	#ifdef DEBUG_SERIAL
+		Serial.begin(9600);
+	#endif
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(LED_ROJO, OUTPUT);
 	pinMode(PIN_BOMBA, OUTPUT);
@@ -31,15 +33,6 @@ void setup()
 	digitalWrite(PIN_BOMBA, HIGH);
 	digitalWrite(PIN_VENTILADOR, HIGH);
 	// ver, para el futuro https://forum.arduino.cc/t/digitalwritefast-digitalreadfast-pinmodefast-etc/47037
-
-	// inicializar servo
-	ESP32PWM::allocateTimer(0);
-	ESP32PWM::allocateTimer(1);
-	ESP32PWM::allocateTimer(2);
-	ESP32PWM::allocateTimer(3);
-	Ventana.setPeriodHertz(50);
-	Ventana.attach(PIN_SERVO);
-	Ventana.write(ANGULO_CERRADO); // ya que "ventilando" se inicializa como false
 
 	// inicializar los sensores
 	inicializarSensores();

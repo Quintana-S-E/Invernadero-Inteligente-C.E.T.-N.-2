@@ -13,8 +13,8 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 
-//#define DEBUGserial // Comentar para eliminar los Serial.print
-#ifdef DEBUGserial
+#define DEBUG_SERIAL // Comentar para eliminar los Serial.print
+#ifdef DEBUG_SERIAL
 	#define imprimir(x) Serial.print(x)
 	#define imprimirln(x) Serial.println(x)
 #else
@@ -165,6 +165,7 @@ bool configuracionInicial();
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();
+void leerBTSerialHasta(char terminador, char* array, int array_size);
 void guardarRedWiFi(const char* ssid, const char *password_wifi);
 void limpiarBufferBluetooth();
 
