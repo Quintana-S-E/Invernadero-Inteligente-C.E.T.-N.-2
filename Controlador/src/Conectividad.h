@@ -6,38 +6,47 @@
 bool configuracionInicial()
 {
 	if (tiene_config_inicial)
+	{
+		// TODO: mensaje display
 		return true;
-	// Es recursiva. Se llama nuevamente si no se identifica el tipo de dato enviado
+	}
+	int8_t intentos_bluetooth = 0;
+	BTSerial.begin(BLUETOOTH_NOMBRE);
+	//Serial.println("Bluetooth encendido");
+
+reintentar:
 	intentos_bluetooth++;
     if (intentos_bluetooth == 10)
 	{
 		BTSerial.end();
 		return false;
 	}
-	BTSerial.begin(BLUETOOTH_NOMBRE);
-	//Serial.println("Bluetooth encendido");
+
 	unsigned long tiempo_0_bluetooth = millis();
-	byte byte_prueba = 0;
+	byte byte_recibido = BLUETOOTH_TEST_BYTE;
 	do
 	{
 		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIGURACION)
 		{
 			//Serial.println("Pasó demasiado tiempo");
+			// TODO: mensaje display
 			BTSerial.end();
 			tiene_wifi = false;
 			return false;
 		}
 		if (BTSerial.available() > 0)
-			byte_prueba = BTSerial.read();
-	} while (BTSerial.available() == 0 || byte_prueba == BLUETOOTH_TEST_BYTE);
+			byte_recibido = BTSerial.read();
+	} while (byte_recibido == BLUETOOTH_TEST_BYTE);
+
 	//Serial.println("Mensaje distinto del byte de prueba");
-	if(!decodificarMensaje(byte_prueba))
+	if(!decodificarMensaje(byte_recibido))
 	{
 		limpiarBufferBluetooth();
 		//Serial.println("no es ninguno, volviendo a llamar");
 		// TODO IMPORTANTE: MOSTRAR EN EL DISPLAY QUE HAY QUE REPETIR LA CONFIGURACIÓN
-		configuracionInicial();
+		goto reintentar;
 	}
+
 	BTSerial.end();
 	return true;
 }
@@ -49,12 +58,14 @@ bool decodificarMensaje(byte primer_byte)
 {
 	//Serial.println(primer_byte);
 	BTSerial.read(); // deshacernos del \n
+
 	if (primer_byte == BLUETOOTH_PRIMER_BYTE_SIN_WIFI)
 		decodificarSinWiFi();
 	else if (primer_byte == BLUETOOTH_PRIMER_BYTE_CON_WIFI)
 		decodificarConWiFi();
 	else
 		return false; // No se identificó el tipo de dato
+
 	tiene_config_inicial = true;
 	escribirEEPROM(direccion[DIR_TIENE_CONFIG_INICIAL], tiene_config_inicial);
 	return true;
@@ -67,7 +78,7 @@ void decodificarSinWiFi()
 	//Serial.println("config sin wifi");
 	tiene_wifi = false;
 	escribirEEPROM(direccion[DIR_TIENE_WIFI], tiene_wifi);
-	// TODO: poner mensaje en display
+	// TODO: mensaje display
 }
 
 //==================================================================================================================//
@@ -76,23 +87,25 @@ void decodificarConWiFi()
 {
 	char ssid[32];
 	char password_wifi[32];
+
 	// BTSerial.readBytesUntil no funcionaba :S
 	leerBTSerialHasta('\n', ssid, sizeof(ssid));
 	leerBTSerialHasta('\n', password_wifi, sizeof(password_wifi));
+
 	//Serial.print("SSID: ");
 	//Serial.println(ssid);
 	//Serial.print("PASS: ");
 	//Serial.println(password_wifi);
-	//TODO: MOSTRAR EN EL DISPLAY LAS CREDENCIALES AÑADIDAS 
+	// TODO: mensaje display de las credenciales añadidas
 	guardarRedWiFi(ssid, password_wifi);
 }
 
 //==================================================================================================================//
 
-void leerBTSerialHasta(char terminador, char* array, int array_size)
+void leerBTSerialHasta(char terminador, char* array, size_t longitud)
 {
 	char incom_char;
-	for (int i = 0; i < array_size; i++)
+	for (size_t i = 0; i < longitud; i++)
 	{
 		incom_char = BTSerial.read();
 		if (incom_char != terminador)
@@ -123,9 +136,7 @@ void guardarRedWiFi(const char *ssid, const char *password_wifi)
 void limpiarBufferBluetooth()
 {
 	while(BTSerial.available() > 0)
-	{
 		BTSerial.read();
-	}
 }
 
 /*

@@ -165,7 +165,7 @@ bool configuracionInicial();
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();
-void leerBTSerialHasta(char terminador, char* array, int array_size);
+void leerBTSerialHasta(char terminador, char* array, size_t longitud);
 void guardarRedWiFi(const char* ssid, const char *password_wifi);
 void limpiarBufferBluetooth();
 

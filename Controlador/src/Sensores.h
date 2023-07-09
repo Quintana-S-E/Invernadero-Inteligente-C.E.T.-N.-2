@@ -27,8 +27,8 @@ float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
 void establecerSalidaMUX(uint8_t salida)
 {
 	bool bits[4]; // últimos 4 bits del número
-	for (int i = 0;  i < 4;  ++i)
-		bits[i] =  0 != (salida & (1 << i));
+	for (int i = 0;  i < 4;  i++)
+		bits[i] =  (salida >> i) & 1;
 
 	digitalWrite(MUX_EN, LOW);
 	digitalWrite(MUX_S0, bits[0]);
