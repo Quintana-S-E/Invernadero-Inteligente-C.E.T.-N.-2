@@ -155,18 +155,17 @@ inline bool inicializarThingSpeak();
 
 
 // Conectividad.h
-#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION	60000UL // 4 minutos
-#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010 // (·) No WiFi
-#define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101 // (≡) Si WiFi
-#define BLUETOOTH_TEST_BYTE					0b11111111 // ( ) non-breaking space
+#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION	60000UL		// 4 minutos
+#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010	// caracter · (No WiFi)
+#define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101	// caracter ≡ (Si WiFi)
+#define BLUETOOTH_TEST_BYTE					0b11111111	// caracter   non-breaking space
 #define BLUETOOTH_NOMBRE					"Invernadero inteligente"
-int8_t intentos_bluetooth = 0;
 bool configuracionInicial();
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();
 void leerBTSerialHasta(char terminador, char* array, size_t longitud);
-void guardarRedWiFi(const char* ssid, const char *password_wifi);
+void guardarRedWiFi(const char* ssid, const char* password_wifi);
 void limpiarBufferBluetooth();
 
 

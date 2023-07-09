@@ -18,6 +18,7 @@ reintentar:
 	intentos_bluetooth++;
     if (intentos_bluetooth == 10)
 	{
+		// TODO: mensaje display
 		BTSerial.end();
 		return false;
 	}
@@ -48,7 +49,7 @@ reintentar:
 	}
 
 	BTSerial.end();
-	return true;
+	return true; // El mensaje exitoso del display lo ponen las funciones de decodificación
 }
 
 //==================================================================================================================//
@@ -122,7 +123,7 @@ void leerBTSerialHasta(char terminador, char* array, size_t longitud)
 //==================================================================================================================//
 
 // Enviar "NULL" si es WiFi público
-void guardarRedWiFi(const char *ssid, const char *password_wifi)
+void guardarRedWiFi(const char* ssid, const char* password_wifi)
 {
 	if (password_wifi == "NULL")
 		WiFiMultiO.addAP(ssid);
