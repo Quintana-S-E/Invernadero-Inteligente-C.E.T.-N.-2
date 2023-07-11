@@ -21,6 +21,7 @@ void setup()
 	#ifdef DEBUG_SERIAL
 		Serial.begin(9600);
 	#endif
+	pinMode(PIN_BTN, INPUT_PULLUP);
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(LED_ROJO, OUTPUT);
 	pinMode(PIN_BOMBA, OUTPUT);
@@ -39,18 +40,23 @@ void setup()
 
 	// inicializar display
 	inicializarDisplay();
+	displayLogo();
 
 	// conectarse al Wi-Fi, conectarse al bot, e inicializar ThingSpeak
-	imprimirln("Conectando a WiFi...");
-	conectarWiFi(true);
+	//conectarWiFi(true);
 
 	// leer o escribir la EEPROM
 	chequearEEPROMProgramada();
 
-	// Después de leer la eeprom debemos hacer configuración inicial y conexión a WiFi (TODO:)
-
+	// Después de leer la eeprom debemos hacer configuración inicial y conexión a WiFi
+	configInicial();
 	delay(5000);
+
+	// Conectarse a WiFi
+	imprimirln("Conectando a WiFi...");
+	inicializarWiFi();
 	imprimirln("Setup finalizado!");
+	delay(2000);
 }
 
 //=======================================aquí se encuentra la función loop()========================================//

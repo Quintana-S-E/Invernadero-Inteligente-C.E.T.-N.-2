@@ -71,6 +71,41 @@ void desactivarVentilacion()
 	digitalWrite(PIN_VENTILADOR, HIGH);
 }
 
+//==================================================================================================================//
+
+// Devuelve clickeado, mantenido, o suelto si pasó el timeout
+EstadoBoton leerBoton(unsigned long timeout_lectura)
+{
+	bool btn_presionado_anterior = false;
+	unsigned long t_0_btn_mantenido = 0;
+
+	unsigned long millis_actual = millis();
+	unsigned long t_0_espera = millis_actual;
+
+	while (millis_actual - t_0_espera < timeout_lectura)
+	{
+		millis_actual = millis();
+		bool btn_presionado = !digitalRead(PIN_BTN); // input_pullup
+		// Si se presionó (falling edge)
+		if (btn_presionado  &&  !btn_presionado_anterior)
+		{
+			t_0_btn_mantenido = millis_actual;
+			btn_presionado_anterior = true;
+			delay(50); // por el bouncing, no leer por accidente que lo soltamos
+		}
+		else if (!btn_presionado  &&  btn_presionado_anterior) // Se soltó
+			return EstadoBoton::Clickeado;
+
+		if (btn_presionado)
+		{
+			if (millis_actual - t_0_btn_mantenido >= TIEMPO_MIN_BTN_MANTENIDO)
+				return EstadoBoton::Mantenido;
+		}
+	}
+
+	return EstadoBoton::Suelto;
+}
+
 //================================================FUTURAS VERSIONES=================================================//
 // Identifica la necesidad de iluminar, basándose en la lectura de un sensor LDR
 void chequear_iluminacion()

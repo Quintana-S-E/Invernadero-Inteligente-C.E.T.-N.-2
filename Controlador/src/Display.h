@@ -16,21 +16,21 @@ void inicializarDisplay() // en "setup()"
 }
 
 //==================================================================================================================//
-
+// TODO: añadir un estado que sea EstadoWiFi y que diga conectado/desconectado y el nombre de la red
 void cambiarDatoDisplay()
 {
 	switch (DatoDelDisplay)
 	{
-	case Temperatura:
-		DatoDelDisplay = HumedadAire;
+	case DisplayDato::Temperatura:
+		DatoDelDisplay = DisplayDato::HumedadAire;
 		break;
 
-	case HumedadAire:
-		DatoDelDisplay = HumedadSuelo;
+	case DisplayDato::HumedadAire:
+		DatoDelDisplay = DisplayDato::HumedadSuelo;
 		break;
 
-	case HumedadSuelo:
-		DatoDelDisplay = Temperatura;
+	case DisplayDato::HumedadSuelo:
+		DatoDelDisplay = DisplayDato::Temperatura;
 		break;
 	}
 }
@@ -59,15 +59,15 @@ void displayErrorWiFi() // en "setup()"
 
 //==================================================================================================================//
 
-void displayConexionWiFi(String Amensaje_conectado_a, String Assid_conectada) // en "conectarWiFiCon()"
+void displayConetadoA(String ssid_conectada) // en "conectarWiFiCon()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2); // en grande:
 	Display.setCursor(0, 0);
-	Display.print(Amensaje_conectado_a); // conectado a la red
+	Display.print("Conectado a la red:\n");
 	Display.setTextSize(1);				 // en chiquito:
 	Display.setCursor(0, 40);
-	Display.print(Assid_conectada); // nombre de la red
+	Display.print(ssid_conectada); // nombre de la red
 	Display.display();
 }
 
@@ -82,15 +82,15 @@ void actualizarDisplay() // en "loop()"
 
 		switch (DatoDelDisplay)
 		{
-		case Temperatura:
+		case DisplayDato::Temperatura:
 			displayTemperatura();
 			break;
 
-		case HumedadAire:
+		case DisplayDato::HumedadAire:
 			displayHumedadAire();
 			break;
 
-		case HumedadSuelo:
+		case DisplayDato::HumedadSuelo:
 			displayHumedadSuelo();
 			break;
 		}

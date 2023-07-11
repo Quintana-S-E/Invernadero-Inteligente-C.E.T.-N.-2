@@ -26,6 +26,7 @@
 #define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
 
 // Pines
+#define PIN_BTN //TODO: decidir pin y lugar del botón
 // de salida
 #ifndef LED_BUILTIN
 	#define LED_BUILTIN 2
@@ -116,6 +117,15 @@ void desactivarVentilacion();
 //void chequear_iluminacion();
 #define ANGULO_APERTURA	90		// posición de apertura de la ventana
 #define ANGULO_CERRADO	0		// posición de cerrado de la ventana
+#define TIEMPO_MIN_BTN_MANTENIDO 800UL
+enum class EstadoBoton : uint8_t
+{
+	Suelto,
+	Clickeado,
+	Mantenido,
+	DobleClickeado
+};
+EstadoBoton leerBoton(unsigned long timeout_lectura);
 
 
 // Display.h
@@ -124,22 +134,27 @@ void inicializarDisplay();
 void cambiarDatoDisplay();
 void displayConectandoWiFi();
 void displayErrorWiFi();
-void displayConexionWiFi(String Amensaje_conectado_a, String Assid_conectada);
+void displayConetadoA(String ssid_conectada);
 void actualizarDisplay();
 void displayHumedadAire();
 void displayHumedadSuelo();
 void displayTemperatura();
+// TODO:
+void displayLogo(); // Invernadero inteligente que esté centrado, nada más
+void displayReintentarBT(bool conectado); // ERROR: Reintentar envío de datos. \n Conectado: Sí, No
+void displayConfigInicialBT(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
+
 #define DELAY_CAMBIO_DISPLAY		10000UL
 #define DELAY_ACTUALIZACION_DISPLAY	500UL
 #define SCREEN_WIDTH				128		// ancho del display OLED display, en píxeles
 #define SCREEN_HEIGHT				64		// alto del display OLED display, en píxeles
-enum DatoMostradoEnDisplay
+enum class DisplayDato : uint8_t
 {
 	Temperatura,
 	HumedadAire,
 	HumedadSuelo
 };
-DatoMostradoEnDisplay DatoDelDisplay = Temperatura;
+DisplayDato DatoDelDisplay = DisplayDato::Temperatura;
 
 
 // Graficos.h
@@ -155,18 +170,23 @@ inline bool inicializarThingSpeak();
 
 
 // Conectividad.h
-#define BLUETOOTH_TIEMPO_MAX_CONFIGURACION	60000UL		// 4 minutos
+#define BLUETOOTH_TIEMPO_MAX_CONFIG			60000UL		// 4 minutos
 #define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010	// caracter · (No WiFi)
 #define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101	// caracter ≡ (Si WiFi)
 #define BLUETOOTH_TEST_BYTE					0b11111111	// caracter   non-breaking space
 #define BLUETOOTH_NOMBRE					"Invernadero inteligente"
-bool configuracionInicial();
+#define TIEMPO_MAX_ESPERA_BTN				60000UL		// 60 segundos esperando que se toque el botón
+bool configInicial(bool ignorar_config_inicial = false);
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();
 void leerBTSerialHasta(char terminador, char* array, size_t longitud);
 void guardarRedWiFi(const char* ssid, const char* password_wifi);
 void limpiarBufferBluetooth();
+void displayEsperando(int8_t Aintentos_bluetooth);
+void inicializarWiFi();
+bool quiereAgregarCredenciales();
+bool quiereCambiarCredenciales();
 
 
 // Telegram.h
@@ -240,7 +260,7 @@ uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
 bool		tiene_config_inicial;		// 9.
 bool		tiene_wifi;					//10.
 // manejo de las direcciones de la EEPROM
-enum EEPROMDireccionesVariables
+enum EEPROMDireccionesVariables : uint8_t
 {
 	DIR_EEPROM_PROGRAMADA,
 	DIR_TEMP_MAXIMA_ALARMA,

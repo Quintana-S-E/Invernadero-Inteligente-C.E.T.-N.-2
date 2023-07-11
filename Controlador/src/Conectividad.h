@@ -3,13 +3,11 @@
 #include "Declaraciones.h"
 
 // Devuelve verdadero si se obtuvieron datos de la aplicación, falso si no.
-bool configuracionInicial()
+bool configInicial(bool ignorar_config_inicial = false)
 {
-	if (tiene_config_inicial)
-	{
-		// TODO: mensaje display
+	if (tiene_config_inicial  &&  !ignorar_config_inicial)
 		return true;
-	}
+
 	int8_t intentos_bluetooth = 0;
 	BTSerial.begin(BLUETOOTH_NOMBRE);
 	//Serial.println("Bluetooth encendido");
@@ -27,7 +25,8 @@ reintentar:
 	byte byte_recibido = BLUETOOTH_TEST_BYTE;
 	do
 	{
-		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIGURACION)
+		displayEsperando(intentos_bluetooth);
+		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIG)
 		{
 			//Serial.println("Pasó demasiado tiempo");
 			// TODO: mensaje display
@@ -87,7 +86,7 @@ void decodificarSinWiFi()
 void decodificarConWiFi()
 {
 	char ssid[32];
-	char password_wifi[32];
+	char password_wifi[63];
 
 	// BTSerial.readBytesUntil no funcionaba :S
 	leerBTSerialHasta('\n', ssid, sizeof(ssid));
@@ -98,6 +97,8 @@ void decodificarConWiFi()
 	//Serial.print("PASS: ");
 	//Serial.println(password_wifi);
 	// TODO: mensaje display de las credenciales añadidas
+	tiene_wifi = true;
+	escribirEEPROM(direccion[DIR_TIENE_WIFI], tiene_wifi);
 	guardarRedWiFi(ssid, password_wifi);
 }
 
@@ -114,13 +115,34 @@ void leerBTSerialHasta(char terminador, char* array, size_t longitud)
 		else
 		{
 			array[i] = '\0';
-			break;
+			return;
 		}
 	}
 
 }
 
 //==================================================================================================================//
+
+void limpiarBufferBluetooth()
+{
+	while(BTSerial.available() > 0)
+		BTSerial.read();
+}
+
+//==================================================================================================================//
+
+void displayEsperando(int8_t Aintentos_bluetooth)
+{
+	bool conectado = BTSerial.hasClient();
+	if (Aintentos_bluetooth > 1)
+		displayReintentarBT(conectado);
+	else
+		displayConfigInicialBT(conectado);
+}
+
+
+
+//============================================PARTE DE CONEXIONES A WiFi============================================//
 
 // Enviar "NULL" si es WiFi público
 void guardarRedWiFi(const char* ssid, const char* password_wifi)
@@ -134,11 +156,52 @@ void guardarRedWiFi(const char* ssid, const char* password_wifi)
 
 //==================================================================================================================//
 
-void limpiarBufferBluetooth()
+// Si no tiene WiFi, pregunta si quiere agregar. Si tiene y no se conecta, pregunta si quiere cambiar/agregar credenciales
+void inicializarWiFi()
 {
-	while(BTSerial.available() > 0)
-		BTSerial.read();
+	if (!tiene_wifi)
+	{
+		if ( !quiereAgregarCredenciales() )
+			return;
+
+		if ( !configInicial(true) )
+			return;
+	}
+
+reintentar:
+	displayConectandoWiFi();
+	WiFi.mode(WIFI_STA);
+	if(WiFiMultiO.run() != WL_CONNECTED)
+	{
+		if ( !quiereCambiarCredenciales() )
+			return;
+
+		if ( !configInicial(true) )
+			return;
+		goto reintentar;
+	}
+
+	displayConetadoA( WiFi.SSID() );
 }
+
+//==================================================================================================================//
+
+bool quiereAgregarCredenciales()
+{
+	// ¿Desea agregar una red WiFi?
+	if (leerBoton(TIEMPO_MAX_ESPERA_BTN) == EstadoBoton::Mantenido)
+		return true;
+	return false;
+}
+
+bool quiereCambiarCredenciales()
+{
+	// TODO: mostrar en el display No me pude conectar a WiFi. ¿Cambiar credenciales?
+	if (leerBoton(TIEMPO_MAX_ESPERA_BTN) == EstadoBoton::Mantenido)
+		return true;
+	return false;
+}
+
 
 /*
 Función conectarWiFi():
