@@ -22,17 +22,20 @@ void setup()
 		Serial.begin(9600);
 	#endif
 	pinMode(PIN_BTN, INPUT_PULLUP);
+	pinMode(LED_VENTILACION, OUTPUT);
+	pinMode(LED_WIFI, OUTPUT);
 	pinMode(LED_BUILTIN, OUTPUT);
-	pinMode(LED_ROJO, OUTPUT);
-	pinMode(PIN_BOMBA, OUTPUT);
-	pinMode(PIN_VENTILADOR, OUTPUT);
-	pinMode(MUX_EN, OUTPUT);
-	pinMode(MUX_S0, OUTPUT);
-	pinMode(MUX_S1, OUTPUT);
-	pinMode(MUX_S2, OUTPUT);
-	pinMode(MUX_S3, OUTPUT);
-	digitalWrite(PIN_BOMBA, HIGH);
-	digitalWrite(PIN_VENTILADOR, HIGH);
+	pinMode(PIN_BOMBA_1, OUTPUT);
+	pinMode(PIN_BOMBA_2, OUTPUT);
+	pinMode(PIN_BOMBA_3, OUTPUT);
+	pinMode(PIN_VENTILACION, OUTPUT);
+	digitalWrite(PIN_BOMBA_1, HIGH);
+	digitalWrite(PIN_BOMBA_2, HIGH);
+	digitalWrite(PIN_BOMBA_3, HIGH);
+	digitalWrite(PIN_VENTILACION, HIGH);
+	pinMode(MUX_A, OUTPUT);
+	pinMode(MUX_B, OUTPUT);
+	pinMode(MUX_C, OUTPUT);
 	// ver, para el futuro https://forum.arduino.cc/t/digitalwritefast-digitalreadfast-pinmodefast-etc/47037
 
 	// inicializar los sensores
