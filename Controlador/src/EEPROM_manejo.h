@@ -7,7 +7,7 @@ void setDireccionesEEPROM() // en "setup()"
 	// hay que hacer EEPROM.put a las direcciones indicadas, según la longitud de los datos escritos anteriormente
 	int i;
 	direccion[0] = 0;
-	for (i = 1; i < CANT_VARIABLES_EEPROM; i++)
+	for (i = 1; i < CANT_VARIABLES_EEPROM; ++i)
 		direccion[i] = direccion[i - 1] + LONGITUD_DATO_EEPROM[i - 1];
 	espacios_EEPROM = direccion[i - 1] + LONGITUD_DATO_EEPROM[i - 1];
 }
@@ -120,7 +120,7 @@ void imprimirEEPROMValsDirsReads()
 	Serial.println();
 
 	Serial.println("Valores de las direcciones:");
-	for (int i = 0; i < CANT_VARIABLES_EEPROM; i++)
+	for (int i = 0; i < CANT_VARIABLES_EEPROM; ++i)
 	{
 		Serial.print("Dir ");
 		Serial.print(i);
@@ -130,7 +130,7 @@ void imprimirEEPROMValsDirsReads()
 	Serial.println();
 
 	EEPROM.begin(30);
-	for (int j = 0; j < 30; j++)
+	for (int j = 0; j < 30; ++j)
 	{
 		Serial.print("Dirección ");
 		Serial.print(j);

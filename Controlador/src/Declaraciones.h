@@ -26,30 +26,32 @@
 #define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
 
 // Pines
-#define PIN_BTN //TODO: decidir pin y lugar del botón
+#define PIN_BTN 4
 // de salida
 #ifndef LED_BUILTIN
 	#define LED_BUILTIN 2
 #endif
-#define LED_ROJO 4
-#define PIN_BOMBA 18
-#define PIN_VENTILADOR 19
-#define PIN_SERVO 23
+#define LED_VENTILACION		15 // Active low
+#define LED_WIFI			12 // Active low
+#define PIN_RIEGO			17
+#define PIN_CALEFA			16
+#define PIN_MARCHA			26
+#define PIN_CONTRAMARCHA	27
 // del multiplexor
-#define MUX_EN 32
-#define MUX_S0 33
-#define MUX_S1 25
-#define MUX_S2 26
-#define MUX_S3 27
+#define MUX_A 32
+#define MUX_B 33
+#define MUX_C 25
 // de los sensores AHT10
-#define AHT_INT_HIGH_MUX_PIN 0
-#define AHT_INT_MID_MUX_PIN 1
-#define AHT_INT_LOW_MUX_PIN 2
-#define AHT_EXT_MUX_PIN 3
-#define AHT_EXT_GEOTERMICO_MUX_PIN 4
+#define AHT_INT_HIGH_MUX_PIN	0
+#define AHT_INT_MID_MUX_PIN		1
+#define AHT_INT_LOW_MUX_PIN		2
+#define AHT_EXT_MUX_PIN			6
+#define AHT_GEOTERMICO_MUX_PIN	7
 // de los sensores humedad suelo
-#define SOIL_EXT_PIN A0
-#define SOIL_INT_PIN A3 //#define SOIL_INT_2_PIN A6 // Para el domo
+#define SOIL_1_PIN A0
+#define SOIL_2_PIN A3
+#define SOIL_3_PIN A6
+#define SOIL_4_PIN A7
 
 // Variables de tiempo generales
 unsigned long ultima_vez_invernadero_funciono = 0;
@@ -291,4 +293,4 @@ AHT10Mux AhtInteriorHigh(AHT_INT_HIGH_MUX_PIN);
 AHT10Mux AhtInteriorMid(AHT_INT_MID_MUX_PIN);
 AHT10Mux AhtInteriorLow(AHT_INT_LOW_MUX_PIN);
 AHT10Mux AhtExterior(AHT_EXT_MUX_PIN);
-AHT10Mux AhtExteriorGeotermico(AHT_EXT_GEOTERMICO_MUX_PIN);
+AHT10Mux AhtExteriorGeotermico(AHT_GEOTERMICO_MUX_PIN);

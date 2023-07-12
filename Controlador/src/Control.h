@@ -3,7 +3,14 @@
 #include "Declaraciones.h"
 #include "EEPROM_manejo.h"
 
-// Abrir la ventilación y activar ventiladores
+/*
+TODO: Para determinar la temperatura de activación/desactivación de ventilación utilizar la lógica de un Schmitt trigger: Activar a
+T(elegida) + ΔT;  y luego desactivar en T(elegida) - ΔT. La temp. haría un ripple centrado en T(elegida), con una variación
+de temperatura de 2ΔT (por ejemplo, T(elegida) = 25 °C  y ΔT = 0,5 °C. La temp. variaría entre 25,5 y 24,5 °C o un poquito
+más, debido a un overshoot desde que se activa hasta que empieza a bajar; o desactiva y empieza a subir [inercia térmica]).
+	https://forum.allaboutcircuits.com/threads/schmitt-trigger-vs-rc-low-pass-filter-for-signal-conditioning.187898/
+Es muy fácil de implementar, solo una suma y resta.
+*/
 void chequearVentilacion() // en "loop()"
 {
 	if (ventilacion_forzada)

@@ -26,15 +26,13 @@ float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
 
 void establecerSalidaMUX(uint8_t salida)
 {
-	bool bits[4]; // últimos 4 bits del número
-	for (int i = 0;  i < 4;  i++)
+	bool bits[3]; // últimos 3 bits del número
+	for (int i = 0;  i < 3;  ++i)
 		bits[i] =  (salida >> i) & 1;
 
-	digitalWrite(MUX_EN, LOW);
-	digitalWrite(MUX_S0, bits[0]);
-	digitalWrite(MUX_S1, bits[1]);
-	digitalWrite(MUX_S2, bits[2]);
-	digitalWrite(MUX_S3, bits[3]);
+	digitalWrite(MUX_A, bits[0]);
+	digitalWrite(MUX_B, bits[1]);
+	digitalWrite(MUX_C, bits[2]);
 }
 
 //==================================================================================================================//
@@ -51,7 +49,7 @@ void inicializarSensores()
 	if (!sensor[0] || !sensor[1] || !sensor[2] || !sensor[3] || !sensor[4])
 	{
 		imprimir("Error inicializando AHT10: ");
-		for (uint8_t i = 0; i < CANTIDAD_SENSORES_AHT; i++)
+		for (uint8_t i = 0; i < CANTIDAD_SENSORES_AHT; ++i)
 			imprimir(sensor[i]);
 		imprimirln();
 	}
@@ -99,7 +97,7 @@ void leerSoilInteriores() // en leerSensores()
 {
 	int humedad_suelo_interior_raw[MUESTRAS_HUMEDAD_SUELO];
 	unsigned int humedad_suelo_interior_suma = 0;
-	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; i++)
+	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; ++i)
 	{
 		humedad_suelo_interior_raw[i] = analogRead(SOIL_INT_PIN);
 		humedad_suelo_interior_suma += humedad_suelo_interior_raw[i];
@@ -126,7 +124,7 @@ void leerSoilExteriores() // en leerSensores()
 {
 	int humedad_suelo_exterior_raw[MUESTRAS_HUMEDAD_SUELO];
 	unsigned int humedad_suelo_exterior_suma = 0;
-	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; i++)
+	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; ++i)
 	{
 		humedad_suelo_exterior_raw[i] = analogRead(SOIL_EXT_PIN);
 		humedad_suelo_exterior_suma += humedad_suelo_exterior_raw[i];

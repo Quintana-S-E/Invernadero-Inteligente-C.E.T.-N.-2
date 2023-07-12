@@ -13,7 +13,7 @@ bool configInicial(bool ignorar_config_inicial = false)
 	//Serial.println("Bluetooth encendido");
 
 reintentar:
-	intentos_bluetooth++;
+	++intentos_bluetooth;
     if (intentos_bluetooth == 10)
 	{
 		// TODO: mensaje display
@@ -107,7 +107,7 @@ void decodificarConWiFi()
 void leerBTSerialHasta(char terminador, char* array, size_t longitud)
 {
 	char incom_char;
-	for (size_t i = 0; i < longitud; i++)
+	for (size_t i = 0; i < longitud; ++i)
 	{
 		incom_char = BTSerial.read();
 		if (incom_char != terminador)
