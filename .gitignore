@@ -1,7 +1,7 @@
 .pio
 .vscode
-Controlador/include
-Controlador/lib
-Controlador/test
+**/Controlador/include
+**/Controlador/lib
+**/Controlador/test
 platformio.ini
-Controlador/src/Claves.h
+**/src/Claves.h

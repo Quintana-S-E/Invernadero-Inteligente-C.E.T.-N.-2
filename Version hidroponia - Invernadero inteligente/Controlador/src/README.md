@@ -1,4 +1,4 @@
-# Código del controlador
+# Código del controlador (Actualizar, Versión hidroponía)
 Este es el código del módulo controlador del Invernadero inteligente, diseñado para una placa basada en el microcontrolador ESP32, con sensores de humedad del suelo capacitivos, así como también de temperatura y humedad del aire AHT10.
 
 ### Estructura
