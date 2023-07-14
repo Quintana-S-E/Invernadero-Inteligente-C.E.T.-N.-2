@@ -1,7 +1,13 @@
 .pio
 .vscode
+platformio.ini
+
+# ignorar los .gitignores de los proyectos "Versión tradicional/hidroponía" (auto-regenerados)
+**/.gitignore
+
+# ignorar las subcarpetas "include", "lib" y "test" de Platformio de los proyectos
 **/Controlador/include
 **/Controlador/lib
 **/Controlador/test
-platformio.ini
+
 **/src/Claves.h

@@ -149,7 +149,7 @@ void displayHumedadAire();
 void displayHumedadSuelo();
 void displayTemperatura();
 // TODO:
-void displayLogo(); // Invernadero inteligente que esté centrado, nada más
+void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
 void displayReintentarBT(bool conectado); // ERROR: Reintentar envío de datos. \n Conectado: Sí, No
 void displayConfigInicialBT(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
 

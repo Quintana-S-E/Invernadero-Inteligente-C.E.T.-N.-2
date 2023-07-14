@@ -7,10 +7,8 @@ void inicializarDisplay() // en "setup()"
 	if (!Display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
 	{
 		imprimirln("Fallo en el display. Resetear el equipo.");
-		while (1)
-			;
+		while (true)	;
 	}
-	delay(2000);
 	Display.clearDisplay();
 	Display.setTextColor(WHITE);
 }
