@@ -3,52 +3,55 @@
 #include "Declaraciones.h"
 
 // Devuelve verdadero si se obtuvieron datos de la aplicación, falso si no.
-bool recibirBTApp(bool ignorar_config_inicial = false)
+bool recibirBTApp(bool ignorar_config_inicial)
 {
 	if (tiene_config_inicial  &&  !ignorar_config_inicial)
 		return true;
-
-	int8_t intentos_bluetooth = 0;
+	
 	BTSerial.begin(BLUETOOTH_NOMBRE);
 	//Serial.println("Bluetooth encendido");
+	bool recibido = recibir();
+	BTSerial.end();
 
-reintentar:
-	++intentos_bluetooth;
-    if (intentos_bluetooth == 10)
-	{
-		// TODO: mensaje display
-		BTSerial.end();
-		return false;
-	}
+	if (recibido)
+		return true; // El mensaje exitoso del display lo ponen las funciones de decodificación
+	return false;
+}
 
-	unsigned long tiempo_0_bluetooth = millis();
-	byte byte_recibido = BLUETOOTH_TEST_BYTE;
-	do
+//==================================================================================================================//
+
+bool recibir()
+{
+	for (int i = 1; i <= 10; ++i)
 	{
-		displayEsperando(intentos_bluetooth);
-		if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIG)
+		unsigned long tiempo_0_bluetooth = millis();
+		byte byte_recibido = BLUETOOTH_TEST_BYTE;
+		do
 		{
-			//Serial.println("Pasó demasiado tiempo");
-			// TODO: mensaje display
-			BTSerial.end();
-			tiene_wifi = false;
-			return false;
-		}
-		if (BTSerial.available() > 0)
-			byte_recibido = BTSerial.read();
-	} while (byte_recibido == BLUETOOTH_TEST_BYTE);
+			displayEsperando(i);
+			if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIG)
+			{
+				//Serial.println("Pasó demasiado tiempo");
+				// TODO: mensaje display
+				tiene_wifi = false;
+				return false;
+			}
+			if (BTSerial.available() > 0)
+				byte_recibido = BTSerial.read();
+		} while (byte_recibido == BLUETOOTH_TEST_BYTE);
 
-	//Serial.println("Mensaje distinto del byte de prueba");
-	if(!decodificarMensaje(byte_recibido))
-	{
+		//Serial.println("Mensaje distinto del byte de prueba");
+		if(decodificarMensaje(byte_recibido))
+			return true;
+
 		limpiarBufferBluetooth();
 		//Serial.println("no es ninguno, volviendo a llamar");
 		// TODO IMPORTANTE: MOSTRAR EN EL DISPLAY QUE HAY QUE REPETIR LA CONFIGURACIÓN
-		goto reintentar;
 	}
 
-	BTSerial.end();
-	return true; // El mensaje exitoso del display lo ponen las funciones de decodificación
+	//Serial.println("demasiados intentos");
+	// TODO: mensaje display
+	return false;
 }
 
 //==================================================================================================================//
@@ -131,10 +134,10 @@ void limpiarBufferBluetooth()
 
 //==================================================================================================================//
 
-void displayEsperando(int8_t Aintentos_bluetooth)
+void displayEsperando(int8_t intento)
 {
 	bool conectado = BTSerial.hasClient();
-	if (Aintentos_bluetooth > 1)
+	if (intento > 1)
 		displayReintentarBT(conectado);
 	else
 		displayRecibiendoBTApp(conectado);
