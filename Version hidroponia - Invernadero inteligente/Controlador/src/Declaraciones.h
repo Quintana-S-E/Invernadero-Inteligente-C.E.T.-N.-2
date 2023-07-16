@@ -151,7 +151,7 @@ void displayTemperatura();
 // TODO:
 void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
 void displayReintentarBT(bool conectado); // ERROR: Reintentar envío de datos. \n Conectado: Sí, No
-void displayConfigInicialBT(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
+void displayRecibiendoBTApp(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
 
 #define DELAY_CAMBIO_DISPLAY		10000UL
 #define DELAY_ACTUALIZACION_DISPLAY	500UL
@@ -185,7 +185,7 @@ inline bool inicializarThingSpeak();
 #define BLUETOOTH_TEST_BYTE					0b11111111	// caracter   non-breaking space
 #define BLUETOOTH_NOMBRE					"Invernadero inteligente"
 #define TIEMPO_MAX_ESPERA_BTN				60000UL		// 60 segundos esperando que se toque el botón
-bool configInicial(bool ignorar_config_inicial = false);
+bool recibirBTApp(bool ignorar_config_inicial = false);
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();

@@ -3,7 +3,7 @@
 #include "Declaraciones.h"
 
 // Devuelve verdadero si se obtuvieron datos de la aplicación, falso si no.
-bool configInicial(bool ignorar_config_inicial = false)
+bool recibirBTApp(bool ignorar_config_inicial = false)
 {
 	if (tiene_config_inicial  &&  !ignorar_config_inicial)
 		return true;
@@ -137,7 +137,7 @@ void displayEsperando(int8_t Aintentos_bluetooth)
 	if (Aintentos_bluetooth > 1)
 		displayReintentarBT(conectado);
 	else
-		displayConfigInicialBT(conectado);
+		displayRecibiendoBTApp(conectado);
 }
 
 
@@ -161,24 +161,28 @@ void inicializarWiFi()
 {
 	if (!tiene_wifi)
 	{
-		if ( !quiereAgregarCredenciales() )
+		if ( !quiereAgregarCredenciales() ) // maneja display
 			return;
 
-		if ( !configInicial(true) )
+		if ( !recibirBTApp(true) )
 			return;
 	}
 
-reintentar:
-	displayConectandoWiFi();
 	WiFi.mode(WIFI_STA);
-	if(WiFiMultiO.run() != WL_CONNECTED)
-	{
-		if ( !quiereCambiarCredenciales() )
-			return;
 
-		if ( !configInicial(true) )
-			return;
-		goto reintentar;
+	// sólo se repite SI quiere cambiar las credenciales Y recibimos nuevos datos de la app. Breaks if nos pudimos conectar
+	while (true)
+	{
+		displayConectandoWiFi();
+		if(WiFiMultiO.run() != WL_CONNECTED)
+		{
+			if ( !quiereCambiarCredenciales() ) // maneja display
+				return;
+
+			if ( !recibirBTApp(true) )
+				return;
+		}
+		else break;
 	}
 
 	displayConetadoA( WiFi.SSID() );

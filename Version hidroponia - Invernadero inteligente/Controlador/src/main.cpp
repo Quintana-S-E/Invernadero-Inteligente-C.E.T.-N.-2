@@ -52,7 +52,7 @@ void setup()
 	chequearEEPROMProgramada();
 
 	// Después de leer la eeprom debemos hacer configuración inicial y conexión a WiFi
-	configInicial();
+	recibirBTApp();
 	delay(5000);
 
 	// Conectarse a WiFi
