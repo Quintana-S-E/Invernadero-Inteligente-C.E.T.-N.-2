@@ -196,6 +196,7 @@ void displayEsperando(int8_t Aintentos_bluetooth);
 void inicializarWiFi();
 bool quiereAgregarCredenciales();
 bool quiereCambiarCredenciales();
+bool conectarWiFi();
 
 
 // Telegram.h

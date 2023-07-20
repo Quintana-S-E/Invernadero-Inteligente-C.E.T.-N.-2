@@ -13,8 +13,9 @@ bool recibirBTApp(bool ignorar_config_inicial)
 	bool recibido = recibir();
 	BTSerial.end();
 
+	// Mensajes de error del display manejados por recibir(); mensajes exitosos por las func. de decodificación 
 	if (recibido)
-		return true; // El mensaje exitoso del display lo ponen las funciones de decodificación
+		return true;
 	return false;
 }
 
@@ -26,7 +27,7 @@ bool recibir()
 	{
 		unsigned long tiempo_0_bluetooth = millis();
 		byte byte_recibido = BLUETOOTH_TEST_BYTE;
-		do
+		while (byte_recibido == BLUETOOTH_TEST_BYTE)
 		{
 			displayEsperando(i);
 			if (millis() - tiempo_0_bluetooth >= BLUETOOTH_TIEMPO_MAX_CONFIG)
@@ -38,7 +39,7 @@ bool recibir()
 			}
 			if (BTSerial.available() > 0)
 				byte_recibido = BTSerial.read();
-		} while (byte_recibido == BLUETOOTH_TEST_BYTE);
+		}
 
 		//Serial.println("Mensaje distinto del byte de prueba");
 		if(decodificarMensaje(byte_recibido))
@@ -177,7 +178,7 @@ void inicializarWiFi()
 	while (true)
 	{
 		displayConectandoWiFi();
-		if(WiFiMultiO.run() != WL_CONNECTED)
+		if(WiFiMultiO.run() != WL_CONNECTED) // acá llamar a conectarWiFi(); devuelve true o false
 		{
 			if ( !quiereCambiarCredenciales() ) // maneja display
 				return;
@@ -209,6 +210,12 @@ bool quiereCambiarCredenciales()
 	return false;
 }
 
+//==================================================================================================================//
+
+bool conectarWiFi()
+{
+	
+}
 
 /*
 Función conectarWiFi():
@@ -229,4 +236,6 @@ Si no sirve bien este tuto (mirarlo después de lograr la comunicación por blue
 
 También queremos definir chequearConexion(). Lo bueno es que con WiFiMulti es una sóla línea "if(wifiMulti.run() == WL_CONNECTED)"
 
+
+TODO IMPORTANTE: AL CONECTARNOS/RECONECTARNOS A WIFI LLAMAR A LA FUNCIÓN inicializarTiempoUnix();
 */
