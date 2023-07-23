@@ -6,11 +6,14 @@
 \*------------------------------------------------------------------------------------------------------------------*/
 
 #include "Control.h"
+#include "Conectividad.h"
 #include "Declaraciones.h" // contiene <Arduino.h> y todas las librerías
 #include "Display.h"
 #include "EEPROM_manejo.h"
+#include "Firebase.h"
 #include "Graficos.h"
 #include "Sensores.h"
+#include "SD_manejo.h"
 #include "Telegram.h"
 
 #include "Claves.h"
@@ -45,8 +48,11 @@ void setup()
 	inicializarDisplay();
 	displayLogo();
 
-	// conectarse al Wi-Fi, conectarse al bot, e inicializar ThingSpeak
-	//conectarWiFi(true);
+	inicializarSD();
+
+	// leer los archivos de configuración de la tarjeta SD
+	configWiFi();
+	configFirebase();
 
 	// leer o escribir la EEPROM
 	chequearEEPROMProgramada();

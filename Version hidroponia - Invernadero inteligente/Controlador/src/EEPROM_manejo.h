@@ -29,7 +29,7 @@ void chequearEEPROMProgramada() // en "setup()"
 	else
 	{
 		imprimirln("Hay que escribir la EEPROM");
-		cargarValoresPorDefecto();
+		cargarValoresPorDefecto(); // TODO: que primero vea si tiene WiFi
 	}
 
 #ifdef DEBUGserial
@@ -59,6 +59,8 @@ void leerEEPROMProgramada() // en "chequearEEPROMProgramada()"
 //	ya que está programada va a volver a dar 1. Sólo se pone para una mejor legibilidad del código
 //==================================================================================================================//
 
+// TODO: que tome un argumento para ver si setear EEPROM_programada o no. Si al iniciar el controlador
+// no le pusieron redes wifi en la SD, que llame a esta función con el argumento false.
 void cargarValoresPorDefecto()
 {
 	EEPROM_programada =			true; // ahora va a estar programada

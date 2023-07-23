@@ -8,6 +8,8 @@
 #include "BluetoothSerial.h"
 #include <CTBot.h>
 #include <EEPROM.h>
+#include <SD.h>
+#include <SPI.h>
 #include "time.h" // tiempo unix
 #include <Wire.h> // I2C
 #include <WiFi.h>
@@ -24,8 +26,12 @@
 
 // Constantes de funcionamiento generales
 #define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
-
+#define W_SSID_SIZE		33 // 32 caracteres + null terminator
+#define W_PASS_SIZE		64 // 63 caracteres + null terminator
+#define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
+#define F_PASS_SIZE		31 // 30 caracteres + null terminator
 // Pines
+#define SD_CS			5
 // ledes y botón
 #define PIN_BTN			4
 #ifndef LED_BUILTIN
@@ -76,7 +82,7 @@ bool ventilando				= false;
 bool esperando_riego		= false; // para chequearRiego()
 
 // Tiempo.h
-#define SERVIDOR_NTP "pool.ntp.org"
+char SERVIDOR_NTP[] = "pool.ntp.org";
 bool tiempo_unix_configurado = false;
 inline void inicializarTiempoUnix();
 unsigned long obtenerTiempoUnix();
@@ -152,6 +158,8 @@ void displayTemperatura();
 void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
 void displayReintentarBT(bool conectado); // ERROR: Reintentar envío de datos. \n Conectado: Sí, No
 void displayRecibiendoBTApp(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
+void displayNoSD();
+void displayErrorSD();
 
 #define DELAY_CAMBIO_DISPLAY		10000UL
 #define DELAY_ACTUALIZACION_DISPLAY	500UL
@@ -185,6 +193,9 @@ inline bool inicializarThingSpeak();
 #define BLUETOOTH_TEST_BYTE					0b11111111	// caracter   non-breaking space
 #define BLUETOOTH_NOMBRE					"Invernadero inteligente"
 #define TIEMPO_MAX_ESPERA_BTN				60000UL		// 60 segundos esperando que se toque el botón
+#define CANTIDAD_REDES_WIFI					3
+char w_ssid[CANTIDAD_REDES_WIFI][W_SSID_SIZE];
+char w_pass[CANTIDAD_REDES_WIFI][W_PASS_SIZE];
 bool recibirBTApp(bool ignorar_config_inicial = false);
 bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
@@ -197,6 +208,25 @@ void inicializarWiFi();
 bool quiereAgregarCredenciales();
 bool quiereCambiarCredenciales();
 bool conectarWiFi();
+
+
+// Firebase.h
+
+
+
+// SD_manejo.h
+//char STRINGS_PATH[]			= "controlador/strings/";
+char CONFIG_FOLDER_PATH[]		= "controlador/config/";
+char WIFI_FOLDER_PATH[]			= "wifi/";
+char FIREBASE_FOLDER_PATH[]		= "firebase/";
+//char PARAMETROS_FOLDER_PATH[]	= "parametros/";
+void inicializarSD();
+void configWiFi();
+void configFirebase();
+String leerArchivoSD(char *path);
+void leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path);
+void escribirDatos(String dato);
+File DatalogSD;
 
 
 // Telegram.h
