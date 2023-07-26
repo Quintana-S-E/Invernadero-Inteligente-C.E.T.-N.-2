@@ -28,21 +28,21 @@ void configWiFi()
 	for (uint8_t i = 0; i < CANTIDAD_REDES_WIFI; ++i)
 	{
 		char path[50];
-		char archivo[20];
-		sprintf(archivo, "%s%i%s", "ssid", i + 1, ".txt");
-		sprintf(path, "%s%s%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, archivo);
+		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVOS_WSSID, i + 1, TXT);
 
 		// Rellena la fila i de w_ssid con un caracter por columna [i][0] = 'H', [i][0] = 'e', [i][0] = 'l', [i][0] = 'l', etc
-		leerArchivoSDA(w_ssid[i], W_SSID_SIZE, path);
+		ResultadoLecturaSD lectura = leerArchivoSDA(w_ssid[i], W_SSID_SIZE, path);
+		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
+			continue;
 
-		path[sizeof(WIFI_FOLDER_PATH) - 1] = 'p';
-		path[sizeof(WIFI_FOLDER_PATH) + 0] = 'a';
-		path[sizeof(WIFI_FOLDER_PATH) + 1] = 's';
-		path[sizeof(WIFI_FOLDER_PATH) + 2] = 's';
+		char* pch = strstr(path, NOMBRE_ARCHIVOS_WSSID);
+		strncpy(pch, NOMBRE_ARCHIVOS_WPASS, 4);
 
-		leerArchivoSDA(w_pass[i], W_PASS_SIZE, path);
-
-		guardarRedWiFi(w_ssid[i], w_pass[i]);
+		lectura = leerArchivoSDA(w_pass[i], W_PASS_SIZE, path);
+		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
+			guardarRedWiFi(w_ssid[i]);
+		else
+			guardarRedWiFi(w_ssid[i], w_pass[i]);
 	}
 
 	tiene_wifi = true;
@@ -85,11 +85,23 @@ void leerArchivoSDA(char (*array)[], const uint8_t nro_network, const uint8_t ca
 	}
 }
 */
-// Pone el contenido del archivo en "path" dentro de "buffer". "caracteres" es la cantidad máxima de caracteres a rellenar
-void leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path)
+// Pone el contenido del archivo "path" dentro de "buffer". "caracteres" es la cantidad máxima de caracteres a rellenar
+ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path)
 {
+	uint8_t bytes_leidos = 0;
 	char contenido[caracteres];
+
+	File ArchivoSD = SD.open(path, FILE_READ);
+	if (!ArchivoSD)
+		return ResultadoLecturaSD::NO_ARCHIVO;
+
+	bytes_leidos = ArchivoSD.readBytes(contenido, caracteres);
+	ArchivoSD.close();
+
+	if (bytes_leidos == 0)
+		return ResultadoLecturaSD::NO_CONTENIDO;
 	strcpy(buffer, contenido);
+	return ResultadoLecturaSD::EXITOSO;
 }
 
 

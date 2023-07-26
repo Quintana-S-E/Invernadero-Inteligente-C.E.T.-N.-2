@@ -201,7 +201,7 @@ bool decodificarMensaje(byte primer_byte);
 void decodificarSinWiFi();
 void decodificarConWiFi();
 void leerBTSerialHasta(char terminador, char* array, size_t longitud);
-void guardarRedWiFi(const char* ssid, const char* password_wifi);
+void guardarRedWiFi(const char* ssid, const char* password_wifi = "NULL");
 void limpiarBufferBluetooth();
 void displayEsperando(int8_t Aintentos_bluetooth);
 void inicializarWiFi();
@@ -220,13 +220,22 @@ char CONFIG_FOLDER_PATH[]		= "controlador/config/";
 char WIFI_FOLDER_PATH[]			= "wifi/";
 char FIREBASE_FOLDER_PATH[]		= "firebase/";
 //char PARAMETROS_FOLDER_PATH[]	= "parametros/";
+char NOMBRE_ARCHIVOS_WSSID[]	= "ssid";
+char NOMBRE_ARCHIVOS_WPASS[]	= "ssid";
+char TXT[]						= ".txt";
 void inicializarSD();
 void configWiFi();
 void configFirebase();
 String leerArchivoSD(char *path);
-void leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path);
 void escribirDatos(String dato);
 File DatalogSD;
+enum class ResultadoLecturaSD : uint8_t
+{
+	NO_ARCHIVO,
+	NO_CONTENIDO,
+	EXITOSO
+};
+ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path);
 
 
 // Telegram.h
