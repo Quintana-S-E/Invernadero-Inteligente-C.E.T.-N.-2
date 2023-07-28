@@ -5,7 +5,6 @@
 #include <Adafruit_SSD1306.h> // display OLED
 #include <AHT10.h>
 #include <ArduinoJson.h>
-#include "BluetoothSerial.h"
 #include <CTBot.h>
 #include <EEPROM.h>
 #include <SD.h>
@@ -66,6 +65,8 @@ enum PinesAHT10MUX : uint8_t
 #define SOIL_3_PIN A6
 #define SOIL_4_PIN A7
 
+uint8_t cant_redes_wifi = 0;
+
 // Variables de tiempo generales
 unsigned long ultima_vez_invernadero_funciono = 0;
 unsigned long ultima_vez_display_cambio = 0;
@@ -76,6 +77,9 @@ Posiblemente crear class Salida con flags: activada, desactivada, forzada, ultim
 Y crear child classes con los métodos propios: abrir(), chequear(), prender(), apagar(), abrir un ángulo(), esperando, temp_max, etc;
 declarando Riego, Calefa, Ventilación y quizás Alarma. Ver cómo incorporar los valores de la EEPROM (fácil, pero declararlos todos
 en el mismo lugar que los otros valores de la EEPROM [humedad suelo es el único no relacionado con una salida]).
+
+-------------------------2DA IDEA:-------------------------
+Cambiar esto por un struct FlagsSalidas. Las funciones de cada salida pueden quedar sueltas. No es muy buen encapsulado pero meh.
 */
 bool ventilacion_forzada	= false; // si el estado de ventilación está siendo forzado por telegram
 bool ventilando				= false;
@@ -132,6 +136,7 @@ void desactivarVentilacion();
 //void chequear_iluminacion();
 #define ANGULO_APERTURA	90		// posición de apertura de la ventana
 #define ANGULO_CERRADO	0		// posición de cerrado de la ventana
+// parte del botón (no utilizado, bueno tenerlo)
 #define TIEMPO_MIN_BTN_MANTENIDO 800UL
 enum class EstadoBoton : uint8_t
 {
@@ -156,8 +161,6 @@ void displayHumedadSuelo();
 void displayTemperatura();
 // TODO:
 void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
-void displayReintentarBT(bool conectado); // ERROR: Reintentar envío de datos. \n Conectado: Sí, No
-void displayRecibiendoBTApp(bool conectado); // Esperando envío de datos. \n Conectado: Sí, No
 void displayNoSD();
 void displayErrorSD();
 
@@ -187,26 +190,12 @@ inline bool inicializarThingSpeak();
 
 
 // Conectividad.h
-#define BLUETOOTH_TIEMPO_MAX_CONFIG			60000UL		// 4 minutos
-#define BLUETOOTH_PRIMER_BYTE_SIN_WIFI		0b11111010	// caracter · (No WiFi)
-#define BLUETOOTH_PRIMER_BYTE_CON_WIFI		0b11110101	// caracter ≡ (Si WiFi)
-#define BLUETOOTH_TEST_BYTE					0b11111111	// caracter   non-breaking space
-#define BLUETOOTH_NOMBRE					"Invernadero inteligente"
-#define TIEMPO_MAX_ESPERA_BTN				60000UL		// 60 segundos esperando que se toque el botón
-#define CANTIDAD_REDES_WIFI					3
-char w_ssid[CANTIDAD_REDES_WIFI][W_SSID_SIZE];
-char w_pass[CANTIDAD_REDES_WIFI][W_PASS_SIZE];
-bool recibirBTApp(bool ignorar_config_inicial = false);
-bool decodificarMensaje(byte primer_byte);
-void decodificarSinWiFi();
-void decodificarConWiFi();
-void leerBTSerialHasta(char terminador, char* array, size_t longitud);
-void guardarRedWiFi(const char* ssid, const char* password_wifi = "NULL");
-void limpiarBufferBluetooth();
-void displayEsperando(int8_t Aintentos_bluetooth);
+#define CANT_REDES_WIFI 3
+char w_ssid[CANT_REDES_WIFI][W_SSID_SIZE];
+char w_pass[CANT_REDES_WIFI][W_PASS_SIZE];
 void inicializarWiFi();
-bool quiereAgregarCredenciales();
-bool quiereCambiarCredenciales();
+bool guardarRedWiFi(const char* ssid, const char* password);
+bool guardarRedWiFi(const char* ssid);
 bool conectarWiFi();
 
 
@@ -226,9 +215,7 @@ char TXT[]						= ".txt";
 void inicializarSD();
 void configWiFi();
 void configFirebase();
-String leerArchivoSD(char *path);
 void escribirDatos(String dato);
-File DatalogSD;
 enum class ResultadoLecturaSD : uint8_t
 {
 	NO_ARCHIVO,
@@ -295,9 +282,7 @@ void escribirEEPROM(int Adireccion, T Adato); // template <typename T> T leerEEP
 #define ALARMA_ACTIVADA_DEFECTO			true
 #define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
 #define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
-#define TIENE_CONFIG_INICIAL_DEFECTO	false
-#define TIENE_WIFI_DEFECTO				true
-bool		EEPROM_programada;			// 0.	para verificar si está programada o no la EEPROM
+bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
 float		temp_maxima_alarma;			// 1.
 float		temp_minima_alarma;			// 2.
 float		temp_maxima_ventilacion;	// 3.
@@ -306,8 +291,6 @@ uint16_t	lapso_alarma_minutos;		// 5.	60 minutos (máx 65535 min o 1092 horas o 
 bool		alarma_activada;			// 6.
 uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
 uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
-bool		tiene_config_inicial;		// 9.
-bool		tiene_wifi;					//10.
 // manejo de las direcciones de la EEPROM
 enum EEPROMDireccionesVariables : uint8_t
 {
@@ -320,20 +303,18 @@ enum EEPROMDireccionesVariables : uint8_t
 	DIR_ALARMA_ACTIVADA,
 	DIR_TIEMPO_BOMBEO_SEGUNDOS,
 	DIR_TIEMPO_ESPERA_MINUTOS,
-	DIR_TIENE_CONFIG_INICIAL,
-	DIR_TIENE_WIFI,
 	CANT_VARIABLES_EEPROM
 };
-										// bool, float, float, float, int8, int, bool, int, int, bool, bool
-const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 4, 4, 4, 1, 2, 1, 2, 2, 1, 1};
+										// bool, float, float, float, int8, int, bool, int, int
+const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 4, 4, 4, 1, 2, 1, 2, 2};
 int direccion[CANT_VARIABLES_EEPROM];
 int espacios_EEPROM;
 
 
 // Clases
 CTBot Bot;
+File DatalogSD;
 WiFiMulti WiFiMultiO;
-BluetoothSerial BTSerial;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
 AHT10Mux AhtInteriorHigh(AHT_INT_HIGH_MUX_PIN);

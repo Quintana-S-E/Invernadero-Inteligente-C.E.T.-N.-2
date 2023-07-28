@@ -518,6 +518,7 @@ void chequearAlarma() // en "loop()"
 
 void chequearConexion()
 {
+	// en la nueva versión chequear si tenemos más de 0 redes wifi primero (cant_redes_wifi)
 	if (millis() - ultima_vez_comprobacion_wifi >= DELAY_COMPROBACION_WIFI)
 	{
 		ultima_vez_comprobacion_wifi = millis();

@@ -39,7 +39,7 @@ void establecerSalidaMUX(uint8_t salida)
 
 void inicializarSensores()
 {
-	const uint8_t CANTIDAD_SENSORES_AHT = 5;
+	const uint8_t CANTIDAD_SENSORES_AHT = 5; // TODO: eliminar sensor exterior y cambiar CANTIDAD por CANT
 	bool sensor[CANTIDAD_SENSORES_AHT];
 	sensor[0] = AhtInteriorHigh.begin();
 	sensor[1] = AhtInteriorMid.begin();

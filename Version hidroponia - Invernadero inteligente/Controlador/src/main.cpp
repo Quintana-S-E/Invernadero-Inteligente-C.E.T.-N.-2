@@ -41,13 +41,12 @@ void setup()
 	pinMode(MUX_C, OUTPUT);
 	// ver, para el futuro https://forum.arduino.cc/t/digitalwritefast-digitalreadfast-pinmodefast-etc/47037
 
-	// inicializar los sensores
-	inicializarSensores();
-
 	// inicializar display
 	inicializarDisplay();
 	displayLogo();
 
+	// inicializar sensores y SD
+	inicializarSensores();
 	inicializarSD();
 
 	// leer los archivos de configuración de la tarjeta SD
@@ -57,9 +56,7 @@ void setup()
 	// leer o escribir la EEPROM
 	chequearEEPROMProgramada();
 
-	// Después de leer la eeprom debemos hacer configuración inicial y conexión a WiFi
-	recibirBTApp();
-	delay(5000);
+	delay(3500);
 
 	// Conectarse a WiFi
 	imprimirln("Conectando a WiFi...");

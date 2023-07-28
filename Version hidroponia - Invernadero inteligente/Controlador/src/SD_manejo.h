@@ -20,12 +20,11 @@ void inicializarSD()
 	}
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-// SIN TERMINAR. FALTA RECONOCER PASSWORDS VACÍOS O INEXISTENTES.
 void configWiFi()
 {
-	for (uint8_t i = 0; i < CANTIDAD_REDES_WIFI; ++i)
+	for (uint8_t i = 0; i < CANT_REDES_WIFI; ++i)
 	{
 		char path[50];
 		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVOS_WSSID, i + 1, TXT);
@@ -43,10 +42,9 @@ void configWiFi()
 			guardarRedWiFi(w_ssid[i]);
 		else
 			guardarRedWiFi(w_ssid[i], w_pass[i]);
+		
+		++cant_redes_wifi;
 	}
-
-	tiene_wifi = true;
-	escribirEEPROM(direccion[DIR_TIENE_WIFI], tiene_wifi);
 }
 
 void configFirebase()
@@ -60,31 +58,8 @@ void configFirebase()
 	// escribirEEPROM(direccion[DIR_TIENE_FIREBASE], tiene_firebase);
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-// Devuelve Arduino String con el contenido del archivo provisto en "path"
-String leerArchivoSD(const char *path)
-{
-}
-
-/*
-// Rellena la fila del "array" "nro_network" con el contenido del archivo de "path". "caracteres" es cant. de columnas por fila
-void leerArchivoSDA(char (*array)[], const uint8_t nro_network, const uint8_t caracteres, const char *path)
-{
-	File ArchivoMensaje = SD.open(path, FILE_READ);
-	if (ArchivoMensaje)
-	{
-		uint8_t i = 0;
-		while (ArchivoMensaje.available()  &&  i < caracteres)
-		{
-			array[num_red][i] = ArchivoMensaje.read();
-			++i;
-		}
-		array[num_red][i] = '\0';
-		ArchivoMensaje.close();
-	}
-}
-*/
 // Pone el contenido del archivo "path" dentro de "buffer". "caracteres" es la cantidad máxima de caracteres a rellenar
 ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path)
 {
@@ -104,9 +79,7 @@ ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const 
 	return ResultadoLecturaSD::EXITOSO;
 }
 
-
-
-//==================================================================================================================//
+//===============================================================================================================================//
 
 void escribirDatos(String dato)
 {
