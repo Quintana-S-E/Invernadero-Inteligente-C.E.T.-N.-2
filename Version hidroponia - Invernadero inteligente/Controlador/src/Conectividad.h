@@ -2,52 +2,47 @@
 
 #include "Declaraciones.h"
 
-//============================================PARTE DE CONEXIONES A WiFi============================================//
+//==================================================PARTE DE CONEXIONES A WiFi===================================================//
 
 
 bool guardarRedWiFi(const char* ssid, const char* password)	{	return WiFiMultiO.addAP(ssid, password);	}
 bool guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(ssid);				}
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-// NO FUNCIONA, UTILIZA MÉTODO ANTERIOR DE BLUETOOTH
 void inicializarWiFi()
 {
-	if (cant_redes_wifi == 0)
+	displayConectandoWiFi();
+	if(!correrWiFi())
 	{
-		if ( !quiereAgregarCredenciales() ) // maneja display
-			return;
-
-		if ( !recibirBTApp(true) )
-			return;
-	}
-
-	WiFi.mode(WIFI_STA);
-
-	// sólo se repite SI quiere cambiar las credenciales Y recibimos nuevos datos de la app. Breaks if nos pudimos conectar
-	while (true)
-	{
-		displayConectandoWiFi();
-		if(WiFiMultiO.run() != WL_CONNECTED) // acá llamar a conectarWiFi(); devuelve true o false
-		{
-			if ( !quiereCambiarCredenciales() ) // maneja display
-				return;
-
-			if ( !recibirBTApp(true) )
-				return;
-		}
-		else break;
+		imprimirln("No se encuentra red WiFi.");
+		displayErrorWiFi();
+		return;
 	}
 
 	displayConetadoA( WiFi.SSID() );
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-bool conectarWiFi()
+// devuelve verdadero si hay conexión a WiFi. Falso si no. Maneja LED_WIFI, no maneja display
+bool correrWiFi()
 {
-	
+	if (cant_redes_wifi == 0)
+		return false;
+
+	WiFi.mode(WIFI_STA);
+
+	if (WiFiMultiO.run() == WL_CONNECTED)
+	{
+		inicializarTiempoUnix(); // se ejecuta una sola vez. Acá por si en setup() se cortó WiFi pero después hay
+		digitalWrite(LED_WIFI, LOW); // encender
+		return true;
+	}
+	digitalWrite(LED_WIFI, HIGH); // apagar
+	return false;
 }
+
 
 /*
 Función conectarWiFi():

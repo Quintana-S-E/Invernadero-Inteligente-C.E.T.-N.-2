@@ -159,10 +159,12 @@ void actualizarDisplay();
 void displayHumedadAire();
 void displayHumedadSuelo();
 void displayTemperatura();
-// TODO:
-void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
+void displayError();
 void displayNoSD();
 void displayErrorSD();
+// TODO:
+void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
+
 
 #define DELAY_CAMBIO_DISPLAY		10000UL
 #define DELAY_ACTUALIZACION_DISPLAY	500UL
@@ -228,7 +230,6 @@ ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const 
 // Telegram.h
 // variables
 #define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
-#define DELAY_COMPROBACION_WIFI				60000UL		// cada un minuto comprueba la conexión a WiFi
 unsigned long ultima_vez_alarma_funciono = 0;
 unsigned long ultima_vez_comprobacion_wifi = 0;
 String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()

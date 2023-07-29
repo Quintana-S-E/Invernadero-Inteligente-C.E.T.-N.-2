@@ -65,7 +65,7 @@ void setup()
 	delay(2000);
 }
 
-//=======================================aquí se encuentra la función loop()========================================//
+//==============================================aquí se encuentra la función loop()==============================================//
 
 void loop()
 {
@@ -79,7 +79,7 @@ void loop()
 		leerSensores();
 
 		// Manejar Telegram
-		chequearConexion(); // rutina innecesaria según pruebas tempranas, pero es bueno tenerla
+		correrWiFi();
 		chequearMensajesRecibidosTelegram();
 		chequearAlarma();
 
