@@ -60,7 +60,7 @@ void setup()
 
 	// Conectarse a WiFi
 	imprimirln("Conectando a WiFi...");
-	inicializarWiFi();
+	LCWF.inicializarWiFi();
 	imprimirln("Setup finalizado!");
 	delay(2000);
 }
@@ -79,7 +79,7 @@ void loop()
 		leerSensores();
 
 		// Manejar Telegram
-		correrWiFi();
+		LCWF.correrWiFi();
 		chequearMensajesRecibidosTelegram();
 		chequearAlarma();
 

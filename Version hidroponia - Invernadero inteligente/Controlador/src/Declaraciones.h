@@ -5,8 +5,10 @@
 #include <Adafruit_SSD1306.h> // display OLED
 #include <AHT10.h>
 #include <ArduinoJson.h>
-#include <CTBot.h>
 #include <EEPROM.h>
+#include <Firebase_ESP_Client.h>
+	#include "addons/TokenHelper.h" // Provide the token generation process info.
+	#include "addons/RTDBHelper.h" // Provide the RTDB payload printing info and other helper functions.
 #include <SD.h>
 #include <SPI.h>
 #include "time.h" // tiempo unix
@@ -29,6 +31,8 @@
 #define W_PASS_SIZE		64 // 63 caracteres + null terminator
 #define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
 #define F_PASS_SIZE		31 // 30 caracteres + null terminator
+#define F_API_KEY_SIZE	40 // 39 caracteres + null terminator
+#define F_URL_SIZE		68 // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
 // Pines
 #define SD_CS			5
 // ledes y botón
@@ -193,27 +197,59 @@ inline bool inicializarThingSpeak();
 
 // Conectividad.h
 #define CANT_REDES_WIFI 3
-char w_ssid[CANT_REDES_WIFI][W_SSID_SIZE];
-char w_pass[CANT_REDES_WIFI][W_PASS_SIZE];
-void inicializarWiFi();
-bool guardarRedWiFi(const char* ssid, const char* password);
-bool guardarRedWiFi(const char* ssid);
-bool conectarWiFi();
+class LocalWiFi
+{
+	public:
+		char ssid[CANT_REDES_WIFI][W_SSID_SIZE];
+		char pass[CANT_REDES_WIFI][W_PASS_SIZE];
+
+	public:
+		void inicializarWiFi();
+		bool guardarRedWiFi(const char* ssid, const char* password);
+		bool guardarRedWiFi(const char* ssid);
+		bool correrWiFi();
+} LCWF;
 
 
 // Firebase.h
+class LocalFirebase
+{
+	public:
+		char email		[	F_EMAIL_SIZE	];
+		char pass		[	F_PASS_SIZE		];
+		char url		[	F_URL_SIZE		];
+		char api_key	[	F_API_KEY_SIZE	];
+		bool tiene_firebase = false;
+	private:
+		FirebaseData data;
+		FirebaseData stream;
+		FirebaseAuth auth;
+		FirebaseConfig config;
+		FirebaseJson json;
 
+	public:
+		//funcs
+	private:
+		//funcs
+} LCFB;
 
 
 // SD_manejo.h
+// NOMBRES DE LOS FOLDERS (Y .TXT)
 //char STRINGS_PATH[]			= "controlador/strings/";
 char CONFIG_FOLDER_PATH[]		= "controlador/config/";
 char WIFI_FOLDER_PATH[]			= "wifi/";
 char FIREBASE_FOLDER_PATH[]		= "firebase/";
 //char PARAMETROS_FOLDER_PATH[]	= "parametros/";
-char NOMBRE_ARCHIVOS_WSSID[]	= "ssid";
-char NOMBRE_ARCHIVOS_WPASS[]	= "ssid";
 char TXT[]						= ".txt";
+// NOMBRES DE FOLDER WIFI
+char NOMBRE_ARCHIVO_WSSID[]	= "ssid";
+char NOMBRE_ARCHIVO_WPASS[]	= "pass";
+// NOMBRES DE FOLDER FIREBASE
+char NOMBRE_ARCHIVO_FEMAIL[]	= "email";
+char NOMBRE_ARCHIVO_FPASS[]		= "pass";
+char NOMBRE_ARCHIVO_FURL[]		= "url";
+char NOMBRE_ARCHIVO_FAPIKEY[]	= "apikey";
 void inicializarSD();
 void configWiFi();
 void configFirebase();
@@ -313,7 +349,6 @@ int espacios_EEPROM;
 
 
 // Clases
-CTBot Bot;
 File DatalogSD;
 WiFiMulti WiFiMultiO;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);

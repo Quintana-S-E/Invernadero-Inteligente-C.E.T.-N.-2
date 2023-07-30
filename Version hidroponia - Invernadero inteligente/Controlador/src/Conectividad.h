@@ -5,12 +5,12 @@
 //==================================================PARTE DE CONEXIONES A WiFi===================================================//
 
 
-bool guardarRedWiFi(const char* ssid, const char* password)	{	return WiFiMultiO.addAP(ssid, password);	}
-bool guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(ssid);				}
+bool LocalWiFi::guardarRedWiFi(const char* ssid, const char* password)	{	return WiFiMultiO.addAP(ssid, password);	}
+bool LocalWiFi::guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(ssid);				}
 
 //===============================================================================================================================//
 
-void inicializarWiFi()
+void LocalWiFi::inicializarWiFi()
 {
 	displayConectandoWiFi();
 	if(!correrWiFi())
@@ -26,7 +26,7 @@ void inicializarWiFi()
 //===============================================================================================================================//
 
 // devuelve verdadero si hay conexión a WiFi. Falso si no. Maneja LED_WIFI, no maneja display
-bool correrWiFi()
+bool LocalWiFi::correrWiFi()
 {
 	if (cant_redes_wifi == 0)
 		return false;

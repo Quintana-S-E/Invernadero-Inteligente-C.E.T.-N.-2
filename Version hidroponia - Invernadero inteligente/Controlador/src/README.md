@@ -16,7 +16,6 @@ De este modo, para cambiar una funcionalidad del controlador, casi siempre basta
 + Arduino EEPROM
 + Arduino Json
 + Arduino Wire
-+ [CTBot (Stefano Ledda)](https://github.com/shurillu/CTBot)
 + [WiFi (arduino-esp32)](https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi)
 \+ cualquier dependencia.
 

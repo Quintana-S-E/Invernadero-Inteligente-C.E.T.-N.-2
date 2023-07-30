@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------------------------------------------*\
-	Nombre:				Invernadero Inteligente maqueta ESP32 Node32s
-	Desarrollo: 		octubre - diciembre de 2022
-	Primer lanzamiento: 14 de noviembre de 2022
+	Nombre:				Version hidroponia - Invernadero inteligente
+	Desarrollo: 		2023
+	Primer lanzamiento: -
 	Creado por:			Pulido Norberto N., Quintana Santiago E., Riha Fabio, Sacchero Fidel, Inticito.
 \*------------------------------------------------------------------------------------------------------------------*/
 

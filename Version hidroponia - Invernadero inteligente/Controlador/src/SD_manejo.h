@@ -27,21 +27,22 @@ void configWiFi()
 	for (uint8_t i = 0; i < CANT_REDES_WIFI; ++i)
 	{
 		char path[50];
-		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVOS_WSSID, i + 1, TXT);
+		ResultadoLecturaSD lectura;
+		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WSSID, i + 1, TXT);
 
-		// Rellena la fila i de w_ssid con un caracter por columna [i][0] = 'H', [i][0] = 'e', [i][0] = 'l', [i][0] = 'l', etc
-		ResultadoLecturaSD lectura = leerArchivoSDA(w_ssid[i], W_SSID_SIZE, path);
+		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][0] = 'e', [i][0] = 'l', [i][0] = 'l', etc
+		lectura = leerArchivoSDA(LCWF.ssid[i], W_SSID_SIZE, path);
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
 			continue;
 
-		char* pch = strstr(path, NOMBRE_ARCHIVOS_WSSID);
-		strncpy(pch, NOMBRE_ARCHIVOS_WPASS, 4);
+		char* pch = strstr(path, NOMBRE_ARCHIVO_WSSID);
+		strncpy(pch, NOMBRE_ARCHIVO_WPASS, 6);
 
-		lectura = leerArchivoSDA(w_pass[i], W_PASS_SIZE, path);
+		lectura = leerArchivoSDA(LCWF.pass[i], W_PASS_SIZE, path);
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
-			guardarRedWiFi(w_ssid[i]);
+			LCWF.guardarRedWiFi(LCWF.ssid[i]);
 		else
-			guardarRedWiFi(w_ssid[i], w_pass[i]);
+			LCWF.guardarRedWiFi(LCWF.ssid[i], LCWF.pass[i]);
 		
 		++cant_redes_wifi;
 	}
@@ -49,13 +50,26 @@ void configWiFi()
 
 void configFirebase()
 {
-	char email_usuario[F_EMAIL_SIZE];
-	char password_firebase[F_PASS_SIZE];
-	// email_usuario = leer;
-	// password_firebase = leer;
+	char p_path[35];
+	char path[50];
+	sprintf(p_path, "%s%s", CONFIG_FOLDER_PATH, FIREBASE_FOLDER_PATH);
+	char* pch = strstr(path, NOMBRE_ARCHIVO_FEMAIL);
 
-	// tiene_firebase = true;
-	// escribirEEPROM(direccion[DIR_TIENE_FIREBASE], tiene_firebase);
+	ResultadoLecturaSD lectura[4];
+	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FEMAIL, TXT);
+	lectura[0] = leerArchivoSDA(LCFB.email,	F_EMAIL_SIZE,	path);
+	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FPASS, TXT);
+	lectura[1] = leerArchivoSDA(LCFB.pass,	F_PASS_SIZE,	path);
+	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FURL, TXT);
+	lectura[2] = leerArchivoSDA(LCFB.url,	F_URL_SIZE,		path);
+	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FAPIKEY, TXT);
+	lectura[3] = leerArchivoSDA(LCFB.api_key,F_API_KEY_SIZE,	path);	
+
+	for (uint8_t i = 0; i < 4; ++i)
+		if (lectura[i] == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura[i] == ResultadoLecturaSD::NO_CONTENIDO)
+			return;
+
+	LCFB.tiene_firebase = true;
 }
 
 //===============================================================================================================================//
