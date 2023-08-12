@@ -13,7 +13,7 @@ bool LocalWiFi::guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(
 void LocalWiFi::inicializarWiFi()
 {
 	displayConectandoWiFi();
-	if(!correrWiFi())
+	if(!this->correr())
 	{
 		imprimirln("No se encuentra red WiFi.");
 		displayErrorWiFi();
@@ -26,9 +26,9 @@ void LocalWiFi::inicializarWiFi()
 //===============================================================================================================================//
 
 // devuelve verdadero si hay conexión a WiFi. Falso si no. Maneja LED_WIFI, no maneja display
-bool LocalWiFi::correrWiFi()
+bool LocalWiFi::correr()
 {
-	if (cant_redes_wifi == 0)
+	if (this->cant_redes == 0)
 		return false;
 
 	WiFi.mode(WIFI_STA);
@@ -61,7 +61,7 @@ https://youtu.be/VnfX9YJbaU8?t=2380 (sí, que el código también esté en este 
 Si no sirve bien este tuto (mirarlo después de lograr la comunicación por bluetooth, buscar "save data in spiffs esp32" en yt)
 
 
-También queremos definir chequearConexion(). Lo bueno es que con WiFiMulti es una sóla línea "if(wifiMulti.run() == WL_CONNECTED)"
+También queremos definir controlarConexion(). Lo bueno es que con WiFiMulti es una sóla línea "if(wifiMulti.run() == WL_CONNECTED)"
 
 
 TODO IMPORTANTE: AL CONECTARNOS/RECONECTARNOS A WIFI LLAMAR A LA FUNCIÓN inicializarTiempoUnix();

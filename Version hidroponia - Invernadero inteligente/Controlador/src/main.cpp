@@ -47,14 +47,14 @@ void setup()
 
 	// inicializar sensores y SD
 	inicializarSensores();
-	inicializarSD();
+	LCSD.inicializarSD();
 
 	// leer los archivos de configuración de la tarjeta SD
-	configWiFi();
-	configFirebase();
+	LCSD.leerConfigWiFi();
+	LCSD.leerConfigFirebase();
 
 	// leer o escribir la EEPROM
-	chequearEEPROMProgramada();
+	controlarEEPROMProgramada();
 
 	delay(3500);
 
@@ -74,23 +74,24 @@ void loop()
 	if (millis() - ultima_vez_invernadero_funciono >= DELAY_ACTIVIDAD_INVERNADERO)
 	{ // idealmente, en lugar de esperas pondríamos al uC en un estado de bajo consumo por un período fijo
 		ultima_vez_invernadero_funciono = millis();
+		
+		LCWF.correr();
 
 		// Leer sensores
 		leerSensores();
 
 		// Manejar Telegram
-		LCWF.correrWiFi();
-		chequearMensajesRecibidosTelegram();
-		chequearAlarma();
+		controlarMensajesRecibidosTelegram();
+		controlarAlarma();
 
 		// Actualizar datos mostrables
 		actualizarDisplay();
 		actualizarGraficos();
 
 		// Tomar decisiones
-		chequearVentilacion();
-		chequearRiego();
-		//chequear_iluminacion();
+		controlarVentilacion();
+		controlarRiego();
+		//controlar_iluminacion();
 
 		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // parpadeamos el LED de la placa
 	}

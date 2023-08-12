@@ -7,7 +7,7 @@
 #include "Graficos.h"
 #include "Tiempo.h"
 
-void chequearMensajesRecibidosTelegram() // en "loop()"
+void controlarMensajesRecibidosTelegram() // en "loop()"
 {
 	TBMessage mensaje;
 	// mientras hayan nuevos mensajes
@@ -122,8 +122,8 @@ void chequearMensajesRecibidosTelegram() // en "loop()"
 		}
 
 		enviarMensaje(chat_id, chat_rpta);
-	} // cierra el while() de "mientras haya nuevos mensajes, chequear su contenido"
-} // cierra la función chequearMensajesRecibidosTelegram()
+	} // cierra el while() de "mientras haya nuevos mensajes, controlar su contenido"
+} // cierra la función controlarMensajesRecibidosTelegram()
 
 //=====================================================COMANDOS=====================================================//
 
@@ -489,7 +489,7 @@ bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad)
 
 //==================================================ALARMA Y WiFi===================================================//
 
-void chequearAlarma() // en "loop()"
+void controlarAlarma() // en "loop()"
 {
 	// no hay problema con que lapso_alarma_minutos sea uint16_t, se multiplica por un UL
 	if (millis() - ultima_vez_alarma_funciono >= (lapso_alarma_minutos * 60000UL) && alarma_activada)
@@ -516,9 +516,9 @@ void chequearAlarma() // en "loop()"
 
 //==================================================================================================================//
 
-void chequearConexion()
+void controlarConexion()
 {
-	// en la nueva versión chequear si tenemos más de 0 redes wifi primero (cant_redes_wifi)
+	// en la nueva versión controlar si tenemos más de 0 redes wifi primero (cant_redes)
 	if (millis() - ultima_vez_comprobacion_wifi >= DELAY_COMPROBACION_WIFI)
 	{
 		ultima_vez_comprobacion_wifi = millis();

@@ -25,6 +25,8 @@
 	#define imprimirln(x)
 #endif
 
+
+
 // Constantes de funcionamiento generales
 #define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
 #define W_SSID_SIZE		33 // 32 caracteres + null terminator
@@ -69,8 +71,6 @@ enum PinesAHT10MUX : uint8_t
 #define SOIL_3_PIN A6
 #define SOIL_4_PIN A7
 
-uint8_t cant_redes_wifi = 0;
-
 // Variables de tiempo generales
 unsigned long ultima_vez_invernadero_funciono = 0;
 unsigned long ultima_vez_display_cambio = 0;
@@ -78,7 +78,7 @@ unsigned long ultima_vez_display_cambio = 0;
 // Flags de estado generales
 /* -------------------------IDEA:-------------------------
 Posiblemente crear class Salida con flags: activada, desactivada, forzada, ultima_vez_activada/desactivada.
-Y crear child classes con los métodos propios: abrir(), chequear(), prender(), apagar(), abrir un ángulo(), esperando, temp_max, etc;
+Y crear child classes con los métodos propios: abrir(), controlar(), prender(), apagar(), abrir un ángulo(), esperando, temp_max, etc;
 declarando Riego, Calefa, Ventilación y quizás Alarma. Ver cómo incorporar los valores de la EEPROM (fácil, pero declararlos todos
 en el mismo lugar que los otros valores de la EEPROM [humedad suelo es el único no relacionado con una salida]).
 
@@ -87,7 +87,9 @@ Cambiar esto por un struct FlagsSalidas. Las funciones de cada salida pueden que
 */
 bool ventilacion_forzada	= false; // si el estado de ventilación está siendo forzado por telegram
 bool ventilando				= false;
-bool esperando_riego		= false; // para chequearRiego()
+bool esperando_riego		= false; // para controlarRiego()
+
+
 
 // Tiempo.h
 char SERVIDOR_NTP[] = "pool.ntp.org";
@@ -119,25 +121,26 @@ int humedad_suelo_interior;
 int humedad_suelo_exterior;
 class AHT10Mux
 {
+	private:
+		uint8_t salida_del_mux;
+
 	public:
 		AHT10Mux(uint8_t Asalida_del_mux);
 		bool     begin();
 		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
 		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
-	private:
-		uint8_t salida_del_mux;
 };
 
 
 // Control.h
 unsigned long ultima_vez_bomba_encendio = 0;
-void chequearVentilacion();
-void chequearRiego();
+void controlarVentilacion();
+void controlarRiego();
 void activarVentilacion();
 void desactivarVentilacion();
 //void abrirVentana();
 //void cerrarVentana();
-//void chequear_iluminacion();
+//void controlarIluminacion();
 #define ANGULO_APERTURA	90		// posición de apertura de la ventana
 #define ANGULO_CERRADO	0		// posición de cerrado de la ventana
 // parte del botón (no utilizado, bueno tenerlo)
@@ -200,6 +203,7 @@ inline bool inicializarThingSpeak();
 class LocalWiFi
 {
 	public:
+		uint8_t cant_redes = 0;
 		char ssid[CANT_REDES_WIFI][W_SSID_SIZE];
 		char pass[CANT_REDES_WIFI][W_PASS_SIZE];
 
@@ -207,7 +211,7 @@ class LocalWiFi
 		void inicializarWiFi();
 		bool guardarRedWiFi(const char* ssid, const char* password);
 		bool guardarRedWiFi(const char* ssid);
-		bool correrWiFi();
+		bool correr();
 } LCWF;
 
 
@@ -235,32 +239,40 @@ class LocalFirebase
 
 
 // SD_manejo.h
-// NOMBRES DE LOS FOLDERS (Y .TXT)
-//char STRINGS_PATH[]			= "controlador/strings/";
-char CONFIG_FOLDER_PATH[]		= "controlador/config/";
-char WIFI_FOLDER_PATH[]			= "wifi/";
-char FIREBASE_FOLDER_PATH[]		= "firebase/";
-//char PARAMETROS_FOLDER_PATH[]	= "parametros/";
-char TXT[]						= ".txt";
-// NOMBRES DE FOLDER WIFI
-char NOMBRE_ARCHIVO_WSSID[]	= "ssid";
-char NOMBRE_ARCHIVO_WPASS[]	= "pass";
-// NOMBRES DE FOLDER FIREBASE
-char NOMBRE_ARCHIVO_FEMAIL[]	= "email";
-char NOMBRE_ARCHIVO_FPASS[]		= "pass";
-char NOMBRE_ARCHIVO_FURL[]		= "url";
-char NOMBRE_ARCHIVO_FAPIKEY[]	= "apikey";
-void inicializarSD();
-void configWiFi();
-void configFirebase();
-void escribirDatos(String dato);
 enum class ResultadoLecturaSD : uint8_t
 {
 	NO_ARCHIVO,
 	NO_CONTENIDO,
 	EXITOSO
 };
-ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const char *path);
+class LocalSD
+{
+	private:
+		// NOMBRES DE LOS FOLDERS (Y.TXT)
+		//char STRINGS_PATH[]			= "controlador/strings/";
+		char CONFIG_FOLDER_PATH[20]		= "controlador/config/";
+		char WIFI_FOLDER_PATH[6]		= "wifi/";
+		char FIREBASE_FOLDER_PATH[10]	= "firebase/";
+		//char PARAMETROS_FOLDER_PATH[]	= "parametros/";
+		char TXT[5]						= ".txt";
+		// NOMBRES DE FOLDER WIFI
+		char NOMBRE_ARCHIVO_WSSID[5]	= "ssid";
+		char NOMBRE_ARCHIVO_WPASS[5]	= "pass";
+		// NOMBRES DE FOLDER FIREBASE
+		char NOMBRE_ARCHIVO_FEMAIL[6]	= "email";
+		char NOMBRE_ARCHIVO_FPASS[5]	= "pass";
+		char NOMBRE_ARCHIVO_FURL[4]		= "url";
+		char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
+	public:
+		void inicializarSD();
+		void leerConfigWiFi();
+		void leerConfigFirebase();
+		void leerConfigParametros();
+	private:
+		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
+} LCSD;
+
+
 
 
 // Telegram.h
@@ -269,17 +281,17 @@ ResultadoLecturaSD leerArchivoSDA(char *buffer, const uint8_t caracteres, const 
 unsigned long ultima_vez_alarma_funciono = 0;
 unsigned long ultima_vez_comprobacion_wifi = 0;
 String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()
-uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en chequearAlarma()
+uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en controlarAlarma()
 uint16_t 	chat_numero_entrada_int;	// cuando preguntamos por un número entero de entrada
 float		chat_numero_entrada_float;	// cuando preguntamos por un número con decimal de entrada
-bool		chat_primer_mensaje = true; // para chequearMensajesRecibidosTelegram()
+bool		chat_primer_mensaje = true; // para controlarMensajesRecibidosTelegram()
 // WiFi
 void conectarWiFi(bool parar_programa);
 bool conectarWiFiCon(const String& Assid, const String& Apassword);
-void chequearConexion();
+void controlarConexion();
 // funciones varias
-void chequearMensajesRecibidosTelegram();
-void chequearAlarma();
+void controlarMensajesRecibidosTelegram();
+void controlarAlarma();
 void enviarMensaje(const uint64_t Aid, const String& Amensaje);
 bool evaluarMensajeInt(uint16_t Avalor_min, uint16_t Avalor_max, String Aunidad);
 bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad);
@@ -303,7 +315,7 @@ void comandoReprog();
 
 // EEMPROM_manejo.h
 // funciones
-void chequearEEPROMProgramada();
+void controlarEEPROMProgramada();
 void setDireccionesEEPROM();
 void leerEEPROMProgramada();
 void cargarValoresPorDefecto();
@@ -311,39 +323,39 @@ void imprimirEEPROMValsDirsReads();
 template <typename T>
 void escribirEEPROM(int Adireccion, T Adato); // template <typename T> T leerEEPROM(int Adireccion, T Adato);
 // variables de la EEPROM con sus valores por defecto
+#define ALARMA_ACTIVADA_DEFECTO			true
 #define TEMP_MAXIMA_ALARMA_DEFECTO		45.0F
 #define TEMP_MINIMA_ALARMA_DEFECTO		-5.0F
 #define TEMP_MAXIMA_VENTILACION_DEFECTO	35.0F
 #define HUMEDAD_SUELO_MINIMA_DEFECTO	60
 #define LAPSO_ALARMA_MINUTOS_DEFECTO	60
-#define ALARMA_ACTIVADA_DEFECTO			true
 #define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
 #define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
 bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
-float		temp_maxima_alarma;			// 1.
-float		temp_minima_alarma;			// 2.
-float		temp_maxima_ventilacion;	// 3.
-uint8_t		humedad_suelo_minima;		// 4.	70 % es vaso de agua, 29 % es el aire
-uint16_t	lapso_alarma_minutos;		// 5.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-bool		alarma_activada;			// 6.
+bool		alarma_activada;			// 1.
+float		temp_maxima_alarma;			// 2.
+float		temp_minima_alarma;			// 3.
+float		temp_maxima_ventilacion;	// 4.
+uint8_t		humedad_suelo_minima;		// 5.	70 % es vaso de agua, 29 % es el aire
+uint16_t	lapso_alarma_minutos;		// 6.	60 minutos (máx 65535 min o 1092 horas o 45 días)
 uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
 uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
 // manejo de las direcciones de la EEPROM
-enum EEPROMDireccionesVariables : uint8_t
+enum OrdenParametros : uint8_t
 {
-	DIR_EEPROM_PROGRAMADA,
-	DIR_TEMP_MAXIMA_ALARMA,
-	DIR_TEMP_MINIMA_ALARMA,
-	DIR_TEMP_MAXIMA_VENTILACION,
-	DIR_HUMEDAD_SUELO_MINIMA,
-	DIR_LAPSO_ALARMA_MINUTOS,
-	DIR_ALARMA_ACTIVADA,
-	DIR_TIEMPO_BOMBEO_SEGUNDOS,
-	DIR_TIEMPO_ESPERA_MINUTOS,
+	EEPROM_PROGRAMADA,
+	ALARMA_ACTIVADA,
+	TEMP_MAXIMA_ALARMA,
+	TEMP_MINIMA_ALARMA,
+	TEMP_MAXIMA_VENTILACION,
+	HUMEDAD_SUELO_MINIMA,
+	LAPSO_ALARMA_MINUTOS,
+	TIEMPO_BOMBEO_SEGUNDOS,
+	TIEMPO_ESPERA_MINUTOS,
 	CANT_VARIABLES_EEPROM
 };
-										// bool, float, float, float, int8, int, bool, int, int
-const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 4, 4, 4, 1, 2, 1, 2, 2};
+										// bool, bool, float, float, float, int8, int, int, int
+const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 1, 4, 4, 4, 1, 2, 2, 2};
 int direccion[CANT_VARIABLES_EEPROM];
 int espacios_EEPROM;
 
