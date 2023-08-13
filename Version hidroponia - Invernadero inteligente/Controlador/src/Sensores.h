@@ -2,7 +2,7 @@
 
 #include "Declaraciones.h"
 
-AHT10Mux::AHT10Mux(uint8_t Asalida_del_mux) {	salida_del_mux = Asalida_del_mux;	}
+AHT10Mux::AHT10Mux(uint8_t salida_del_mux) {	this->salida_del_mux = salida_del_mux;	}
 
 bool AHT10Mux::begin()
 {

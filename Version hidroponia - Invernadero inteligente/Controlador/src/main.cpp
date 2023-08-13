@@ -47,14 +47,14 @@ void setup()
 
 	// inicializar sensores y SD
 	inicializarSensores();
-	LCSD.inicializarSD();
+	LCSD.inicializar();
 
 	// leer los archivos de configuración de la tarjeta SD
 	LCSD.leerConfigWiFi();
 	LCSD.leerConfigFirebase();
 
 	// leer o escribir la EEPROM
-	controlarEEPROMProgramada();
+	LCEE.inicializar();
 
 	delay(3500);
 

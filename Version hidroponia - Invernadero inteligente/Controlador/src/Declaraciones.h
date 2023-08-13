@@ -125,7 +125,7 @@ class AHT10Mux
 		uint8_t salida_del_mux;
 
 	public:
-		AHT10Mux(uint8_t Asalida_del_mux);
+		AHT10Mux(uint8_t salida_del_mux);
 		bool     begin();
 		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
 		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
@@ -153,6 +153,30 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);
+class SalidaOnOff
+{
+	public:
+		struct Flags
+		{
+			bool forzada;
+			bool activa;
+			bool temporizada; // vamos viendo
+		};
+		unsigned long ultima_vez_encendido;
+		unsigned long ultima_vez_apagado;
+	private:
+		uint8_t pin_rele;
+		uint8_t pin_led;
+
+	public:
+		SalidaOnOff(uint8_t pin_rele, uint8_t pin_led);
+		void encender();
+		void apagar();
+};
+class SalidaVentilacion
+{
+	// A decidir método de movimiento
+};
 
 
 // Display.h
@@ -264,15 +288,13 @@ class LocalSD
 		char NOMBRE_ARCHIVO_FURL[4]		= "url";
 		char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
 	public:
-		void inicializarSD();
+		void inicializar();
 		void leerConfigWiFi();
 		void leerConfigFirebase();
 		void leerConfigParametros();
 	private:
 		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
 } LCSD;
-
-
 
 
 // Telegram.h
@@ -314,14 +336,6 @@ void comandoReprog();
 
 
 // EEMPROM_manejo.h
-// funciones
-void controlarEEPROMProgramada();
-void setDireccionesEEPROM();
-void leerEEPROMProgramada();
-void cargarValoresPorDefecto();
-void imprimirEEPROMValsDirsReads();
-template <typename T>
-void escribirEEPROM(int Adireccion, T Adato); // template <typename T> T leerEEPROM(int Adireccion, T Adato);
 // variables de la EEPROM con sus valores por defecto
 #define ALARMA_ACTIVADA_DEFECTO			true
 #define TEMP_MAXIMA_ALARMA_DEFECTO		45.0F
@@ -340,24 +354,37 @@ uint8_t		humedad_suelo_minima;		// 5.	70 % es vaso de agua, 29 % es el aire
 uint16_t	lapso_alarma_minutos;		// 6.	60 minutos (máx 65535 min o 1092 horas o 45 días)
 uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
 uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
-// manejo de las direcciones de la EEPROM
-enum OrdenParametros : uint8_t
+class LocalEEPROM
 {
-	EEPROM_PROGRAMADA,
-	ALARMA_ACTIVADA,
-	TEMP_MAXIMA_ALARMA,
-	TEMP_MINIMA_ALARMA,
-	TEMP_MAXIMA_VENTILACION,
-	HUMEDAD_SUELO_MINIMA,
-	LAPSO_ALARMA_MINUTOS,
-	TIEMPO_BOMBEO_SEGUNDOS,
-	TIEMPO_ESPERA_MINUTOS,
-	CANT_VARIABLES_EEPROM
-};
-										// bool, bool, float, float, float, int8, int, int, int
-const int LONGITUD_DATO_EEPROM[CANT_VARIABLES_EEPROM] = {1, 1, 4, 4, 4, 1, 2, 2, 2};
-int direccion[CANT_VARIABLES_EEPROM];
-int espacios_EEPROM;
+	public:
+		enum OrdenParametros : uint8_t
+		{
+			PROGRAMADA,
+			ALARMA_ACTIVADA,
+			TEMP_MAXIMA_ALARMA,
+			TEMP_MINIMA_ALARMA,
+			TEMP_MAXIMA_VENTILACION,
+			HUMEDAD_SUELO_MINIMA,
+			LAPSO_ALARMA_MINUTOS,
+			TIEMPO_BOMBEO_SEGUNDOS,
+			TIEMPO_ESPERA_MINUTOS,
+			CANT_VARIABLES
+		};											// bool, bool, float, float, float, int8, int, int, int
+		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 4, 4, 4, 1, 2, 2, 2};
+		int direccion[CANT_VARIABLES];
+	private:
+		int espacios;
+
+	public:
+		void inicializar();
+		void leerCompleta();
+		void cargarValoresPorDefecto();
+		template <typename T>
+		void escribir(int Adireccion, T Adato);
+	private:
+		void setDirecciones();
+		void imprimirValsDirsReads();
+} LCEE;
 
 
 // Clases

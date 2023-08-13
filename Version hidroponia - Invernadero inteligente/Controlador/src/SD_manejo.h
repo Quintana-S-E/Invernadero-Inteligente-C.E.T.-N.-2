@@ -2,7 +2,7 @@
 
 #include "Declaraciones.h"
 
-void LocalSD::inicializarSD()
+void LocalSD::inicializar()
 {
 	if (!SD.begin(SD_CS))
 	{
@@ -78,9 +78,9 @@ void LocalSD::leerConfigFirebase()
 // Luego de escribir los valores de la SD, leemos la EEPROM para asignar los valores a las variables globales
 void LocalSD::leerConfigParametros()
 {
-	cargarValoresPorDefecto(); 
+	LCEE.cargarValoresPorDefecto(); 
 
-	for (uint8_t i = 1; i < CANT_VARIABLES_EEPROM; ++i)
+	for (uint8_t i = 1; i < LCEE.CANT_VARIABLES; ++i)
 	{
 		char path[7];
 		sprintf(path, "%02d%s", i, TXT);
@@ -92,17 +92,17 @@ void LocalSD::leerConfigParametros()
 			continue;
 		}
 
-		if		(LONGITUD_DATO_EEPROM[i] == 1)
-			escribirEEPROM(direccion[i], (uint8_t)	ArchivoSD.parseInt());
-		else if	(LONGITUD_DATO_EEPROM[i] == 4)
-			escribirEEPROM(direccion[i],			ArchivoSD.parseFloat());
-		else if (LONGITUD_DATO_EEPROM[i] == 2)
-			escribirEEPROM(direccion[i], (uint16_t)	ArchivoSD.parseInt());
+		if		(LCEE.LONGITUD_DATO[i] == 1)
+			LCEE.escribir(LCEE.direccion[i], (uint8_t)	ArchivoSD.parseInt());
+		else if	(LCEE.LONGITUD_DATO[i] == 4)
+			LCEE.escribir(LCEE.direccion[i],			ArchivoSD.parseFloat());
+		else if (LCEE.LONGITUD_DATO[i] == 2)
+			LCEE.escribir(LCEE.direccion[i], (uint16_t)	ArchivoSD.parseInt());
 		
 		ArchivoSD.close();
 	}
 
-	leerEEPROMProgramada();
+	LCEE.leerCompleta();
 }
 
 //===============================================================================================================================//
