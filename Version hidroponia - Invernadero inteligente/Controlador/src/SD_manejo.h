@@ -30,7 +30,7 @@ void LocalSD::leerConfigWiFi()
 		ResultadoLecturaSD lectura;
 		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WSSID, i + 1, TXT);
 
-		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][0] = 'e', [i][0] = 'l', [i][0] = 'l', etc
+		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][1] = 'e', [i][2] = 'l', [i][3] = 'l', etc
 		lectura = leerStringA(LCWF.ssid[i], W_SSID_SIZE, path);
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
 			continue;

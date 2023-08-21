@@ -45,31 +45,30 @@
 #define LED_VENTILACION		15 // Active low
 #define LED_WIFI			12 // Active low
 // de los relés
-#define PIN_BOMBA_1			17
-#define PIN_BOMBA_2			16
-#define PIN_BOMBA_3			26
+#define PIN_BOMBA1			17
+#define PIN_BOMBA2			16
+#define PIN_BOMBA3			26
 #define PIN_VENTILACION		27
 // del multiplexor
 #define MUX_A 32
 #define MUX_B 33
 #define MUX_C 25
 // de los sensores AHT10 (desde el MUX)
-enum PinesAHT10MUX : uint8_t
+enum class PinesAHT10MUX : uint8_t
 {
-	AHT_INT_HIGH_MUX_PIN,
-	AHT_INT_MID_MUX_PIN,
-	AHT_INT_LOW_MUX_PIN,
-	AHT_AGUA_1_MUX_PIN,
-	AHT_AGUA_2_MUX_PIN,
-	AHT_AGUA_3_MUX_PIN,
-	AHT_EXT_MUX_PIN,
-	AHT_GEOTERMICO_MUX_PIN,
+	INT_HIGH,
+	INT_MID,
+	INT_LOW,
+	AGUA1,
+	AGUA2,
+	AGUA3,
+	GEOTERMICO,
 };
 // de los sensores humedad suelo
-#define SOIL_1_PIN A0
-#define SOIL_2_PIN A3
-#define SOIL_3_PIN A6
-#define SOIL_4_PIN A7
+#define SOIL1_PIN A0
+#define SOIL2_PIN A3
+#define SOIL3_PIN A6
+#define SOIL4_PIN A7
 
 // Variables de tiempo generales
 unsigned long ultima_vez_invernadero_funciono = 0;
@@ -84,9 +83,9 @@ en el mismo lugar que los otros valores de la EEPROM [humedad suelo es el único
 
 -------------------------2DA IDEA:-------------------------
 Cambiar esto por un struct FlagsSalidas. Las funciones de cada salida pueden quedar sueltas. No es muy buen encapsulado pero meh.
-*/
+
 bool ventilacion_forzada	= false; // si el estado de ventilación está siendo forzado por telegram
-bool ventilando				= false;
+bool ventilando				= false;*/
 bool esperando_riego		= false; // para controlarRiego()
 
 
@@ -125,7 +124,7 @@ class AHT10Mux
 		uint8_t salida_del_mux;
 
 	public:
-		AHT10Mux(uint8_t salida_del_mux);
+		AHT10Mux(PinesAHT10MUX salida_del_mux);
 		bool     begin();
 		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
 		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
@@ -153,17 +152,21 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);
+
+enum class SalidaModos : uint8_t
+{
+	Automatica,
+	Deshabilitada,
+	Forzada,
+	Temporizada
+};
 class SalidaOnOff
 {
 	public:
-		struct Flags
-		{
-			bool forzada;
-			bool activa;
-			bool temporizada; // vamos viendo
-		};
-		unsigned long ultima_vez_encendido;
-		unsigned long ultima_vez_apagado;
+		SalidaModos modo = SalidaModos::Automatica;
+		bool encendida = false;
+		//unsigned long ultima_vez_encendido;	LO OBVIAMOS, ponemos un datalog channel por cada salida y dataloggeamos 1 si
+		//unsigned long ultima_vez_apagado;		está encendida y 0 si está apagada
 	private:
 		uint8_t pin_rele;
 		uint8_t pin_led;
@@ -175,6 +178,16 @@ class SalidaOnOff
 };
 class SalidaVentilacion
 {
+	public:
+		Modos modo = Modos::Automatica;
+	private:
+		uint8_t pin_rele1;
+		uint8_t pin_rele2;
+		uint8_t pin_led;
+
+	public:
+		SalidaVentilacion(uint8_t pin_rele1, uint8_t pin_rele2, uint8_t pin_led);
+		// TODO: que las funciones de abrir/cerrar accionen el LED
 	// A decidir método de movimiento
 };
 
@@ -227,6 +240,7 @@ inline bool inicializarThingSpeak();
 class LocalWiFi
 {
 	public:
+		bool hay_conexion;
 		uint8_t cant_redes = 0;
 		char ssid[CANT_REDES_WIFI][W_SSID_SIZE];
 		char pass[CANT_REDES_WIFI][W_PASS_SIZE];
@@ -392,11 +406,10 @@ File DatalogSD;
 WiFiMulti WiFiMultiO;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
-AHT10Mux AhtInteriorHigh(AHT_INT_HIGH_MUX_PIN);
-AHT10Mux AhtInteriorMid(AHT_INT_MID_MUX_PIN);
-AHT10Mux AhtInteriorLow(AHT_INT_LOW_MUX_PIN);
-AHT10Mux AhtAgua1(AHT_AGUA_1_MUX_PIN);
-AHT10Mux AhtAgua2(AHT_AGUA_2_MUX_PIN);
-AHT10Mux AhtAgua3(AHT_AGUA_3_MUX_PIN);
-AHT10Mux AhtExterior(AHT_EXT_MUX_PIN);
-AHT10Mux AhtExteriorGeotermico(AHT_GEOTERMICO_MUX_PIN);
+AHT10Mux AhtInteriorHigh(PinesAHT10MUX::INT_HIGH);
+AHT10Mux AhtInteriorMid(PinesAHT10MUX::INT_MID);
+AHT10Mux AhtInteriorLow(PinesAHT10MUX::INT_LOW);
+AHT10Mux AhtAgua1(PinesAHT10MUX::AGUA1);
+AHT10Mux AhtAgua2(PinesAHT10MUX::AGUA2);
+AHT10Mux AhtAgua3(PinesAHT10MUX::AGUA3);
+AHT10Mux AhtGeotermico(PinesAHT10MUX::GEOTERMICO);
