@@ -11,7 +11,7 @@ más, debido a un overshoot desde que se activa hasta que empieza a bajar; o des
 	https://forum.allaboutcircuits.com/threads/schmitt-trigger-vs-rc-low-pass-filter-for-signal-conditioning.187898/
 Es muy fácil de implementar, solo una suma y resta.
 */
-void chequearVentilacion() // en "loop()"
+void controlarVentilacion() // en "loop()"
 {
 	if (ventilacion_forzada)
 		return; // si la ventilación es forzada por telegram, ignorar lo automático
@@ -31,7 +31,7 @@ void chequearVentilacion() // en "loop()"
 //==================================================================================================================//
 
 // Regar y esperar el tiempo necesario para la filtración del agua antes de medir de nuevo
-void chequearRiego() // en "loop()"
+void controlarRiego() // en "loop()"
 {
 
 
@@ -53,7 +53,7 @@ void chequearRiego() // en "loop()"
 		}
 	}
 
-	// chequear la humedad y regar (si no se está esperando la filtración del agua)
+	// controlar la humedad y regar (si no se está esperando la filtración del agua)
 	if (humedad_suelo_exterior <= humedad_suelo_minima && !esperando_riego)
 	{
 		ultima_vez_bomba_encendio = millis();
@@ -115,7 +115,7 @@ EstadoBoton leerBoton(unsigned long timeout_lectura)
 
 //================================================FUTURAS VERSIONES=================================================//
 // Identifica la necesidad de iluminar, basándose en la lectura de un sensor LDR
-void chequear_iluminacion()
+void controlarIluminacion()
 {
 	// ...
 }
