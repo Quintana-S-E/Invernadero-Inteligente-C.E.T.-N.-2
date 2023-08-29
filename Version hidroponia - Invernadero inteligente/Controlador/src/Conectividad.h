@@ -64,7 +64,4 @@ Si no sirve bien este tuto (mirarlo después de lograr la comunicación por blue
 
 
 También queremos definir controlarConexion(). Lo bueno es que con WiFiMulti es una sóla línea "if(wifiMulti.run() == WL_CONNECTED)"
-
-
-TODO IMPORTANTE: AL CONECTARNOS/RECONECTARNOS A WIFI LLAMAR A LA FUNCIÓN inicializarTiempoUnix();
 */

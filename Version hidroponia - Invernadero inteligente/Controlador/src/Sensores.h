@@ -39,7 +39,7 @@ void establecerSalidaMUX(uint8_t salida)
 
 void inicializarSensores()
 {
-	const uint8_t CANT_SENSORES = 7; // TODO: eliminar sensor exterior y cambiar CANTIDAD por CANT
+	const uint8_t CANT_SENSORES = 7;
 	bool sensor[CANT_SENSORES];
 	sensor[0] = AhtInteriorHigh.begin();
 	sensor[1] = AhtInteriorMid.begin();
@@ -117,7 +117,7 @@ void leerAHT10Exteriores() // en leerSensores()
 	humedad_aire_exterior = AhtExterior.readHumidity(); // %
 	temp_exterior = AhtExterior.readTemperature();		// Celsius
 	// leer a AhtExteriorGeotermico
-	temp_exterior_geotermica = AhtExteriorGeotermico.readTemperature();
+	temp_exterior_geotermica = AhtGeotermico.readTemperature();
 }
 
 //==================================================================================================================//

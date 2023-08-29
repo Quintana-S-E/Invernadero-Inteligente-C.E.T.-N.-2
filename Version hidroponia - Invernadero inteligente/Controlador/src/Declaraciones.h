@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Claves.h"
+
 #include <Arduino.h>
 #include <Adafruit_GFX.h>	  // display OLED
 #include <Adafruit_SSD1306.h> // display OLED
@@ -15,6 +17,14 @@
 #include <Wire.h> // I2C
 #include <WiFi.h>
 #include <WiFiMulti.h>
+
+/*
+TODO IMPORTANTE: al tener una versión ya compilada, ver de cambiar todos los headers a .cpp. Que todos incluyan solamente a
+este archivo (Declaraciones.h) y que en main.cpp también solo se incluya este archivo. Así quedarían más claras la función de los
+headers (definir funciones declaradas acá) y la función de este archivo (declarar todas las funciones).
+Lo intenté el 22/8, pareciera que iba todo bien pero hubo un problema en AHT10.cpp (creo que de la librería, pero qsy por ahí
+tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer este cambio.
+*/
 
 #define DEBUG_SERIAL // Comentar para eliminar los Serial.print
 #ifdef DEBUG_SERIAL
@@ -179,7 +189,7 @@ class SalidaOnOff
 class SalidaVentilacion
 {
 	public:
-		Modos modo = Modos::Automatica;
+		SalidaModos modo = SalidaModos::Automatica;
 	private:
 		uint8_t pin_rele1;
 		uint8_t pin_rele2;

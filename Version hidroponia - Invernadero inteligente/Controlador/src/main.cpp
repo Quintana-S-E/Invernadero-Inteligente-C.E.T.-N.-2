@@ -69,8 +69,6 @@ void setup()
 
 void loop()
 {
-	// FUTURO TODO: Acá controlar que pueda existir un overflow del millis en Tiempo.h
-
 	if (millis() - ultima_vez_invernadero_funciono >= DELAY_ACTIVIDAD_INVERNADERO)
 	{ // idealmente, en lugar de esperas pondríamos al uC en un estado de bajo consumo por un período fijo
 		ultima_vez_invernadero_funciono = millis();
