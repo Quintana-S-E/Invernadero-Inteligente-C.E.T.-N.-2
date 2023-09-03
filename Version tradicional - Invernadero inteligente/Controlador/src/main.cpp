@@ -24,22 +24,13 @@ void setup()
 	#ifdef DEBUG_SERIAL
 		Serial.begin(9600);
 	#endif
-	pinMode(PIN_BTN, INPUT_PULLUP);
-	pinMode(LED_VENTILACION, OUTPUT);
-	pinMode(LED_WIFI, OUTPUT);
-	pinMode(LED_BUILTIN, OUTPUT);
-	pinMode(PIN_BOMBA1, OUTPUT);
-	pinMode(PIN_BOMBA2, OUTPUT);
-	pinMode(PIN_BOMBA3, OUTPUT);
-	pinMode(PIN_VENTILACION, OUTPUT);
-	digitalWrite(PIN_BOMBA1, HIGH);
-	digitalWrite(PIN_BOMBA2, HIGH);
-	digitalWrite(PIN_BOMBA3, HIGH);
-	digitalWrite(PIN_VENTILACION, HIGH);
-	pinMode(MUX_A, OUTPUT);
-	pinMode(MUX_B, OUTPUT);
-	pinMode(MUX_C, OUTPUT);
-	// ver, para el futuro https://forum.arduino.cc/t/digitalwritefast-digitalreadfast-pinmodefast-etc/47037
+	for (PinsOut pin : {PinsOut::RIEGO, PinsOut::CALEFA,
+						PinsOut::MARCHA, PinsOut::CONTRAMARCHA,
+						PinsOut::MUX_A, PinsOut::MUX_B,	 PinsOut:: MUX_C})
+	{
+		digitalWrite(static_cast<uint8_t>(pin), LOW);
+		pinMode(static_cast<uint8_t>(pin), OUTPUT);
+  	}
 
 	// inicializar display
 	inicializarDisplay();

@@ -47,56 +47,41 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 #define F_URL_SIZE		68 // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
 // Pines
 #define SD_CS			5
-// ledes y botón
-#define PIN_BTN			4
 #ifndef LED_BUILTIN
 	#define LED_BUILTIN	2
 #endif
-#define LED_VENTILACION		15 // Active low
-#define LED_WIFI			12 // Active low
-// de los relés
-#define PIN_BOMBA1			17
-#define PIN_BOMBA2			16
-#define PIN_BOMBA3			26
-#define PIN_VENTILACION		27
-// del multiplexor
-#define MUX_A 32
-#define MUX_B 33
-#define MUX_C 25
-// de los sensores AHT10 (desde el MUX)
-enum class PinesAHT10MUX : uint8_t
+enum class PinsOut : uint8_t
 {
-	INT_HIGH,
-	INT_MID,
-	INT_LOW,
-	AGUA1,
-	AGUA2,
-	AGUA3,
-	GEOTERMICO,
+	// de los relés
+	RIEGO			= 17,
+	CALEFA			= 15,
+	MARCHA			= 16,
+	CONTRAMARCHA	= 2,
+	// del MUX
+	MUX_A	= 14,
+	MUX_B	= 27,
+	MUX_C	= 26
 };
 // de los sensores humedad suelo
-#define SOIL1_PIN A0
-#define SOIL2_PIN A3
-#define SOIL3_PIN A6
-#define SOIL4_PIN A7
+enum class PinsIn : uint8_t
+{
+	SOIL1 = A7,
+	SOIL2 = A0,
+	SOIL3 = A3,
+};
+// de los sensores AHT10 (desde el MUX)
+enum class PinsAHT10MUX : uint8_t
+{
+	INT_MID		= 1,
+	INT_HIGH,
+	INT_LOW,
+	GEOTERMICO	= 5,
+};
 
-// Variables de tiempo generales
+// Variables de tiempo y flags generales
 unsigned long ultima_vez_invernadero_funciono = 0;
 unsigned long ultima_vez_display_cambio = 0;
-
-// Flags de estado generales
-/* -------------------------IDEA:-------------------------
-Posiblemente crear class Salida con flags: activada, desactivada, forzada, ultima_vez_activada/desactivada.
-Y crear child classes con los métodos propios: abrir(), controlar(), prender(), apagar(), abrir un ángulo(), esperando, temp_max, etc;
-declarando Riego, Calefa, Ventilación y quizás Alarma. Ver cómo incorporar los valores de la EEPROM (fácil, pero declararlos todos
-en el mismo lugar que los otros valores de la EEPROM [humedad suelo es el único no relacionado con una salida]).
-
--------------------------2DA IDEA:-------------------------
-Cambiar esto por un struct FlagsSalidas. Las funciones de cada salida pueden quedar sueltas. No es muy buen encapsulado pero meh.
-
-bool ventilacion_forzada	= false; // si el estado de ventilación está siendo forzado por telegram
-bool ventilando				= false;*/
-bool esperando_riego		= false; // para controlarRiego()
+bool esperando_riego = false; // para controlarRiego()
 
 
 
@@ -134,7 +119,7 @@ class AHT10Mux
 		uint8_t salida_del_mux;
 
 	public:
-		AHT10Mux(PinesAHT10MUX salida_del_mux);
+		AHT10Mux(PinsAHT10MUX salida_del_mux);
 		bool     begin();
 		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
 		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
@@ -416,10 +401,7 @@ File DatalogSD;
 WiFiMulti WiFiMultiO;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
-AHT10Mux AhtInteriorHigh(PinesAHT10MUX::INT_HIGH);
-AHT10Mux AhtInteriorMid(PinesAHT10MUX::INT_MID);
-AHT10Mux AhtInteriorLow(PinesAHT10MUX::INT_LOW);
-AHT10Mux AhtAgua1(PinesAHT10MUX::AGUA1);
-AHT10Mux AhtAgua2(PinesAHT10MUX::AGUA2);
-AHT10Mux AhtAgua3(PinesAHT10MUX::AGUA3);
-AHT10Mux AhtGeotermico(PinesAHT10MUX::GEOTERMICO);
+AHT10Mux AhtInteriorHigh(PinsAHT10MUX::INT_HIGH);
+AHT10Mux AhtInteriorMid(PinsAHT10MUX::INT_MID);
+AHT10Mux AhtInteriorLow(PinsAHT10MUX::INT_LOW);
+AHT10Mux AhtGeotermico(PinsAHT10MUX::GEOTERMICO);

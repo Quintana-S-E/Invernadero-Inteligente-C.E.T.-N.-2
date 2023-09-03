@@ -2,7 +2,7 @@
 
 #include "Declaraciones.h"
 
-AHT10Mux::AHT10Mux(PinesAHT10MUX salida_del_mux) {	this->salida_del_mux = static_cast<int>(salida_del_mux);	}
+AHT10Mux::AHT10Mux(PinsAHT10MUX salida_del_mux) {	this->salida_del_mux = static_cast<int>(salida_del_mux);	}
 
 bool AHT10Mux::begin()
 {
@@ -30,9 +30,9 @@ void establecerSalidaMUX(uint8_t salida)
 	for (int i = 0;  i < 3;  ++i)
 		bits[i] =  (salida >> i) & 1;
 
-	digitalWrite(MUX_A, bits[0]);
-	digitalWrite(MUX_B, bits[1]);
-	digitalWrite(MUX_C, bits[2]);
+	digitalWrite(static_cast<uint8_t>(PinsOut::MUX_A), bits[0]);
+	digitalWrite(static_cast<uint8_t>(PinsOut::MUX_B), bits[1]);
+	digitalWrite(static_cast<uint8_t>(PinsOut::MUX_C), bits[2]);
 }
 
 //==================================================================================================================//
