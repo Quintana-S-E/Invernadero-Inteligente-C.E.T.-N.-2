@@ -132,12 +132,8 @@ void controlarVentilacion();
 void controlarRiego();
 void activarVentilacion();
 void desactivarVentilacion();
-//void abrirVentana();
-//void cerrarVentana();
 //void controlarIluminacion();
-#define ANGULO_APERTURA	90		// posición de apertura de la ventana
-#define ANGULO_CERRADO	0		// posición de cerrado de la ventana
-// parte del botón (no utilizado, bueno tenerlo)
+/*parte del botón (no utilizado, bueno tenerlo)
 #define TIEMPO_MIN_BTN_MANTENIDO 800UL
 enum class EstadoBoton : uint8_t
 {
@@ -146,7 +142,7 @@ enum class EstadoBoton : uint8_t
 	Mantenido,
 	DobleClickeado
 };
-EstadoBoton leerBoton(unsigned long timeout_lectura);
+EstadoBoton leerBoton(unsigned long timeout_lectura);*/
 
 enum class SalidaModos : uint8_t
 {
@@ -286,7 +282,7 @@ class LocalSD
 		char CONFIG_FOLDER_PATH[20]		= "controlador/config/";
 		char WIFI_FOLDER_PATH[6]		= "wifi/";
 		char FIREBASE_FOLDER_PATH[10]	= "firebase/";
-		//char PARAMETROS_FOLDER_PATH[]	= "parametros/";
+		char PARAMETROS_FOLDER_PATH[12]	= "parametros/";
 		char TXT[5]						= ".txt";
 		// NOMBRES DE FOLDER WIFI
 		char NOMBRE_ARCHIVO_WSSID[5]	= "ssid";
@@ -349,11 +345,19 @@ void comandoReprog();
 #define ALARMA_ACTIVADA_DEFECTO			true
 #define TEMP_MAXIMA_ALARMA_DEFECTO		45.0F
 #define TEMP_MINIMA_ALARMA_DEFECTO		-5.0F
-#define TEMP_MAXIMA_VENTILACION_DEFECTO	35.0F
+#define TEMP_MAXIMA_VENTILACION_DEFECTO	32.0F
 #define HUMEDAD_SUELO_MINIMA_DEFECTO	60
 #define LAPSO_ALARMA_MINUTOS_DEFECTO	60
 #define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
 #define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
+#define ESTADOS_SALIDAS_DEFECTO				0b00000000	// todas en automático
+#define LAPSO_VENTILACIONES_MIN_DEFECTO 	1440		// 24 h
+#define TIEMPO_APERTURA_VENT_MIN_DEFECTO	30
+#define LAPSO_RIEGOS_MIN_DEFECTO			720			// 12 h
+#define TEMP_MINIMA_CALEFA_DEFECTO			5.0F
+#define LAPSO_CALEFAS_MIN_DEFECTO			1440		// 24 h
+#define TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO 60
+#define TIEMPO_MARCHA_VENT_SEG_DEFECTO		10
 bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
 bool		alarma_activada;			// 1.
 float		temp_maxima_alarma;			// 2.
@@ -361,8 +365,18 @@ float		temp_minima_alarma;			// 3.
 float		temp_maxima_ventilacion;	// 4.
 uint8_t		humedad_suelo_minima;		// 5.	70 % es vaso de agua, 29 % es el aire
 uint16_t	lapso_alarma_minutos;		// 6.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
+uint16_t	tiempo_bombeo_segundos;		// 7.	10 segundos (máx 65535 seg o 18,2 horas)
 uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
+
+uint8_t		estados_salidas;
+uint16_t	lapso_ventilaciones_min;
+uint16_t	tiempo_apertura_vent_min;
+uint8_t		tiempo_marcha_vent_seg;
+//diferentes en H o T)
+uint16_t	lapso_riegos_min;
+float		temp_minima_calefa;
+uint16_t	lapso_calefas_min;
+uint16_t	tiempo_encendido_calefa_min;
 class LocalEEPROM
 {
 	public:
@@ -377,9 +391,18 @@ class LocalEEPROM
 			LAPSO_ALARMA_MINUTOS,
 			TIEMPO_BOMBEO_SEGUNDOS,
 			TIEMPO_ESPERA_MINUTOS,
+
+			ESTADOS_SALIDAS,
+			LAPSO_VENTILACIONES_MIN,
+			TIEMPO_APERTURA_VENT_MIN,
+			LAPSO_RIEGOS_MIN,
+			TEMP_MINIMA_CALEFA,
+			LAPSO_CALEFAS_MIN,
+			TIEMPO_ENCENDIDO_CALEFA_MIN,
+			TIEMPO_MARCHA_VENT_SEG,
 			CANT_VARIABLES
 		};											// bool, bool, float, float, float, int8, int, int, int
-		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 4, 4, 4, 1, 2, 2, 2};
+		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 4, 4, 4, 1, 2, 2, 2,			1, 2, 2, 2, 4, 2, 2, 1};
 		int direccion[CANT_VARIABLES];
 	private:
 		int espacios;

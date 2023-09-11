@@ -78,12 +78,12 @@ void LocalSD::leerConfigFirebase()
 // Luego de escribir los valores de la SD, leemos la EEPROM para asignar los valores a las variables globales
 void LocalSD::leerConfigParametros()
 {
-	LCEE.cargarValoresPorDefecto(); 
+	LCEE.cargarValoresPorDefecto();
 
 	for (uint8_t i = 1; i < LCEE.CANT_VARIABLES; ++i)
 	{
 		char path[7];
-		sprintf(path, "%02d%s", i, TXT);
+		sprintf(path, "%s%s%02d%s", CONFIG_FOLDER_PATH, PARAMETROS_FOLDER_PATH, i, TXT);
 
 		File ArchivoSD = SD.open(path, FILE_READ);
 		if (!ArchivoSD)
