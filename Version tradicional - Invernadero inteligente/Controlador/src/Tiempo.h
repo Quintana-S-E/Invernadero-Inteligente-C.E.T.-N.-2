@@ -30,9 +30,9 @@ unsigned long obtenerTiempoUnix()
 String mensajeSegundosATiempo(unsigned long segundos)
 {
 	int minutos =			segundos / 60;
-	int resto_segundos =	segundos % 60;
+	int resto_seg =	segundos % 60;
 	int horas =				minutos / 60;
-	int resto_minutos =		minutos % 60;
+	int resto_min =		minutos % 60;
 	int dias =				horas / 24;
 	int resto_horas =		horas % 24;
 	String mensaje = "";
@@ -55,24 +55,24 @@ String mensajeSegundosATiempo(unsigned long segundos)
 			mensaje += String(resto_horas) + " horas";
 	}
 
-	if (resto_minutos != 0)
+	if (resto_min != 0)
 	{
 		if (mensaje.length() > 1)
 			mensaje += ", ";
-		if (resto_minutos == 1)
+		if (resto_min == 1)
 			mensaje += "1 minuto";
 		else
-			mensaje += String(resto_minutos) + " minutos";
+			mensaje += String(resto_min) + " minutos";
 	}
 
-	if (resto_segundos != 0)
+	if (resto_seg != 0)
 	{
 		if (mensaje.length() > 1)
 			mensaje += ", ";
-		if (resto_segundos == 1)
+		if (resto_seg == 1)
 			mensaje += "1 segundo";
 		else
-			mensaje += String(resto_segundos) + " segundos";
+			mensaje += String(resto_seg) + " segundos";
 	}
 
 	return String(mensaje);

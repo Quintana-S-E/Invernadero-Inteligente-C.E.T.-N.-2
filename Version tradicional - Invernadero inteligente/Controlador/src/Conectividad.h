@@ -37,11 +37,9 @@ bool LocalWiFi::correr()
 	{
 		// TODO: Actualizar hay_conexion
 		inicializarTiempoUnix(); // se ejecuta una sola vez. Acá por si en setup() se cortó WiFi pero después hay
-		digitalWrite(LED_WIFI, LOW); // encender
 		return true;
 	}
 	// TODO: Actualizar hay_conexion
-	digitalWrite(LED_WIFI, HIGH); // apagar
 	return false;
 }
 

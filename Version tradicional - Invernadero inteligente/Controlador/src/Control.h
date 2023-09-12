@@ -1,86 +1,207 @@
 #pragma once
 
 #include "Declaraciones.h"
-#include "EEPROM_manejo.h"
 
 /*
-TODO: Para determinar la temperatura de activación/desactivación de ventilación utilizar la lógica de un Schmitt trigger: Activar a
-T(elegida) + ΔT;  y luego desactivar en T(elegida) - ΔT. La temp. haría un ripple centrado en T(elegida), con una variación
+Para determinar la temperatura de activación/desactivación de ventilación utilizamos la lógica de un Schmitt trigger: Activamos a
+T(elegida) + ΔT;  y luego desactivamos en T(elegida) - ΔT. La temp. haría un ripple centrado en T(elegida), con una variación
 de temperatura de 2ΔT (por ejemplo, T(elegida) = 25 °C  y ΔT = 0,5 °C. La temp. variaría entre 25,5 y 24,5 °C o un poquito
 más, debido a un overshoot desde que se activa hasta que empieza a bajar; o desactiva y empieza a subir [inercia térmica]).
 	https://forum.allaboutcircuits.com/threads/schmitt-trigger-vs-rc-low-pass-filter-for-signal-conditioning.187898/
-Es muy fácil de implementar, solo una suma y resta.
 */
-void controlarVentilacion() // en "loop()"
-{
-	if (ventilacion_forzada)
-		return; // si la ventilación es forzada por telegram, ignorar lo automático
 
-	if (temp_exterior >= temp_maxima_ventilacion && !ventilando)
+// Regar y esperar el tiempo necesario para la filtración del agua antes de medir de nuevo
+void LocalControl::controlarRiego() // en "loop()"
+{
+	switch (Riego.modo)
 	{
-		ventilando = true;
-		activarVentilacion();
-	}
-	else if (temp_exterior < temp_maxima_ventilacion && ventilando)
-	{
-		ventilando = false;
-		desactivarVentilacion();
+	case SalidaModos::Deshabilitada:
+		Riego.apagar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		riegoTemporizado();
+	case SalidaModos::Automatica:
+		riegoAutomatico();
 	}
 }
 
-//==================================================================================================================//
-
-// Regar y esperar el tiempo necesario para la filtración del agua antes de medir de nuevo
-void controlarRiego() // en "loop()"
+void LocalControl::riegoTemporizado()
 {
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_riegos_min" desde "Riego.ultima_vez_encendida"
+	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) lapso_riegos_min * 60000UL)
+		Riego.encender(millis_actual);
+	monitorearBombeoRiego(millis_actual);
+}
 
+void LocalControl::riegoAutomatico()
+{
+	unsigned long millis_actual = millis();
+	monitorearBombeoRiego(millis_actual);
 
-	/*if (riego_forzado) // idea centralita
-		return;*/
-
-
-	// apagar la bomba después del tiempo definido
-	if (millis() - ultima_vez_bomba_encendio >= (tiempo_bombeo_segundos * 1000UL))
-		digitalWrite(PIN_BOMBA, HIGH);
-
-	// si se está esperando, comprobar si pasó el tiempo desde ultima_vez_bomba_encendio. De ser así, dejar de esperar
+	// si se está esperando, comprobar si pasó el tiempo desde ultima_vez_encendida. De ser así, dejar de esperar
 	if (esperando_riego)
 	{
-		if (millis() - ultima_vez_bomba_encendio >= (tiempo_espera_minutos * 60000UL))
+		if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) tiempo_espera_min * 60000UL)
 		{
 			esperando_riego = false;
 			imprimirln("La espera desde el riego finalizó");
 		}
+		else return;
 	}
 
 	// controlar la humedad y regar (si no se está esperando la filtración del agua)
-	if (humedad_suelo_exterior <= humedad_suelo_minima && !esperando_riego)
+	if (humedad_suelo_exterior <= humedad_suelo_minima)
 	{
-		ultima_vez_bomba_encendio = millis();
-		digitalWrite(PIN_BOMBA, LOW);
-		esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_bomba_encendio)
+		Riego.encender(millis_actual);
+		esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_encendida)
 	}
 }
 
-//==================================================================================================================//
-
-void activarVentilacion()
+void LocalControl::monitorearBombeoRiego(unsigned long millis_actual)
 {
-	Ventana.write(ANGULO_APERTURA); // sacar cuando separemos ventiladores de ventana
-	digitalWrite(PIN_VENTILADOR, LOW);
+	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) tiempo_bombeo_seg * 1000UL)
+		Riego.apagar();
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-void desactivarVentilacion()
+void LocalControl::controlarCalefa() // en "loop()"
 {
-	Ventana.write(ANGULO_CERRADO); // sacar cuando separemos ventiladores de ventana
-	digitalWrite(PIN_VENTILADOR, HIGH);
+	switch (Calefa.modo)
+	{
+	case SalidaModos::Deshabilitada:
+		Calefa.apagar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		calefaTemporizada();
+	case SalidaModos::Automatica:
+		calefaAutomatica();
+	}
 }
 
-//==================================================================================================================//
+void LocalControl::calefaTemporizada()
+{
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_calefas_min" desde "Calefa.ultima_vez_abierta"
+	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) lapso_calefas_min * 60000UL)
+		Calefa.encender(millis_actual);
+	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) tiempo_encendido_calefa_min * 60000UL)
+		Calefa.apagar();
+}
 
-// Devuelve clickeado, mantenido, o suelto si pasó el timeout
+void LocalControl::calefaAutomatica()
+{
+	if (temp_interior_promedio <= temp_minima_calefa - DELTA_T_CALEFA)
+		Calefa.encender(millis());
+	else if (temp_interior_promedio >= temp_minima_calefa + DELTA_T_CALEFA)
+		Calefa.apagar();
+}
+
+//===============================================================================================================================//
+
+void LocalControl::controlarVentilacion() // en "loop()"
+{
+	switch (Ventilacion.modo)
+	{
+	case SalidaModos::Deshabilitada:
+		Ventilacion.cerrar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		ventilacionTemporizada();
+	case SalidaModos::Automatica:
+		ventilacionAutomatica();
+	}
+}
+
+void LocalControl::ventilacionTemporizada()
+{
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_ventilaciones_min" desde "Ventilacion.ultima_vez_abierta"
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) lapso_ventilaciones_min * 60000UL)
+		Ventilacion.abrir(millis_actual);
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) tiempo_apertura_vent_min * 60000UL)
+		Ventilacion.cerrar();
+}
+
+void LocalControl::ventilacionAutomatica()
+{
+	if (temp_exterior >= temp_maxima_ventilacion + DELTA_T_VENTILACION)
+		Ventilacion.abrir(millis());
+	else if (temp_exterior < temp_maxima_ventilacion - DELTA_T_VENTILACION)
+		Ventilacion.cerrar();
+}
+
+//===============================================================================================================================//
+
+SalidaOnOff::SalidaOnOff(PinsOut pin_mosfet)	{	this->pin_mosfet = static_cast<int>(pin_mosfet);	}
+
+void SalidaOnOff::encender(unsigned long millis_actual)
+{
+	digitalWrite(this->pin_mosfet, HIGH);
+	this->ultima_vez_encendida = millis_actual;
+	this->encendida = true;
+}
+
+void SalidaOnOff::apagar()
+{
+	digitalWrite(this->pin_mosfet, LOW);
+	this->encendida = false;
+}
+
+//===============================================================================================================================//
+
+SalidaVentilacion::SalidaVentilacion(PinsOut pin_marcha, PinsOut pin_contramarcha)
+{
+	this->pin_marcha = static_cast<int>(pin_marcha);
+	this->pin_contramarcha = static_cast<int>(pin_contramarcha);
+}
+
+void SalidaVentilacion::abrir(unsigned long millis_actual)
+{
+	if (this->abierta)
+		return;
+	// si llegamos acá ambos están LOW
+	digitalWrite(this->pin_marcha, HIGH);
+
+	delay(tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+
+	digitalWrite(this->pin_contramarcha, HIGH); // ambos relés activados para encender lámpara
+	this->ultima_vez_abierta = millis_actual;
+	// terminan ambos HIGH
+	this->abierta = true;
+}
+
+void SalidaVentilacion::cerrar()
+{
+	if (!this->abierta)
+		return;
+	// si llegamos acá ambos están HIGH
+	digitalWrite(this->pin_marcha, LOW);
+
+	delay(tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+
+	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara
+	// terminan ambos LOW
+	this->abierta = false;
+}
+
+//===============================================================================================================================//
+
+void LocalControl::configurarModosSalidas()
+{
+	//Riego1.modo =		static_cast<SalidaModos>((modos_salidas >> 6) & 0b00000011); primeros dos bits son para salida no usada
+	Riego.modo =		static_cast<SalidaModos>((modos_salidas >> 4) & 0b00000011);
+	Calefa.modo =		static_cast<SalidaModos>((modos_salidas >> 2) & 0b00000011);
+	Ventilacion.modo =	static_cast<SalidaModos>(modos_salidas & 0b00000011);
+}
+
+//===============================================================================================================================//
+
+/*// Devuelve clickeado, mantenido, o suelto si pasó el timeout
 EstadoBoton leerBoton(unsigned long timeout_lectura)
 {
 	bool btn_presionado_anterior = false;
@@ -111,25 +232,4 @@ EstadoBoton leerBoton(unsigned long timeout_lectura)
 	}
 
 	return EstadoBoton::Suelto;
-}
-
-//================================================FUTURAS VERSIONES=================================================//
-// Identifica la necesidad de iluminar, basándose en la lectura de un sensor LDR
-void controlarIluminacion()
-{
-	// ...
-}
-//==========================HABILITAR PARA CUANDO SEPAREMOS LOS VENTILADORES DE LA VENTANA==========================//
-/*
-void abrirVentana()
-{
-	Ventana.write(ANGULO_APERTURA);
-}
-
-//==========================HABILITAR PARA CUANDO SEPAREMOS LOS VENTILADORES DE LA VENTANA==========================//
-
-void cerrarVentana()
-{
-	Ventana.write(ANGULO_CERRADO);
-}
-*/
+}*/

@@ -38,7 +38,9 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 
 
 // Constantes de funcionamiento generales
-#define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
+#define DELAY_ACTIVIDAD_INVERNADERO 0UL		// (ms) tiempo de espera para el loop del invernadero
+#define DELTA_T_VENTILACION			1.0F	// ver Control.h
+#define DELTA_T_CALEFA				DELTA_T_VENTILACION
 #define W_SSID_SIZE		33 // 32 caracteres + null terminator
 #define W_PASS_SIZE		64 // 63 caracteres + null terminator
 #define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
@@ -127,14 +129,8 @@ class AHT10Mux
 
 
 // Control.h
-unsigned long ultima_vez_bomba_encendio = 0;
-void controlarVentilacion();
-void controlarRiego();
-void activarVentilacion();
-void desactivarVentilacion();
-//void controlarIluminacion();
+//#define TIEMPO_MIN_BTN_MANTENIDO 800UL
 /*parte del botón (no utilizado, bueno tenerlo)
-#define TIEMPO_MIN_BTN_MANTENIDO 800UL
 enum class EstadoBoton : uint8_t
 {
 	Suelto,
@@ -143,7 +139,6 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);*/
-
 enum class SalidaModos : uint8_t
 {
 	Automatica,
@@ -154,33 +149,51 @@ enum class SalidaModos : uint8_t
 class SalidaOnOff
 {
 	public:
-		SalidaModos modo = SalidaModos::Automatica;
+		SalidaModos modo;
 		bool encendida = false;
-		//unsigned long ultima_vez_encendido;	LO OBVIAMOS, ponemos un datalog channel por cada salida y dataloggeamos 1 si
-		//unsigned long ultima_vez_apagado;		está encendida y 0 si está apagada
+		unsigned long ultima_vez_encendida = 0; // TODO: poner un datalog channel con encendida/apagada
+		//unsigned long ultima_vez_apagado;
 	private:
-		uint8_t pin_rele;
-		uint8_t pin_led;
+		uint8_t pin_mosfet;
 
 	public:
-		SalidaOnOff(uint8_t pin_rele, uint8_t pin_led);
-		void encender();
+		SalidaOnOff(PinsOut pin_mosfet);
+		void encender(unsigned long millis_actual);
 		void apagar();
 };
 class SalidaVentilacion
 {
 	public:
-		SalidaModos modo = SalidaModos::Automatica;
+		SalidaModos modo;
+		bool abierta = false;
+		unsigned long ultima_vez_abierta = 0; // TODO: poner un datalog channel con encendida/apagada
 	private:
-		uint8_t pin_rele1;
-		uint8_t pin_rele2;
-		uint8_t pin_led;
+		uint8_t pin_marcha;
+		uint8_t pin_contramarcha;
 
 	public:
-		SalidaVentilacion(uint8_t pin_rele1, uint8_t pin_rele2, uint8_t pin_led);
-		// TODO: que las funciones de abrir/cerrar accionen el LED
-	// A decidir método de movimiento
+		SalidaVentilacion(PinsOut pin_marcha, PinsOut pin_contramarcha);
+		void abrir(unsigned long millis_actual);
+		void cerrar();
 };
+class LocalControl
+{
+	public:
+	private:
+	public:
+		void configurarModosSalidas();
+		void controlarRiego();
+		void controlarCalefa();
+		void controlarVentilacion();
+	private:
+		void riegoTemporizado();
+		void riegoAutomatico();
+		void monitorearBombeoRiego(unsigned long millis_actual);
+		void calefaTemporizada();
+		void calefaAutomatica();
+		void ventilacionTemporizada();
+		void ventilacionAutomatica();
+} LCCT;
 
 
 // Display.h
@@ -261,6 +274,8 @@ class LocalFirebase
 		FirebaseJson json;
 
 	public:
+		bool correr();
+		void controlarAlarma();
 		//funcs
 	private:
 		//funcs
@@ -341,68 +356,72 @@ void comandoReprog();
 
 
 // EEMPROM_manejo.h
-// variables de la EEPROM con sus valores por defecto
-#define ALARMA_ACTIVADA_DEFECTO			true
-#define TEMP_MAXIMA_ALARMA_DEFECTO		45.0F
-#define TEMP_MINIMA_ALARMA_DEFECTO		-5.0F
-#define TEMP_MAXIMA_VENTILACION_DEFECTO	32.0F
-#define HUMEDAD_SUELO_MINIMA_DEFECTO	60
-#define LAPSO_ALARMA_MINUTOS_DEFECTO	60
-#define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
-#define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
-#define ESTADOS_SALIDAS_DEFECTO				0b00000000	// todas en automático
-#define LAPSO_VENTILACIONES_MIN_DEFECTO 	1440		// 24 h
-#define TIEMPO_APERTURA_VENT_MIN_DEFECTO	30
+#define MODOS_SALIDAS_DEFECTO				0b00000000	// todas en automático
+// alarma
+#define ALARMA_ACTIVADA_DEFECTO				true
+#define LAPSO_ALARMA_MIN_DEFECTO			60
+#define TEMP_MAXIMA_ALARMA_DEFECTO			45.0F
+#define TEMP_MINIMA_ALARMA_DEFECTO			-5.0F
+// riego
+#define HUMEDAD_SUELO_MINIMA_DEFECTO		60
 #define LAPSO_RIEGOS_MIN_DEFECTO			720			// 12 h
+#define TIEMPO_BOMBEO_SEG_DEFECTO			10
+#define TIEMPO_ESPERA_MIN_DEFECTO			15
+// calefa
 #define TEMP_MINIMA_CALEFA_DEFECTO			5.0F
 #define LAPSO_CALEFAS_MIN_DEFECTO			1440		// 24 h
 #define TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO 60
-#define TIEMPO_MARCHA_VENT_SEG_DEFECTO		10
+// ventilación
+#define TEMP_MAXIMA_VENTILACION_DEFECTO		32.0F
+#define LAPSO_VENTILACIONES_MIN_DEFECTO 	1440		// 24 h
+#define TIEMPO_APERTURA_VENT_MIN_DEFECTO	30
+#define TIEMPO_MARCHA_VENT_SEG_DEFECTO		7
 bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
-bool		alarma_activada;			// 1.
-float		temp_maxima_alarma;			// 2.
-float		temp_minima_alarma;			// 3.
-float		temp_maxima_ventilacion;	// 4.
-uint8_t		humedad_suelo_minima;		// 5.	70 % es vaso de agua, 29 % es el aire
-uint16_t	lapso_alarma_minutos;		// 6.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-uint16_t	tiempo_bombeo_segundos;		// 7.	10 segundos (máx 65535 seg o 18,2 horas)
-uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
-
-uint8_t		estados_salidas;
-uint16_t	lapso_ventilaciones_min;
-uint16_t	tiempo_apertura_vent_min;
-uint8_t		tiempo_marcha_vent_seg;
-//diferentes en H o T)
-uint16_t	lapso_riegos_min;
-float		temp_minima_calefa;
-uint16_t	lapso_calefas_min;
-uint16_t	tiempo_encendido_calefa_min;
+uint8_t		modos_salidas;			// 1.
+// alarma
+bool		alarma_activada;			// 2.
+uint16_t	lapso_alarma_min;			// 3.
+float		temp_maxima_alarma;			// 4.
+float		temp_minima_alarma;			// 5.
+// riego
+uint8_t		humedad_suelo_minima;		// 6.	70 % es vaso de agua, 29 % es el aire
+uint16_t	lapso_riegos_min;			// 7.	60 minutos (máx 65535 min o 1092 horas o 45 días)
+uint16_t	tiempo_bombeo_seg;			// 8.	10 segundos (máx 65535 seg o 18,2 horas)
+uint16_t	tiempo_espera_min;			// 9.	15 minutos (máx 65535 min)
+// calefa
+float		temp_minima_calefa;			// 10.
+uint16_t	lapso_calefas_min;			// 11.
+uint16_t	tiempo_encendido_calefa_min;// 12.
+// ventilación
+float		temp_maxima_ventilacion;	// 13.
+uint16_t	lapso_ventilaciones_min;	// 14.
+uint16_t	tiempo_apertura_vent_min;	// 15.
+uint8_t		tiempo_marcha_vent_seg;		// 16.
 class LocalEEPROM
 {
 	public:
 		enum OrdenParametros : uint8_t
 		{
 			PROGRAMADA,
+			MODOS_SALIDAS,
 			ALARMA_ACTIVADA,
+			LAPSO_ALARMA_MIN,
 			TEMP_MAXIMA_ALARMA,
 			TEMP_MINIMA_ALARMA,
-			TEMP_MAXIMA_VENTILACION,
 			HUMEDAD_SUELO_MINIMA,
-			LAPSO_ALARMA_MINUTOS,
-			TIEMPO_BOMBEO_SEGUNDOS,
-			TIEMPO_ESPERA_MINUTOS,
-
-			ESTADOS_SALIDAS,
-			LAPSO_VENTILACIONES_MIN,
-			TIEMPO_APERTURA_VENT_MIN,
 			LAPSO_RIEGOS_MIN,
+			TIEMPO_BOMBEO_SEG,
+			TIEMPO_ESPERA_MIN,
 			TEMP_MINIMA_CALEFA,
 			LAPSO_CALEFAS_MIN,
 			TIEMPO_ENCENDIDO_CALEFA_MIN,
+			TEMP_MAXIMA_VENTILACION,
+			LAPSO_VENTILACIONES_MIN,
+			TIEMPO_APERTURA_VENT_MIN,
 			TIEMPO_MARCHA_VENT_SEG,
 			CANT_VARIABLES
-		};											// bool, bool, float, float, float, int8, int, int, int
-		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 4, 4, 4, 1, 2, 2, 2,			1, 2, 2, 2, 4, 2, 2, 1};
+		};//									   bool, uint8_t = 1;		uint16_t = 2;		float = 4
+		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 1, 2, 4, 4, 1, 2, 2, 2, 4, 2, 2, 4, 2, 2, 1};
 		int direccion[CANT_VARIABLES];
 	private:
 		int espacios;
@@ -428,3 +447,6 @@ AHT10Mux AhtInteriorHigh(PinsAHT10MUX::INT_HIGH);
 AHT10Mux AhtInteriorMid(PinsAHT10MUX::INT_MID);
 AHT10Mux AhtInteriorLow(PinsAHT10MUX::INT_LOW);
 AHT10Mux AhtGeotermico(PinsAHT10MUX::GEOTERMICO);
+SalidaOnOff Riego(PinsOut::RIEGO);
+SalidaOnOff Calefa(PinsOut::CALEFA);
+SalidaVentilacion Ventilacion(PinsOut::MARCHA, PinsOut::CONTRAMARCHA);

@@ -47,6 +47,8 @@ void setup()
 	// leer o escribir la EEPROM
 	LCEE.inicializar();
 
+	LCCT.configurarModosSalidas();
+
 	delay(3500);
 
 	// Conectarse a WiFi
@@ -63,23 +65,23 @@ void loop()
 	if (millis() - ultima_vez_invernadero_funciono >= DELAY_ACTIVIDAD_INVERNADERO)
 	{ // idealmente, en lugar de esperas pondríamos al uC en un estado de bajo consumo por un período fijo
 		ultima_vez_invernadero_funciono = millis();
-		
-		LCWF.correr();
 
 		// Leer sensores
 		leerSensores();
-
-		// Manejar Telegram
-		controlarMensajesRecibidosTelegram();
-		controlarAlarma();
+		
+		// Manejar conexiones y comunicaciones
+		LCWF.correr();
+		LCFB.correr();
+		LCFB.controlarAlarma();
 
 		// Actualizar datos mostrables
 		actualizarDisplay();
 		actualizarGraficos();
 
 		// Tomar decisiones
-		controlarVentilacion();
-		controlarRiego();
+		LCCT.controlarRiego();
+		LCCT.controlarCalefa();
+		LCCT.controlarVentilacion();
 		//controlar_iluminacion();
 
 		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // parpadeamos el LED de la placa
