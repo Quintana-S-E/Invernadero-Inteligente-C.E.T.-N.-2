@@ -6,20 +6,20 @@ AHT10Mux::AHT10Mux(PinsAHT10MUX salida_del_mux) {	this->salida_del_mux = static_
 
 bool AHT10Mux::begin()
 {
-	establecerSalidaMUX();
+	this->establecerSalidaMUX();
 	return AhtSeleccionado.begin();
 }
 
 float AHT10Mux::readTemperature(bool readI2C = AHT10_FORCE_READ_DATA)
 {
-	establecerSalidaMUX();
+	this->establecerSalidaMUX();
 	this->temperatura = AhtSeleccionado.readTemperature(readI2C);
 	return this->temperatura;
 }
 
 float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
 {
-	establecerSalidaMUX();
+	this->establecerSalidaMUX();
 	return AhtSeleccionado.readHumidity(readI2C);
 }
 

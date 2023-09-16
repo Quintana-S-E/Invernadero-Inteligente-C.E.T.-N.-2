@@ -16,7 +16,7 @@ void LocalEEPROM::setDirecciones() // en "inicializar()"
 
 void LocalEEPROM::inicializar() // en "setup()"
 {
-	setDirecciones();
+	this->setDirecciones();
 
 	EEPROM.begin(this->espacios);
 	eeprom_programada = (EEPROM.read(0) == 255 || EEPROM.read(0) == 0) ? false : true;
@@ -37,7 +37,7 @@ void LocalEEPROM::inicializar() // en "setup()"
 	}
 
 #ifdef DEBUGserial
-	imprimirEEPROMValsDirsReads();
+	this->imprimirEEPROMValsDirsReads();
 #endif
 }
 

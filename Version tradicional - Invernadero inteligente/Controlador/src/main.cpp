@@ -1,8 +1,8 @@
 /*------------------------------------------------------------------------------------------------------------------*\
-	Nombre:				Invernadero Inteligente maqueta ESP32 Node32s
-	Desarrollo: 		octubre - diciembre de 2022
-	Primer lanzamiento: 14 de noviembre de 2022
-	Creado por:			Pulido Norberto N., Quintana Santiago E., Riha Fabio, Sacchero Fidel, Inticito.
+	Nombre:				Version tradicional - Invernadero Inteligente
+	Desarrollo: 		octubre 2022 - septiembre 2023
+	Primer lanzamiento: -
+	Creado por:			Quintana Santiago Esteban
 \*------------------------------------------------------------------------------------------------------------------*/
 
 #include "Control.h"
@@ -33,8 +33,8 @@ void setup()
   	}
 
 	// inicializar display
-	inicializarDisplay();
-	displayLogo();
+	LCDP.inicializar();
+	LCDP.displayLogo();
 
 	// inicializar sensores y SD
 	inicializarSensores();
@@ -75,22 +75,19 @@ void loop()
 		LCFB.controlarAlarma();
 
 		// Actualizar datos mostrables
-		actualizarDisplay();
+		LCDP.actualizar();
 		actualizarGraficos();
 
 		// Tomar decisiones
 		LCCT.controlarRiego();
 		LCCT.controlarCalefa();
 		LCCT.controlarVentilacion();
-		//controlar_iluminacion();
-
-		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // parpadeamos el LED de la placa
 	}
 
 	// cambiamos el contenido de la pantalla
-	if (millis() - ultima_vez_display_cambio >= DELAY_CAMBIO_DISPLAY)
+	if (millis() - LCDP.ultima_vez_cambio >= DELAY_CAMBIO_DISPLAY)
 	{
-		ultima_vez_display_cambio = millis();
-		cambiarDatoDisplay();
+		LCDP.ultima_vez_cambio = millis();
+		LCDP.cambiarDato();
 	}
 }

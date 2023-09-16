@@ -2,7 +2,7 @@
 
 #include "Declaraciones.h"
 
-void inicializarDisplay() // en "setup()"
+void LocalDisplay::inicializar() // en "setup()"
 {
 	if (!Display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
 	{
@@ -15,27 +15,157 @@ void inicializarDisplay() // en "setup()"
 
 //===============================================================================================================================//
 // TODO: añadir un estado que sea EstadoWiFi y que diga conectado/desconectado y el nombre de la red
-void cambiarDatoDisplay()
+void LocalDisplay::cambiarDato()
 {
 	switch (DatoDelDisplay)
 	{
-	case DisplayDato::Temperatura:
-		DatoDelDisplay = DisplayDato::HumedadAire;
+	case DisplayDato::Temperatura1:
+		DatoDelDisplay = DisplayDato::Temperatura2;
 		break;
 
-	case DisplayDato::HumedadAire:
+	case DisplayDato::Temperatura2:
+		DatoDelDisplay = DisplayDato::HumedadAire1;
+		break;
+
+	case DisplayDato::HumedadAire1:
+		DatoDelDisplay = DisplayDato::HumedadAire2;
+		break;
+
+	case DisplayDato::HumedadAire2:
 		DatoDelDisplay = DisplayDato::HumedadSuelo;
 		break;
 
 	case DisplayDato::HumedadSuelo:
-		DatoDelDisplay = DisplayDato::Temperatura;
+		DatoDelDisplay = DisplayDato::Temperatura1;
 		break;
 	}
 }
 
 //===============================================================================================================================//
 
-void displayConectandoWiFi() // en "setup()"
+void LocalDisplay::actualizar() // en "loop()"
+{
+	// sólo actualizamos los números del display cada cierto tiempo (porque si no los números parpadean)
+	if (millis() - LCDP.ultima_actualizacion >= DELAY_ACTUALIZACION_DISPLAY)
+	{
+		this->ultima_actualizacion = millis();
+
+		switch (DatoDelDisplay)
+		{
+		case DisplayDato::Temperatura1:
+			this->displayTemperatura(1);
+			break;
+
+		case DisplayDato::Temperatura2:
+			this->displayTemperatura(2);
+			break;
+
+		case DisplayDato::HumedadAire1:
+			this->displayHumedadAire(1);
+			break;
+
+		case DisplayDato::HumedadAire2:
+			this->displayHumedadAire(2);
+			break;
+
+		case DisplayDato::HumedadSuelo:
+			this->displayHumedadSuelo();
+			break;
+		}
+	}
+}
+
+//===============================================================================================================================//
+
+void LocalDisplay::displayTemperatura(uint8_t pantalla) // en "actualizar()"
+{
+	if (pantalla == 1)
+		display2temperaturas(	"Temperatura superior",		AhtInteriorHigh.temperatura,
+								"Temperatura medio",		AhtInteriorMid.temperatura);
+	else //else if (pantalla = 2) para expandir
+		display2temperaturas(	"Temperatura inferior",		AhtInteriorLow.temperatura,
+								"Temperatura suelo ext",	AhtGeotermico.temperatura);
+}
+
+//===============================================================================================================================//
+
+void LocalDisplay::displayHumedadAire(uint8_t pantalla) // en "actualizar()"
+{
+	if (pantalla == 1)
+		this->display2porcentajes("Humedad aire superior",	humedad_int_high,
+							"Humedad aire medio",		humedad_int_mid);
+	else
+		this->display2porcentajes("Humedad aire inferior",	humedad_int_low, "");
+}
+
+//===============================================================================================================================//
+
+void LocalDisplay::displayHumedadSuelo() // en "actualizar()"
+{
+	this->display2porcentajes("Humedad del suelo 1", humedad_suelo1, "Humedad del suelo 2", humedad_suelo2);
+}
+
+//===============================================================================================================================//
+// para un solo valor enviar como parámetro "msg_abajo" un empty string ("")
+void LocalDisplay::display2temperaturas(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo)
+{
+	Display.clearDisplay();
+
+	Display.setTextSize(1);
+	Display.setCursor(0, 0);
+	Display.print(msg_arriba);
+	Display.setTextSize(2);
+	Display.setCursor(0, 11);
+	Display.print(valor_arriba);
+	Display.print(" ");
+	Display.setTextSize(1);
+	Display.cp437(true);
+	Display.write(167);
+	Display.setTextSize(2);
+	Display.print("C");
+	if (strlen(msg_abajo) == 0) return;
+	Display.setTextSize(1);
+	Display.setCursor(0, 33);
+	Display.print(msg_abajo);
+	Display.setTextSize(2);
+	Display.setCursor(0, 44);
+	Display.print(valor_abajo);
+	Display.print(" ");
+	Display.setTextSize(1);
+	Display.cp437(true);
+	Display.write(167);
+	Display.setTextSize(2);
+	Display.print("C");
+
+	Display.display();
+}
+// para un solo valor enviar como parámetro "msg_abajo" un empty string ("")
+void LocalDisplay::display2porcentajes(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo)
+{
+	Display.clearDisplay();
+
+	Display.setTextSize(1);
+	Display.setCursor(0, 0);
+	Display.print(msg_arriba);
+	Display.setTextSize(2);
+	Display.setCursor(0, 11);
+	Display.print(valor_arriba);
+	Display.print(" %");
+	if (strlen(msg_abajo) == 0) return;
+	Display.setTextSize(1);
+	Display.setCursor(0, 33);
+	Display.print(msg_abajo);
+	Display.setTextSize(2);
+	Display.setCursor(0, 44);
+	Display.print(valor_abajo);
+	Display.print(" %");
+
+	Display.display();
+}
+
+//===============================================================================================================================//
+
+void LocalDisplay::displayConectandoWiFi() // en "setup()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2);
@@ -46,7 +176,7 @@ void displayConectandoWiFi() // en "setup()"
 
 //===============================================================================================================================//
 
-void displayErrorWiFi() // en "setup()"
+void LocalDisplay::displayErrorWiFi() // en "setup()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2);
@@ -59,7 +189,7 @@ void displayErrorWiFi() // en "setup()"
 
 //===============================================================================================================================//
 
-void displayConetadoA(String ssid_conectada) // en "conectarWiFiCon()"
+void LocalDisplay::displayConetadoA(String ssid_conectada) // en "conectarWiFiCon()"
 {
 	Display.clearDisplay();
 	Display.setTextSize(2); // en grande:
@@ -73,123 +203,7 @@ void displayConetadoA(String ssid_conectada) // en "conectarWiFiCon()"
 
 //===============================================================================================================================//
 
-void actualizarDisplay() // en "loop()"
-{
-	// sólo actualizamos los números del display cada cierto tiempo (porque si no los números parpadean)
-	if (millis() - ultima_vez_display_actualizo >= DELAY_ACTUALIZACION_DISPLAY)
-	{
-		ultima_vez_display_actualizo = millis();
-
-		switch (DatoDelDisplay)
-		{
-		case DisplayDato::Temperatura:
-			displayTemperatura();
-			break;
-
-		case DisplayDato::HumedadAire:
-			displayHumedadAire();
-			break;
-
-		case DisplayDato::HumedadSuelo:
-			displayHumedadSuelo();
-			break;
-		}
-	}
-}
-
-//===============================================================================================================================//
-
-void displayHumedadAire() // en "actualizarDisplay()"
-{
-	// limpiar display
-	Display.clearDisplay();
-
-	// mostrar humedad aire exterior
-	Display.setTextSize(1);
-	Display.setCursor(0, 0);
-	Display.print("Humedad aire exterior");
-	Display.setTextSize(2);
-	Display.setCursor(0, 11);
-	Display.print(String(humedad_aire_exterior) + " %");
-
-	// mostrar humedad aire interior
-	Display.setTextSize(1);
-	Display.setCursor(0, 33);
-	Display.print("Humedad aire interior");
-	Display.setTextSize(2);
-	Display.setCursor(0, 44);
-	Display.print(String(humedad_aire_interior_promedio) + " %");
-
-	Display.display();
-}
-
-//===============================================================================================================================//
-
-void displayHumedadSuelo() // en "actualizarDisplay()"
-{
-	// limpiar display
-	Display.clearDisplay();
-
-	// mostrar humedad suelo exterior (para varios sensores poner números en su lugar)
-	Display.setTextSize(1);
-	Display.setCursor(0, 0);
-	Display.print("Humedad del suelo ext");
-	Display.setTextSize(2);
-	Display.setCursor(0, 11);
-	Display.print(String(humedad_suelo_exterior) + " %");
-
-	// mostrar humedad suelo interior (para varios sensores poner números en su lugar)
-	Display.setTextSize(1);
-	Display.setCursor(0, 33);
-	Display.print("Humedad del suelo int");
-	Display.setTextSize(2);
-	Display.setCursor(0, 44);
-	Display.print(String(humedad_suelo_interior) + " %");
-
-	Display.display();
-}
-
-//===============================================================================================================================//
-
-void displayTemperatura() // en "actualizarDisplay()"
-{
-	// limpiar display
-	Display.clearDisplay();
-
-	// mostrar temperatura aire exterior
-	Display.setTextSize(1);
-	Display.setCursor(0, 0);
-	Display.print("Temperatura exterior");
-	Display.setTextSize(2);
-	Display.setCursor(0, 11);
-	Display.print(temp_exterior);
-	Display.print(" ");
-	Display.setTextSize(1);
-	Display.cp437(true);
-	Display.write(167);
-	Display.setTextSize(2);
-	Display.print("C");
-
-	// mostrar temperatura aire interior
-	Display.setTextSize(1);
-	Display.setCursor(0, 33);
-	Display.print("Temperatura interior");
-	Display.setTextSize(2);
-	Display.setCursor(0, 44);
-	Display.print(temp_interior_promedio);
-	Display.print(" ");
-	Display.setTextSize(1);
-	Display.cp437(true);
-	Display.write(167);
-	Display.setTextSize(2);
-	Display.print("C");
-
-	Display.display();
-}
-
-//===============================================================================================================================//
-
-void displayError()
+void LocalDisplay::displayError()
 {
 	Display.setTextSize(1);
 	Display.setCursor(7, 7);
@@ -200,10 +214,10 @@ void displayError()
 
 //===============================================================================================================================//
 
-void displayNoSD()
+void LocalDisplay::displayNoSD()
 {
 	Display.clearDisplay();
-	displayError();
+	this->displayError();
 	Display.setCursor(10, 39);
 	Display.print("Tarjeta SD ausente");
 	Display.display();
@@ -211,10 +225,10 @@ void displayNoSD()
 
 //===============================================================================================================================//
 
-void displayErrorSD()
+void LocalDisplay::displayErrorSD()
 {
 	Display.clearDisplay();
-	displayError();
+	this->displayError();
 	Display.setCursor(7, 39);
 	Display.print("Error en tarjeta SD");
 	Display.display();
@@ -222,7 +236,7 @@ void displayErrorSD()
 
 //===============================================================================================================================//
 
-void displayLogo()
+void LocalDisplay::displayLogo()
 {
 	Display.clearDisplay();
 	Display.setTextSize(1);

@@ -12,15 +12,15 @@ bool LocalWiFi::guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(
 
 void LocalWiFi::inicializarWiFi()
 {
-	displayConectandoWiFi();
+	LCDP.displayConectandoWiFi();
 	if(!this->correr())
 	{
 		imprimirln("No se encuentra red WiFi.");
-		displayErrorWiFi();
+		LCDP.displayErrorWiFi();
 		return;
 	}
 
-	displayConetadoA( WiFi.SSID() );
+	LCDP.displayConetadoA( WiFi.SSID() );
 }
 
 //===============================================================================================================================//

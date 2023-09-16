@@ -81,8 +81,6 @@ enum class PinsAHT10MUX : uint8_t
 
 // Variables de tiempo y flags generales
 unsigned long ultima_vez_invernadero_funciono = 0;
-unsigned long ultima_vez_display_cambio = 0;
-bool esperando_riego = false; // para controlarRiego()
 
 
 
@@ -176,8 +174,8 @@ class SalidaVentilacion
 };
 class LocalControl
 {
-	public:
 	private:
+		bool esperando_riego = false; // para riegoAutomatico()
 	public:
 		void configurarModosSalidas();
 		void controlarRiego();
@@ -195,34 +193,42 @@ class LocalControl
 
 
 // Display.h
-unsigned long ultima_vez_display_actualizo = 0;
-void inicializarDisplay();
-void cambiarDatoDisplay();
-void displayConectandoWiFi();
-void displayErrorWiFi();
-void displayConetadoA(String ssid_conectada);
-void actualizarDisplay();
-void displayHumedadAire();
-void displayHumedadSuelo();
-void displayTemperatura();
-void displayError();
-void displayNoSD();
-void displayErrorSD();
-// TODO:
-void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
-
-
-#define DELAY_CAMBIO_DISPLAY		10000UL
+#define DELAY_CAMBIO_DISPLAY		6000UL
 #define DELAY_ACTUALIZACION_DISPLAY	500UL
 #define SCREEN_WIDTH				128		// ancho del display OLED display, en píxeles
 #define SCREEN_HEIGHT				64		// alto del display OLED display, en píxeles
 enum class DisplayDato : uint8_t
 {
-	Temperatura,
-	HumedadAire,
+	Temperatura1,
+	Temperatura2,
+	HumedadAire1,
+	HumedadAire2,
 	HumedadSuelo
 };
-DisplayDato DatoDelDisplay = DisplayDato::Temperatura;
+DisplayDato DatoDelDisplay = DisplayDato::Temperatura1;
+class LocalDisplay
+{
+	public:
+		unsigned long ultima_actualizacion = 0;
+		unsigned long ultima_vez_cambio = 0;
+	public:
+		void inicializar();
+		void displayLogo(/*TODO: SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
+		void actualizar();
+		void cambiarDato();
+		void displayConectandoWiFi();
+		void displayErrorWiFi();
+		void displayConetadoA(String ssid_conectada);
+		void displayNoSD();
+		void displayErrorSD();
+	private:
+		void displayTemperatura(uint8_t pantalla);
+		void displayHumedadAire(uint8_t pantalla);
+		void displayHumedadSuelo();
+		void display2temperaturas(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo = 0);
+		void display2porcentajes(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo = 0);
+		void displayError();
+} LCDP;
 
 
 // Graficos.h

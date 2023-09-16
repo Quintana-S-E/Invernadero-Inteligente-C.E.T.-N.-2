@@ -20,9 +20,9 @@ void LocalControl::controlarRiego() // en "loop()"
 	case SalidaModos::Forzada:
 		return;
 	case SalidaModos::Temporizada:
-		riegoTemporizado();
+		this->riegoTemporizado();
 	case SalidaModos::Automatica:
-		riegoAutomatico();
+		this->riegoAutomatico();
 	}
 }
 
@@ -32,20 +32,20 @@ void LocalControl::riegoTemporizado()
 	// si pasó "lapso_riegos_min" desde "Riego.ultima_vez_encendida"
 	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) lapso_riegos_min * 60000UL)
 		Riego.encender(millis_actual);
-	monitorearBombeoRiego(millis_actual);
+	this->monitorearBombeoRiego(millis_actual);
 }
 
 void LocalControl::riegoAutomatico()
 {
 	unsigned long millis_actual = millis();
-	monitorearBombeoRiego(millis_actual);
+	this->monitorearBombeoRiego(millis_actual);
 
 	// si se está esperando, comprobar si pasó el tiempo desde ultima_vez_encendida. De ser así, dejar de esperar
-	if (esperando_riego)
+	if (this->esperando_riego)
 	{
 		if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) tiempo_espera_min * 60000UL)
 		{
-			esperando_riego = false;
+			this->esperando_riego = false;
 			imprimirln("La espera desde el riego finalizó");
 		}
 		else return;
@@ -55,7 +55,7 @@ void LocalControl::riegoAutomatico()
 	if (humedad_suelo1 <= humedad_suelo_minima	||	humedad_suelo2 <= humedad_suelo_minima)
 	{
 		Riego.encender(millis_actual);
-		esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_encendida)
+		this->esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_encendida)
 	}
 }
 
@@ -76,9 +76,9 @@ void LocalControl::controlarCalefa() // en "loop()"
 	case SalidaModos::Forzada:
 		return;
 	case SalidaModos::Temporizada:
-		calefaTemporizada();
+		this->calefaTemporizada();
 	case SalidaModos::Automatica:
-		calefaAutomatica();
+		this->calefaAutomatica();
 	}
 }
 
@@ -111,9 +111,9 @@ void LocalControl::controlarVentilacion() // en "loop()"
 	case SalidaModos::Forzada:
 		return;
 	case SalidaModos::Temporizada:
-		ventilacionTemporizada();
+		this->ventilacionTemporizada();
 	case SalidaModos::Automatica:
-		ventilacionAutomatica();
+		this->ventilacionAutomatica();
 	}
 }
 

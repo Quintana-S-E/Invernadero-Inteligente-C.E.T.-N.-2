@@ -6,7 +6,7 @@ void LocalSD::inicializar()
 {
 	if (!SD.begin(SD_CS))
 	{
-		displayNoSD();
+		LCDP.displayNoSD();
 		while (1)
 			;
 	}
@@ -14,7 +14,7 @@ void LocalSD::inicializar()
 	DatalogSD = SD.open("Datos.txt", FILE_WRITE);
 	if (!DatalogSD)
 	{
-		displayErrorSD();
+		LCDP.displayErrorSD();
 		while (1)
 			;
 	}
@@ -31,7 +31,7 @@ void LocalSD::leerConfigWiFi()
 		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WSSID, i + 1, TXT);
 
 		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][1] = 'e', [i][2] = 'l', [i][3] = 'l', etc
-		lectura = leerStringA(LCWF.ssid[i], W_SSID_SIZE, path);
+		lectura = leerStringA(LCWF.ssid[i], W_SSID_SIZE, path); // this-> pointer evitado para mejor lectura
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
 			continue;
 
