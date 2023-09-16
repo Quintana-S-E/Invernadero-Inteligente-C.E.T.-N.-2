@@ -69,7 +69,6 @@ enum class PinsIn : uint8_t
 {
 	SOIL1 = A7,
 	SOIL2 = A0,
-	SOIL3 = A3,
 };
 // de los sensores AHT10 (desde el MUX)
 enum class PinsAHT10MUX : uint8_t
@@ -97,26 +96,23 @@ String mensajeSegundosATiempo(unsigned long segundos);
 
 // Sensores.h
 #define MUESTRAS_HUMEDAD_SUELO 16		// 16 máximo
-void establecerSalidaMUX(uint8_t salida);
 void inicializarSensores();
 void leerSensores();
-void leerAHT10Interiores();
-void leerSoilInteriores();
-void leerAHT10Exteriores();
-void leerSoilExteriores();
-// variables
-// AHTs interiores
-float temp_interior_promedio;
-float humedad_aire_interior_promedio;
-// AHTs exteriores
-float temp_exterior;
-float humedad_aire_exterior;
-float temp_exterior_geotermica;
+void leerSensoresAHT10();
+void leerSensoresSoil();
+// AHT10
+//float temp_interior_promedio;			// TODO: ver si son necesarias
+//float humedad_aire_interior_promedio;
+float humedad_int_high;
+float humedad_int_mid;
+float humedad_int_low;
 // soil moisture sensors
-int humedad_suelo_interior;
-int humedad_suelo_exterior;
+int humedad_suelo1;
+int humedad_suelo2;
 class AHT10Mux
 {
+	public:
+		float temperatura;
 	private:
 		uint8_t salida_del_mux;
 
@@ -125,6 +121,8 @@ class AHT10Mux
 		bool     begin();
 		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
 		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
+	private:
+		void establecerSalidaMUX();
 };
 
 

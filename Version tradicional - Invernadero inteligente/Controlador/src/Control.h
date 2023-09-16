@@ -52,7 +52,7 @@ void LocalControl::riegoAutomatico()
 	}
 
 	// controlar la humedad y regar (si no se está esperando la filtración del agua)
-	if (humedad_suelo_exterior <= humedad_suelo_minima)
+	if (humedad_suelo1 <= humedad_suelo_minima	||	humedad_suelo2 <= humedad_suelo_minima)
 	{
 		Riego.encender(millis_actual);
 		esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_encendida)
@@ -94,9 +94,9 @@ void LocalControl::calefaTemporizada()
 
 void LocalControl::calefaAutomatica()
 {
-	if (temp_interior_promedio <= temp_minima_calefa - DELTA_T_CALEFA)
+	if (AhtInteriorMid.temperatura <= temp_minima_calefa - DELTA_T_CALEFA)
 		Calefa.encender(millis());
-	else if (temp_interior_promedio >= temp_minima_calefa + DELTA_T_CALEFA)
+	else if (AhtInteriorMid.temperatura >= temp_minima_calefa + DELTA_T_CALEFA)
 		Calefa.apagar();
 }
 
@@ -129,9 +129,9 @@ void LocalControl::ventilacionTemporizada()
 
 void LocalControl::ventilacionAutomatica()
 {
-	if (temp_exterior >= temp_maxima_ventilacion + DELTA_T_VENTILACION)
+	if (AhtInteriorHigh.temperatura >= temp_maxima_ventilacion + DELTA_T_VENTILACION)
 		Ventilacion.abrir(millis());
-	else if (temp_exterior < temp_maxima_ventilacion - DELTA_T_VENTILACION)
+	else if (AhtInteriorHigh.temperatura < temp_maxima_ventilacion - DELTA_T_VENTILACION)
 		Ventilacion.cerrar();
 }
 
