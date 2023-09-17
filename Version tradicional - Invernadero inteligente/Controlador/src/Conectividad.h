@@ -43,6 +43,21 @@ bool LocalWiFi::correr()
 	return false;
 }
 
+//===============================================================================================================================//
+
+void LocalWiFi::correrDisplayWiFi()
+{
+	if (this->cant_redes == 0)
+	{
+		LCDP.cambiarDato();
+		return;
+	}
+	if (this->hay_conexion)
+		LCDP.displayConetadoA( WiFi.SSID() );
+	else
+		LCDP.displayErrorWiFi();
+}
+
 
 /*
 Función conectarWiFi():

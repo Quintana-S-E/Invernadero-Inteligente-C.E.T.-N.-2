@@ -205,7 +205,8 @@ enum class DisplayDato : uint8_t
 	Temperatura2,
 	HumedadAire1,
 	HumedadAire2,
-	HumedadSuelo
+	HumedadSuelo,
+	WiFi
 };
 DisplayDato DatoDelDisplay = DisplayDato::Temperatura1;
 class LocalDisplay
@@ -260,6 +261,7 @@ class LocalWiFi
 		bool guardarRedWiFi(const char* ssid, const char* password);
 		bool guardarRedWiFi(const char* ssid);
 		bool correr();
+		void correrDisplayWiFi();
 } LCWF;
 
 
@@ -283,6 +285,7 @@ class LocalFirebase
 		bool correr();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
+		void datalog();
 		//funcs
 	private:
 		//funcs
@@ -296,7 +299,7 @@ enum class ResultadoLecturaSD : uint8_t
 	NO_CONTENIDO,
 	EXITOSO
 };
-#define DELAY_DATALOG 5000UL;	// 9,97 años hasta alcanzar el máximo de renglones (1048576)
+#define DELAY_DATALOG 5000UL // 9,97 años hasta alcanzar el máximo de renglones (1048576)
 class LocalSD
 {
 	private:

@@ -36,6 +36,10 @@ void LocalDisplay::cambiarDato()
 		break;
 
 	case DisplayDato::HumedadSuelo:
+		DatoDelDisplay = DisplayDato::WiFi;
+		break;
+
+	case DisplayDato::WiFi:
 		DatoDelDisplay = DisplayDato::Temperatura1;
 		break;
 	}
@@ -71,6 +75,9 @@ void LocalDisplay::actualizar() // en "loop()"
 	case DisplayDato::HumedadSuelo:
 		this->displayHumedadSuelo();
 		break;
+
+	case DisplayDato::WiFi:
+		LCWF.correrDisplayWiFi();
 	}
 }
 

@@ -26,54 +26,68 @@ unsigned long obtenerTiempoUnix()
 }
 
 //==================================================================================================================//
-
-String mensajeSegundosATiempo(unsigned long segundos)
+// El buffer debe ser igual (o mayor, pero innecesario) a 45 bytes
+void mensajeSegundosATiempo(char* buffer, uint8_t caracteres, unsigned long segundos)
 {
+	if (caracteres < 45)
+		return;
 	int minutos =			segundos / 60;
 	int resto_seg =	segundos % 60;
 	int horas =				minutos / 60;
 	int resto_min =		minutos % 60;
 	int dias =				horas / 24;
 	int resto_horas =		horas % 24;
-	String mensaje = "";
+	char mensaje[45] = "";
 
 	if (dias != 0)
 	{
 		if (dias == 1)
-			mensaje += "1 día";
+			strcat(mensaje, "1 día");
 		else
-			mensaje += String(dias) + " días";
+			sprintf(mensaje, "%i%s", dias, " días");
 	}
 
 	if (resto_horas != 0)
 	{
-		if (mensaje.length() > 1)
-			mensaje += ", ";
+		if (strlen(mensaje) > 0)
+			strcat(mensaje, ", ");
 		if (resto_horas == 1)
-			mensaje += "1 hora";
+			strcat(mensaje, "1 hora");
 		else
-			mensaje += String(resto_horas) + " horas";
+		{
+			char nro_horas[9];
+			sprintf(nro_horas, "%d%s", resto_horas, " horas");
+			strcat(mensaje, nro_horas);
+		}
 	}
 
 	if (resto_min != 0)
 	{
-		if (mensaje.length() > 1)
-			mensaje += ", ";
+		if (strlen(mensaje) > 0)
+			strcat(mensaje, ", ");
 		if (resto_min == 1)
-			mensaje += "1 minuto";
+			strcat(mensaje, "1 minuto");
 		else
-			mensaje += String(resto_min) + " minutos";
+		{
+			char nro_minutos[10];
+			sprintf(nro_minutos, "%d%s", resto_min, " minutos");
+			strcat(mensaje, nro_minutos);
+		}
 	}
 
 	if (resto_seg != 0)
 	{
-		if (mensaje.length() > 1)
-			mensaje += ", ";
+		if (strlen(mensaje) > 0)
+			strcat(mensaje, ", ");
 		if (resto_seg == 1)
-			mensaje += "1 segundo";
+			strcat(mensaje, "1 segundo");
 		else
-			mensaje += String(resto_seg) + " segundos";
+		{
+			char nro_segundos[10];
+			sprintf(nro_segundos, "%d%s", resto_seg, " segundos");
+			strcat(mensaje, nro_segundos);
+		}
 	}
 
-	return String(mensaje);
+	strcpy(buffer, mensaje);
 }
