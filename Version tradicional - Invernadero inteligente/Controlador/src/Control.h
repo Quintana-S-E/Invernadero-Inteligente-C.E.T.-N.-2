@@ -30,7 +30,7 @@ void LocalControl::riegoTemporizado()
 {
 	unsigned long millis_actual = millis();
 	// si pasó "lapso_riegos_min" desde "Riego.ultima_vez_encendida"
-	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) lapso_riegos_min * 60000UL)
+	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) LCEE.lapso_riegos_min * 60000UL)
 		Riego.encender(millis_actual);
 	this->monitorearBombeoRiego(millis_actual);
 }
@@ -43,16 +43,14 @@ void LocalControl::riegoAutomatico()
 	// si se está esperando, comprobar si pasó el tiempo desde ultima_vez_encendida. De ser así, dejar de esperar
 	if (this->esperando_riego)
 	{
-		if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) tiempo_espera_min * 60000UL)
-		{
-			this->esperando_riego = false;
-			imprimirln("La espera desde el riego finalizó");
-		}
-		else return;
+		if (millis_actual - Riego.ultima_vez_encendida < (unsigned long) LCEE.tiempo_espera_min * 60000UL)
+			return;
+		this->esperando_riego = false;
+		imprimirln("La espera desde el riego finalizó");
 	}
 
 	// controlar la humedad y regar (si no se está esperando la filtración del agua)
-	if (humedad_suelo1 <= humedad_suelo_minima	||	humedad_suelo2 <= humedad_suelo_minima)
+	if (humedad_suelo1 <= LCEE.humedad_suelo_minima	||	humedad_suelo2 <= LCEE.humedad_suelo_minima)
 	{
 		Riego.encender(millis_actual);
 		this->esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_encendida)
@@ -61,7 +59,7 @@ void LocalControl::riegoAutomatico()
 
 void LocalControl::monitorearBombeoRiego(unsigned long millis_actual)
 {
-	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) tiempo_bombeo_seg * 1000UL)
+	if (millis_actual - Riego.ultima_vez_encendida >= (unsigned long) LCEE.tiempo_bombeo_seg * 1000UL)
 		Riego.apagar();
 }
 
@@ -86,17 +84,17 @@ void LocalControl::calefaTemporizada()
 {
 	unsigned long millis_actual = millis();
 	// si pasó "lapso_calefas_min" desde "Calefa.ultima_vez_abierta"
-	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) lapso_calefas_min * 60000UL)
+	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) LCEE.lapso_calefas_min * 60000UL)
 		Calefa.encender(millis_actual);
-	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) tiempo_encendido_calefa_min * 60000UL)
+	if (millis_actual - Calefa.ultima_vez_encendida >= (unsigned long) LCEE.tiempo_encendido_calefa_min * 60000UL)
 		Calefa.apagar();
 }
 
 void LocalControl::calefaAutomatica()
 {
-	if (AhtInteriorMid.temperatura <= temp_minima_calefa - DELTA_T_CALEFA)
+	if (AhtInteriorMid.temperatura <= LCEE.temp_minima_calefa - DELTA_T_CALEFA)
 		Calefa.encender(millis());
-	else if (AhtInteriorMid.temperatura >= temp_minima_calefa + DELTA_T_CALEFA)
+	else if (AhtInteriorMid.temperatura >= LCEE.temp_minima_calefa + DELTA_T_CALEFA)
 		Calefa.apagar();
 }
 
@@ -121,17 +119,17 @@ void LocalControl::ventilacionTemporizada()
 {
 	unsigned long millis_actual = millis();
 	// si pasó "lapso_ventilaciones_min" desde "Ventilacion.ultima_vez_abierta"
-	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) lapso_ventilaciones_min * 60000UL)
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) LCEE.lapso_ventilaciones_min * 60000UL)
 		Ventilacion.abrir(millis_actual);
-	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) tiempo_apertura_vent_min * 60000UL)
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) LCEE.tiempo_apertura_vent_min * 60000UL)
 		Ventilacion.cerrar();
 }
 
 void LocalControl::ventilacionAutomatica()
 {
-	if (AhtInteriorHigh.temperatura >= temp_maxima_ventilacion + DELTA_T_VENTILACION)
+	if (AhtInteriorHigh.temperatura >= LCEE.temp_maxima_ventilacion + DELTA_T_VENTILACION)
 		Ventilacion.abrir(millis());
-	else if (AhtInteriorHigh.temperatura < temp_maxima_ventilacion - DELTA_T_VENTILACION)
+	else if (AhtInteriorHigh.temperatura < LCEE.temp_maxima_ventilacion - DELTA_T_VENTILACION)
 		Ventilacion.cerrar();
 }
 
@@ -167,7 +165,7 @@ void SalidaVentilacion::abrir(unsigned long millis_actual)
 	// si llegamos acá ambos están LOW
 	digitalWrite(this->pin_marcha, HIGH);
 
-	delay(tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, HIGH); // ambos relés activados para encender lámpara
 	this->ultima_vez_abierta = millis_actual;
@@ -182,7 +180,7 @@ void SalidaVentilacion::cerrar()
 	// si llegamos acá ambos están HIGH
 	digitalWrite(this->pin_marcha, LOW);
 
-	delay(tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara
 	// terminan ambos LOW
@@ -193,13 +191,27 @@ void SalidaVentilacion::cerrar()
 
 void LocalControl::configurarModosSalidas()
 {
-	//Riego1.modo =		static_cast<SalidaModos>((modos_salidas >> 6) & 0b00000011); primeros dos bits son para salida no usada
-	Riego.modo =		static_cast<SalidaModos>((modos_salidas >> 4) & 0b00000011);
-	Calefa.modo =		static_cast<SalidaModos>((modos_salidas >> 2) & 0b00000011);
-	Ventilacion.modo =	static_cast<SalidaModos>(modos_salidas & 0b00000011);
+	//Riego1.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 6) & 0b00000011); primeros dos bits son para salida no usada
+	Riego.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 4) & 0b00000011);
+	Calefa.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 2) & 0b00000011);
+	Ventilacion.modo =	static_cast<SalidaModos>(LCEE.modos_salidas & 0b00000011);
 }
 
 //===============================================================================================================================//
+
+void LocalControl::controlarAlarma()
+{
+	if (!LCEE.alarma_activada  ||  millis() - this->ultima_actualizacion_alarma < (unsigned long) LCEE.lapso_alarma_min * 60000UL)
+		return;
+	this->ultima_actualizacion_alarma = millis();
+
+	// evaluamos la temperatura
+	if (AhtInteriorMid.temperatura >= LCEE.temp_maxima_alarma)
+		LCFB.enviarAlarmaCaliente();
+	else if (AhtInteriorMid.temperatura <= LCEE.temp_minima_alarma)
+		LCFB.enviarAlarmaFrio();
+}
+
 
 /*// Devuelve clickeado, mantenido, o suelto si pasó el timeout
 EstadoBoton leerBoton(unsigned long timeout_lectura)

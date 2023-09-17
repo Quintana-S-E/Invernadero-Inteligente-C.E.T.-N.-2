@@ -46,23 +46,23 @@ void LocalEEPROM::inicializar() // en "setup()"
 void LocalEEPROM::leerCompleta()
 {
 	EEPROM.begin(this->espacios);
-	EEPROM.get(this->direccion[PROGRAMADA],						eeprom_programada); //	*1
-	EEPROM.get(this->direccion[MODOS_SALIDAS],					modos_salidas);
-	EEPROM.get(this->direccion[ALARMA_ACTIVADA],				alarma_activada);
-	EEPROM.get(this->direccion[LAPSO_ALARMA_MIN],				lapso_alarma_min);
-	EEPROM.get(this->direccion[TEMP_MAXIMA_ALARMA],				temp_maxima_alarma);
-	EEPROM.get(this->direccion[TEMP_MINIMA_ALARMA],				temp_minima_alarma);
-	EEPROM.get(this->direccion[HUMEDAD_SUELO_MINIMA],			humedad_suelo_minima);
-	EEPROM.get(this->direccion[LAPSO_RIEGOS_MIN],				lapso_riegos_min);
-	EEPROM.get(this->direccion[TIEMPO_BOMBEO_SEG],				tiempo_bombeo_seg);
-	EEPROM.get(this->direccion[TIEMPO_ESPERA_MIN],				tiempo_espera_min);
-	EEPROM.get(this->direccion[TEMP_MINIMA_CALEFA],				temp_minima_calefa);
-	EEPROM.get(this->direccion[LAPSO_CALEFAS_MIN],				lapso_calefas_min);
-	EEPROM.get(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	tiempo_encendido_calefa_min);
-	EEPROM.get(this->direccion[TEMP_MAXIMA_VENTILACION],		temp_maxima_ventilacion);
-	EEPROM.get(this->direccion[LAPSO_VENTILACIONES_MIN],		lapso_ventilaciones_min);
-	EEPROM.get(this->direccion[TIEMPO_APERTURA_VENT_MIN],		tiempo_apertura_vent_min);
-	EEPROM.get(this->direccion[TIEMPO_MARCHA_VENT_SEG],			tiempo_marcha_vent_seg);
+	EEPROM.get(this->direccion[PROGRAMADA],						this->eeprom_programada); //	*1
+	EEPROM.get(this->direccion[MODOS_SALIDAS],					this->modos_salidas);
+	EEPROM.get(this->direccion[ALARMA_ACTIVADA],				this->alarma_activada);
+	EEPROM.get(this->direccion[LAPSO_ALARMA_MIN],				this->lapso_alarma_min);
+	EEPROM.get(this->direccion[TEMP_MAXIMA_ALARMA],				this->temp_maxima_alarma);
+	EEPROM.get(this->direccion[TEMP_MINIMA_ALARMA],				this->temp_minima_alarma);
+	EEPROM.get(this->direccion[HUMEDAD_SUELO_MINIMA],			this->humedad_suelo_minima);
+	EEPROM.get(this->direccion[LAPSO_RIEGOS_MIN],				this->lapso_riegos_min);
+	EEPROM.get(this->direccion[TIEMPO_BOMBEO_SEG],				this->tiempo_bombeo_seg);
+	EEPROM.get(this->direccion[TIEMPO_ESPERA_MIN],				this->tiempo_espera_min);
+	EEPROM.get(this->direccion[TEMP_MINIMA_CALEFA],				this->temp_minima_calefa);
+	EEPROM.get(this->direccion[LAPSO_CALEFAS_MIN],				this->lapso_calefas_min);
+	EEPROM.get(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->tiempo_encendido_calefa_min);
+	EEPROM.get(this->direccion[TEMP_MAXIMA_VENTILACION],		this->temp_maxima_ventilacion);
+	EEPROM.get(this->direccion[LAPSO_VENTILACIONES_MIN],		this->lapso_ventilaciones_min);
+	EEPROM.get(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->tiempo_apertura_vent_min);
+	EEPROM.get(this->direccion[TIEMPO_MARCHA_VENT_SEG],			this->tiempo_marcha_vent_seg);
 	EEPROM.end();
 }
 //	*1 no es necesario, ya que en inicializar se le asignó true para poder entrar a esta función, y
@@ -71,42 +71,42 @@ void LocalEEPROM::leerCompleta()
 
 void LocalEEPROM::cargarValoresPorDefecto()
 {
-	eeprom_programada =				true; // ahora va a estar programada
-	modos_salidas =					MODOS_SALIDAS_DEFECTO;
-	alarma_activada =				ALARMA_ACTIVADA_DEFECTO;
-	lapso_alarma_min =				LAPSO_ALARMA_MIN_DEFECTO;
-	temp_maxima_alarma =			TEMP_MAXIMA_ALARMA_DEFECTO;
-	temp_minima_alarma =			TEMP_MINIMA_ALARMA_DEFECTO;
-	humedad_suelo_minima =			HUMEDAD_SUELO_MINIMA_DEFECTO;
-	lapso_riegos_min =				LAPSO_RIEGOS_MIN_DEFECTO;
-	tiempo_bombeo_seg =				TIEMPO_BOMBEO_SEG_DEFECTO;
-	tiempo_espera_min =				TIEMPO_ESPERA_MIN_DEFECTO;
-	temp_minima_calefa =			TEMP_MINIMA_CALEFA_DEFECTO;
-	lapso_calefas_min =				LAPSO_CALEFAS_MIN_DEFECTO;
-	tiempo_encendido_calefa_min =	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO;
-	temp_maxima_ventilacion =		TEMP_MAXIMA_VENTILACION_DEFECTO;
-	lapso_ventilaciones_min =		LAPSO_VENTILACIONES_MIN_DEFECTO;
-	tiempo_apertura_vent_min =		TIEMPO_APERTURA_VENT_MIN_DEFECTO;
-	tiempo_marcha_vent_seg =		TIEMPO_MARCHA_VENT_SEG_DEFECTO;
+	this->eeprom_programada =				true; // ahora va a estar programada
+	this->modos_salidas =					MODOS_SALIDAS_DEFECTO;
+	this->alarma_activada =				ALARMA_ACTIVADA_DEFECTO;
+	this->lapso_alarma_min =				LAPSO_ALARMA_MIN_DEFECTO;
+	this->temp_maxima_alarma =			TEMP_MAXIMA_ALARMA_DEFECTO;
+	this->temp_minima_alarma =			TEMP_MINIMA_ALARMA_DEFECTO;
+	this->humedad_suelo_minima =			HUMEDAD_SUELO_MINIMA_DEFECTO;
+	this->lapso_riegos_min =				LAPSO_RIEGOS_MIN_DEFECTO;
+	this->tiempo_bombeo_seg =				TIEMPO_BOMBEO_SEG_DEFECTO;
+	this->tiempo_espera_min =				TIEMPO_ESPERA_MIN_DEFECTO;
+	this->temp_minima_calefa =			TEMP_MINIMA_CALEFA_DEFECTO;
+	this->lapso_calefas_min =				LAPSO_CALEFAS_MIN_DEFECTO;
+	this->tiempo_encendido_calefa_min =	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO;
+	this->temp_maxima_ventilacion =		TEMP_MAXIMA_VENTILACION_DEFECTO;
+	this->lapso_ventilaciones_min =		LAPSO_VENTILACIONES_MIN_DEFECTO;
+	this->tiempo_apertura_vent_min =		TIEMPO_APERTURA_VENT_MIN_DEFECTO;
+	this->tiempo_marcha_vent_seg =		TIEMPO_MARCHA_VENT_SEG_DEFECTO;
 
 	EEPROM.begin(this->espacios);
-	EEPROM.put(this->direccion[PROGRAMADA],						eeprom_programada);
-	EEPROM.put(this->direccion[MODOS_SALIDAS],					modos_salidas);
-	EEPROM.put(this->direccion[ALARMA_ACTIVADA],				alarma_activada);
-	EEPROM.put(this->direccion[LAPSO_ALARMA_MIN],				lapso_alarma_min);
-	EEPROM.put(this->direccion[TEMP_MAXIMA_ALARMA],				temp_maxima_alarma);
-	EEPROM.put(this->direccion[TEMP_MINIMA_ALARMA],				temp_minima_alarma);
-	EEPROM.put(this->direccion[HUMEDAD_SUELO_MINIMA],			humedad_suelo_minima);
-	EEPROM.put(this->direccion[LAPSO_RIEGOS_MIN],				lapso_riegos_min);
-	EEPROM.put(this->direccion[TIEMPO_BOMBEO_SEG],				tiempo_bombeo_seg);
-	EEPROM.put(this->direccion[TIEMPO_ESPERA_MIN],				tiempo_espera_min);
-	EEPROM.put(this->direccion[TEMP_MINIMA_CALEFA],				temp_minima_calefa);
-	EEPROM.put(this->direccion[LAPSO_CALEFAS_MIN],				lapso_calefas_min);
-	EEPROM.put(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	tiempo_encendido_calefa_min);
-	EEPROM.put(this->direccion[TEMP_MAXIMA_VENTILACION],		temp_maxima_ventilacion);
-	EEPROM.put(this->direccion[LAPSO_VENTILACIONES_MIN],		lapso_ventilaciones_min);
-	EEPROM.put(this->direccion[TIEMPO_APERTURA_VENT_MIN],		tiempo_apertura_vent_min);
-	EEPROM.put(this->direccion[TIEMPO_MARCHA_VENT_SEG],			tiempo_marcha_vent_seg);
+	EEPROM.put(this->direccion[PROGRAMADA],						this->eeprom_programada);
+	EEPROM.put(this->direccion[MODOS_SALIDAS],					this->modos_salidas);
+	EEPROM.put(this->direccion[ALARMA_ACTIVADA],				this->alarma_activada);
+	EEPROM.put(this->direccion[LAPSO_ALARMA_MIN],				this->lapso_alarma_min);
+	EEPROM.put(this->direccion[TEMP_MAXIMA_ALARMA],				this->temp_maxima_alarma);
+	EEPROM.put(this->direccion[TEMP_MINIMA_ALARMA],				this->temp_minima_alarma);
+	EEPROM.put(this->direccion[HUMEDAD_SUELO_MINIMA],			this->humedad_suelo_minima);
+	EEPROM.put(this->direccion[LAPSO_RIEGOS_MIN],				this->lapso_riegos_min);
+	EEPROM.put(this->direccion[TIEMPO_BOMBEO_SEG],				this->tiempo_bombeo_seg);
+	EEPROM.put(this->direccion[TIEMPO_ESPERA_MIN],				this->tiempo_espera_min);
+	EEPROM.put(this->direccion[TEMP_MINIMA_CALEFA],				this->temp_minima_calefa);
+	EEPROM.put(this->direccion[LAPSO_CALEFAS_MIN],				this->lapso_calefas_min);
+	EEPROM.put(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->tiempo_encendido_calefa_min);
+	EEPROM.put(this->direccion[TEMP_MAXIMA_VENTILACION],		this->temp_maxima_ventilacion);
+	EEPROM.put(this->direccion[LAPSO_VENTILACIONES_MIN],		this->lapso_ventilaciones_min);
+	EEPROM.put(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->tiempo_apertura_vent_min);
+	EEPROM.put(this->direccion[TIEMPO_MARCHA_VENT_SEG],			this->tiempo_marcha_vent_seg);
 	EEPROM.commit(); // efectivamente escribir
 	EEPROM.end();
 }
@@ -128,23 +128,23 @@ void LocalEEPROM::imprimirValsDirsReads()
 {
 	Serial.println();
 	Serial.println("Valores recuperados de la EEPROM:");
-	Serial.println(eeprom_programada);
-	Serial.println(modos_salidas);
-	Serial.println(alarma_activada);
-	Serial.println(lapso_alarma_min);
-	Serial.println(temp_maxima_alarma);
-	Serial.println(temp_minima_alarma);
-	Serial.println(humedad_suelo_minima);
-	Serial.println(lapso_riegos_min);
-	Serial.println(tiempo_bombeo_seg);
-	Serial.println(tiempo_espera_min);
-	Serial.println(temp_minima_calefa);
-	Serial.println(lapso_calefas_min);
-	Serial.println(tiempo_encendido_calefa_min);
-	Serial.println(temp_maxima_ventilacion);
-	Serial.println(lapso_ventilaciones_min);
-	Serial.println(tiempo_apertura_vent_min);
-	Serial.println(tiempo_marcha_vent_seg);
+	Serial.println(this->eeprom_programada);
+	Serial.println(this->modos_salidas);
+	Serial.println(this->alarma_activada);
+	Serial.println(this->lapso_alarma_min);
+	Serial.println(this->temp_maxima_alarma);
+	Serial.println(this->temp_minima_alarma);
+	Serial.println(this->humedad_suelo_minima);
+	Serial.println(this->lapso_riegos_min);
+	Serial.println(this->tiempo_bombeo_seg);
+	Serial.println(this->tiempo_espera_min);
+	Serial.println(this->temp_minima_calefa);
+	Serial.println(this->lapso_calefas_min);
+	Serial.println(this->tiempo_encendido_calefa_min);
+	Serial.println(this->temp_maxima_ventilacion);
+	Serial.println(this->lapso_ventilaciones_min);
+	Serial.println(this->tiempo_apertura_vent_min);
+	Serial.println(this->tiempo_marcha_vent_seg);
 	Serial.println();
 
 	Serial.println("Valores de las direcciones:");

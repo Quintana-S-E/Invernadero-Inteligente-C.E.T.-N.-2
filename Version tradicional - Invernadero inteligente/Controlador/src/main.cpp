@@ -72,16 +72,19 @@ void loop()
 		// Manejar conexiones y comunicaciones
 		LCWF.correr();
 		LCFB.correr();
-		LCFB.controlarAlarma();
-
-		// Actualizar datos mostrables
-		LCDP.actualizar();
-		actualizarGraficos();
+		LCCT.controlarAlarma();
 
 		// Tomar decisiones
 		LCCT.controlarRiego();
 		LCCT.controlarCalefa();
 		LCCT.controlarVentilacion();
+
+		// Actualizar datos mostrables
+		LCDP.actualizar();
+		actualizarGraficos();
+
+		// Datalog
+		LCSD.datalog();
 	}
 
 	// cambiamos el contenido de la pantalla

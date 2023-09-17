@@ -39,8 +39,6 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 
 // Constantes de funcionamiento generales
 #define DELAY_ACTIVIDAD_INVERNADERO 0UL		// (ms) tiempo de espera para el loop del invernadero
-#define DELTA_T_VENTILACION			1.0F	// ver Control.h
-#define DELTA_T_CALEFA				DELTA_T_VENTILACION
 #define W_SSID_SIZE		33 // 32 caracteres + null terminator
 #define W_PASS_SIZE		64 // 63 caracteres + null terminator
 #define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
@@ -135,6 +133,8 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);*/
+#define DELTA_T_VENTILACION			1.0F	// ver Control.h
+#define DELTA_T_CALEFA				DELTA_T_VENTILACION
 enum class SalidaModos : uint8_t
 {
 	Automatica,
@@ -176,11 +176,13 @@ class LocalControl
 {
 	private:
 		bool esperando_riego = false; // para riegoAutomatico()
+		unsigned long ultima_actualizacion_alarma = 0;
 	public:
 		void configurarModosSalidas();
 		void controlarRiego();
 		void controlarCalefa();
 		void controlarVentilacion();
+		void controlarAlarma();
 	private:
 		void riegoTemporizado();
 		void riegoAutomatico();
@@ -248,7 +250,7 @@ inline bool inicializarThingSpeak();
 class LocalWiFi
 {
 	public:
-		bool hay_conexion;
+		bool hay_conexion = false;
 		uint8_t cant_redes = 0;
 		char ssid[CANT_REDES_WIFI][W_SSID_SIZE];
 		char pass[CANT_REDES_WIFI][W_PASS_SIZE];
@@ -279,7 +281,8 @@ class LocalFirebase
 
 	public:
 		bool correr();
-		void controlarAlarma();
+		void enviarAlarmaCaliente();
+		void enviarAlarmaFrio();
 		//funcs
 	private:
 		//funcs
@@ -293,16 +296,21 @@ enum class ResultadoLecturaSD : uint8_t
 	NO_CONTENIDO,
 	EXITOSO
 };
+#define DELAY_DATALOG 5000UL;	// 9,97 años hasta alcanzar el máximo de renglones (1048576)
 class LocalSD
 {
 	private:
-		// NOMBRES DE LOS FOLDERS (Y.TXT)
-		//char STRINGS_PATH[]			= "controlador/strings/";
-		char CONFIG_FOLDER_PATH[20]		= "controlador/config/";
+		unsigned long ultimo_datalog = 0;
+		char TXT[5]						= ".txt";
+		char DATALOG_NOMBRE[6]			= "datos";
+		#define DATALOG_HEADLINE		  "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VEN"
+		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
+		char RAIZ_PATH[13]				= "controlador/";
+		//char STRINGS_PATH[]			= "strings/";
+		char CONFIG_FOLDER_PATH[8]		= "config/";
 		char WIFI_FOLDER_PATH[6]		= "wifi/";
 		char FIREBASE_FOLDER_PATH[10]	= "firebase/";
 		char PARAMETROS_FOLDER_PATH[12]	= "parametros/";
-		char TXT[5]						= ".txt";
 		// NOMBRES DE FOLDER WIFI
 		char NOMBRE_ARCHIVO_WSSID[5]	= "ssid";
 		char NOMBRE_ARCHIVO_WPASS[5]	= "pass";
@@ -316,7 +324,10 @@ class LocalSD
 		void leerConfigWiFi();
 		void leerConfigFirebase();
 		void leerConfigParametros();
+		void datalog();
 	private:
+		template <typename T>
+		void escribirSDAbierta(File Archivo, T dato, bool coma);
 		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
 } LCSD;
 
@@ -324,7 +335,6 @@ class LocalSD
 // Telegram.h
 // variables
 #define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
-unsigned long ultima_vez_alarma_funciono = 0;
 unsigned long ultima_vez_comprobacion_wifi = 0;
 String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()
 uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en controlarAlarma()
@@ -380,30 +390,30 @@ void comandoReprog();
 #define LAPSO_VENTILACIONES_MIN_DEFECTO 	1440		// 24 h
 #define TIEMPO_APERTURA_VENT_MIN_DEFECTO	30
 #define TIEMPO_MARCHA_VENT_SEG_DEFECTO		7
-bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
-uint8_t		modos_salidas;			// 1.
-// alarma
-bool		alarma_activada;			// 2.
-uint16_t	lapso_alarma_min;			// 3.
-float		temp_maxima_alarma;			// 4.
-float		temp_minima_alarma;			// 5.
-// riego
-uint8_t		humedad_suelo_minima;		// 6.	70 % es vaso de agua, 29 % es el aire
-uint16_t	lapso_riegos_min;			// 7.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-uint16_t	tiempo_bombeo_seg;			// 8.	10 segundos (máx 65535 seg o 18,2 horas)
-uint16_t	tiempo_espera_min;			// 9.	15 minutos (máx 65535 min)
-// calefa
-float		temp_minima_calefa;			// 10.
-uint16_t	lapso_calefas_min;			// 11.
-uint16_t	tiempo_encendido_calefa_min;// 12.
-// ventilación
-float		temp_maxima_ventilacion;	// 13.
-uint16_t	lapso_ventilaciones_min;	// 14.
-uint16_t	tiempo_apertura_vent_min;	// 15.
-uint8_t		tiempo_marcha_vent_seg;		// 16.
 class LocalEEPROM
 {
 	public:
+		bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
+		uint8_t		modos_salidas;				// 1.
+		// alarma
+		bool		alarma_activada;			// 2.
+		uint16_t	lapso_alarma_min;			// 3.
+		float		temp_maxima_alarma;			// 4.
+		float		temp_minima_alarma;			// 5.
+		// riego
+		uint8_t		humedad_suelo_minima;		// 6.	70 % es vaso de agua, 29 % es el aire
+		uint16_t	lapso_riegos_min;			// 7.	60 minutos (máx 65535 min o 1092 horas o 45 días)
+		uint16_t	tiempo_bombeo_seg;			// 8.	10 segundos (máx 65535 seg o 18,2 horas)
+		uint16_t	tiempo_espera_min;			// 9.	15 minutos (máx 65535 min)
+		// calefa
+		float		temp_minima_calefa;			// 10.
+		uint16_t	lapso_calefas_min;			// 11.
+		uint16_t	tiempo_encendido_calefa_min;// 12.
+		// ventilación
+		float		temp_maxima_ventilacion;	// 13.
+		uint16_t	lapso_ventilaciones_min;	// 14.
+		uint16_t	tiempo_apertura_vent_min;	// 15.
+		uint8_t		tiempo_marcha_vent_seg;		// 16.
 		enum OrdenParametros : uint8_t
 		{
 			PROGRAMADA,

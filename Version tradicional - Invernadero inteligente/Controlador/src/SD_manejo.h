@@ -11,13 +11,17 @@ void LocalSD::inicializar()
 			;
 	}
 
-	DatalogSD = SD.open("Datos.txt", FILE_WRITE);
+	char path[25];
+	sprintf(path, "%s%s%s", RAIZ_PATH, DATALOG_NOMBRE, TXT);
+	File DatalogSD = SD.open(path, FILE_WRITE);
 	if (!DatalogSD)
 	{
 		LCDP.displayErrorSD();
 		while (1)
 			;
 	}
+	DatalogSD.println(DATALOG_HEADLINE);
+	DatalogSD.close();
 }
 
 //===============================================================================================================================//
@@ -26,17 +30,20 @@ void LocalSD::leerConfigWiFi()
 {
 	for (uint8_t i = 0; i < CANT_REDES_WIFI; ++i)
 	{
-		char path[50];
 		ResultadoLecturaSD lectura;
-		sprintf(path, "%s%s%s%i%s", CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WSSID, i + 1, TXT);
+		char i_txt[7];
+		char p_path[30];
+		char path[45];
+		sprintf(i_txt, "%i%s", i + 1, TXT);
+		sprintf(p_path, "%s%s%s", RAIZ_PATH, CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH);
+		sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_WSSID, i_txt);
 
 		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][1] = 'e', [i][2] = 'l', [i][3] = 'l', etc
 		lectura = leerStringA(LCWF.ssid[i], W_SSID_SIZE, path); // this-> pointer evitado para mejor lectura
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
 			continue;
 
-		char* pch = strstr(path, NOMBRE_ARCHIVO_WSSID);
-		strncpy(pch, NOMBRE_ARCHIVO_WPASS, 6);
+		sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_WPASS, i_txt);
 
 		lectura = leerStringA(LCWF.pass[i], W_PASS_SIZE, path);
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
@@ -52,8 +59,7 @@ void LocalSD::leerConfigFirebase()
 {
 	char p_path[35];
 	char path[50];
-	sprintf(p_path, "%s%s", CONFIG_FOLDER_PATH, FIREBASE_FOLDER_PATH);
-	char* pch = strstr(path, NOMBRE_ARCHIVO_FEMAIL);
+	sprintf(p_path, "%s%s%s", RAIZ_PATH, CONFIG_FOLDER_PATH, FIREBASE_FOLDER_PATH);
 
 	ResultadoLecturaSD lectura[4];
 	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FEMAIL, TXT);
@@ -73,17 +79,16 @@ void LocalSD::leerConfigFirebase()
 }
 
 //===============================================================================================================================//
-
 // Cargamos valores por defecto. Escribimos los de la SD en la EEPROM. Si uno no es válido (o no existe archivo), no lo escribimos.
 // Luego de escribir los valores de la SD, leemos la EEPROM para asignar los valores a las variables globales
 void LocalSD::leerConfigParametros()
 {
 	LCEE.cargarValoresPorDefecto();
 
-	for (uint8_t i = 1; i < LCEE.CANT_VARIABLES; ++i)
+	for (uint8_t i = 0; i < LCEE.CANT_VARIABLES; ++i)
 	{
 		char path[7];
-		sprintf(path, "%s%s%02d%s", CONFIG_FOLDER_PATH, PARAMETROS_FOLDER_PATH, i, TXT);
+		sprintf(path, "%s%s%s%02d%s", RAIZ_PATH, CONFIG_FOLDER_PATH, PARAMETROS_FOLDER_PATH, i + 1, TXT);
 
 		File ArchivoSD = SD.open(path, FILE_READ);
 		if (!ArchivoSD)
@@ -127,4 +132,52 @@ ResultadoLecturaSD LocalSD::leerStringA(char *buffer, const uint8_t caracteres, 
 		return ResultadoLecturaSD::NO_CONTENIDO;
 	strcpy(buffer, contenido);
 	return ResultadoLecturaSD::EXITOSO;
+}
+
+//===============================================================================================================================//
+
+void LocalSD::datalog()
+{
+	unsigned long millis_actual = millis();
+	if (millis_actual - this->ultimo_datalog < DELAY_DATALOG)
+		return;
+	this->ultimo_datalog = millis_actual;
+
+	char path[25];
+	sprintf(path, "%s%s%s", RAIZ_PATH, DATALOG_NOMBRE, TXT);
+	File DatalogSD = SD.open(path, FILE_WRITE);
+	if (!DatalogSD)
+	{
+		LCDP.displayErrorSD();
+		DatalogSD.close();
+		return;
+	}
+
+	this->escribirSDAbierta(DatalogSD, millis_actual/1000, true);
+	this->escribirSDAbierta(DatalogSD, AhtInteriorHigh.temperatura,	true);
+	this->escribirSDAbierta(DatalogSD, AhtInteriorMid.temperatura,	true);
+	this->escribirSDAbierta(DatalogSD, AhtInteriorLow.temperatura,	true);
+	this->escribirSDAbierta(DatalogSD, AhtGeotermico.temperatura,	true);
+	this->escribirSDAbierta(DatalogSD, humedad_int_high,	true);
+	this->escribirSDAbierta(DatalogSD, humedad_int_mid,		true);
+	this->escribirSDAbierta(DatalogSD, humedad_int_low,		true);
+	this->escribirSDAbierta(DatalogSD, humedad_suelo1, true);
+	this->escribirSDAbierta(DatalogSD, humedad_suelo2, true);
+	this->escribirSDAbierta(DatalogSD, Riego.encendida,		true);
+	this->escribirSDAbierta(DatalogSD, Calefa.encendida,	true);
+	this->escribirSDAbierta(DatalogSD, Ventilacion.abierta,	false);
+	DatalogSD.println();
+
+	DatalogSD.close();
+}
+
+//===============================================================================================================================//
+
+template <typename T>
+void LocalSD::escribirSDAbierta(File Archivo, T dato, bool coma)
+{
+	Archivo.print(dato);
+	if (coma)
+		Archivo.print(',');
+	Archivo.flush();
 }

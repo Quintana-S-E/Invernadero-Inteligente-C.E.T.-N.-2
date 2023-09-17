@@ -46,32 +46,31 @@ void LocalDisplay::cambiarDato()
 void LocalDisplay::actualizar() // en "loop()"
 {
 	// sólo actualizamos los números del display cada cierto tiempo (porque si no los números parpadean)
-	if (millis() - LCDP.ultima_actualizacion >= DELAY_ACTUALIZACION_DISPLAY)
+	if (millis() - LCDP.ultima_actualizacion < DELAY_ACTUALIZACION_DISPLAY)
+		return;
+	this->ultima_actualizacion = millis();
+
+	switch (DatoDelDisplay)
 	{
-		this->ultima_actualizacion = millis();
+	case DisplayDato::Temperatura1:
+		this->displayTemperatura(1);
+		break;
 
-		switch (DatoDelDisplay)
-		{
-		case DisplayDato::Temperatura1:
-			this->displayTemperatura(1);
-			break;
+	case DisplayDato::Temperatura2:
+		this->displayTemperatura(2);
+		break;
 
-		case DisplayDato::Temperatura2:
-			this->displayTemperatura(2);
-			break;
+	case DisplayDato::HumedadAire1:
+		this->displayHumedadAire(1);
+		break;
 
-		case DisplayDato::HumedadAire1:
-			this->displayHumedadAire(1);
-			break;
+	case DisplayDato::HumedadAire2:
+		this->displayHumedadAire(2);
+		break;
 
-		case DisplayDato::HumedadAire2:
-			this->displayHumedadAire(2);
-			break;
-
-		case DisplayDato::HumedadSuelo:
-			this->displayHumedadSuelo();
-			break;
-		}
+	case DisplayDato::HumedadSuelo:
+		this->displayHumedadSuelo();
+		break;
 	}
 }
 
