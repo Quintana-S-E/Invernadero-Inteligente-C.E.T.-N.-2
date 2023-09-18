@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <Adafruit_GFX.h>	  // display OLED
 #include <Adafruit_SSD1306.h> // display OLED
-#include <AHT10.h>
+#include <AHTxx.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <Firebase_ESP_Client.h>
@@ -26,7 +26,7 @@ Lo intenté el 22/8, pareciera que iba todo bien pero hubo un problema en AHT10.
 tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer este cambio.
 */
 
-#define DEBUG_SERIAL // Comentar para eliminar los Serial.print
+//#define DEBUG_SERIAL // Comentar para eliminar los Serial.print
 #ifdef DEBUG_SERIAL
 	#define imprimir(x) Serial.print(x)
 	#define imprimirln(x) Serial.println(x)
@@ -38,18 +38,15 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 
 
 // Constantes de funcionamiento generales
-#define DELAY_ACTIVIDAD_INVERNADERO 0UL		// (ms) tiempo de espera para el loop del invernadero
-#define W_SSID_SIZE		33 // 32 caracteres + null terminator
-#define W_PASS_SIZE		64 // 63 caracteres + null terminator
-#define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
-#define F_PASS_SIZE		31 // 30 caracteres + null terminator
-#define F_API_KEY_SIZE	40 // 39 caracteres + null terminator
-#define F_URL_SIZE		68 // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
+const unsigned long DELAY_ACTIVIDAD_INVERNADERO = 0;		// (ms) tiempo de espera para el loop del invernadero
+const uint8_t W_SSID_SIZE		= 33; // 32 caracteres + null terminator
+const uint8_t W_PASS_SIZE		= 64; // 63 caracteres + null terminator
+const uint8_t F_EMAIL_SIZE		= 86; // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
+const uint8_t F_PASS_SIZE		= 31; // 30 caracteres + null terminator
+const uint8_t F_API_KEY_SIZE	= 40; // 39 caracteres + null terminator
+const uint8_t F_URL_SIZE		= 68; // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
 // Pines
-#define SD_CS			5
-#ifndef LED_BUILTIN
-	#define LED_BUILTIN	2
-#endif
+const uint8_t SD_CS			= 5;
 enum class PinsOut : uint8_t
 {
 	// de los relés
@@ -91,7 +88,6 @@ String mensajeSegundosATiempo(unsigned long segundos);
 
 
 // Sensores.h
-#define MUESTRAS_HUMEDAD_SUELO 16		// 16 máximo
 void inicializarSensores();
 void leerSensores();
 void leerSensoresAHT10();
@@ -115,8 +111,8 @@ class AHT10Mux
 	public:
 		AHT10Mux(PinsAHT10MUX salida_del_mux);
 		bool     begin();
-		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
-		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
+		float    readTemperature(bool readI2C = AHTXX_FORCE_READ_DATA);
+		float    readHumidity(bool readI2C = AHTXX_FORCE_READ_DATA);
 	private:
 		void establecerSalidaMUX();
 };
@@ -133,8 +129,8 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);*/
-#define DELTA_T_VENTILACION			1.0F	// ver Control.h
-#define DELTA_T_CALEFA				DELTA_T_VENTILACION
+const float DELTA_T_VENTILACION	= 1;	// ver Control.h
+const float DELTA_T_CALEFA		= DELTA_T_VENTILACION;
 enum class SalidaModos : uint8_t
 {
 	Automatica,
@@ -195,10 +191,10 @@ class LocalControl
 
 
 // Display.h
-#define DELAY_CAMBIO_DISPLAY		6000UL
-#define DELAY_ACTUALIZACION_DISPLAY	500UL
-#define SCREEN_WIDTH				128		// ancho del display OLED display, en píxeles
-#define SCREEN_HEIGHT				64		// alto del display OLED display, en píxeles
+const unsigned long DELAY_CAMBIO_DISPLAY		= 6000;
+const unsigned long DELAY_ACTUALIZACION_DISPLAY	= 500;
+const uint8_t SCREEN_WIDTH	= 128;		// ancho del display OLED display, en píxeles
+const uint8_t SCREEN_HEIGHT	= 64;		// alto del display OLED display, en píxeles
 enum class DisplayDato : uint8_t
 {
 	Temperatura1,
@@ -214,6 +210,26 @@ class LocalDisplay
 	public:
 		unsigned long ultima_actualizacion = 0;
 		unsigned long ultima_vez_cambio = 0;
+	private:
+		char msg_temp_sup[21] = "Temperatura superior";
+		char msg_temp_mid[18] = "Temperatura medio";
+		char msg_temp_inf[21] = "Temperatura inferior";
+		char msg_temp_geo[22] = "Temperatura suelo ext";
+		char msg_hum_aire_sup[22] = "Humedad aire superior";
+		char msg_hum_aire_mid[19] = "Humedad aire medio";
+		char msg_hum_aire_inf[22] = "Humedad aire inferior";
+		char msg_vacio[1] = "";
+		char msg_hum_suelo1[20] = "Humedad del suelo 1";
+		char msg_hum_suelo2[20] = "Humedad del suelo 2";
+
+		char msg_conectando[22] 			= "Conectando\n a WiFi...";
+		char msg_no_se_encuentra[17]		= "No se\n encuentra";
+		char msg_conectado_a[21]			= "Conectado a la red:\n";
+		char msg_error_al_iniciar[20]		= "Error al iniciar el";
+		char msg_controlador_motivo[21]		= "controlador. Motivo:";
+		char msg_sd_ausente[19]				= "Tarjeta SD ausente";
+		char msg_error_sd[20]				= "Error en tarjeta SD";
+
 	public:
 		void inicializar();
 		void displayLogo(/*TODO: SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
@@ -235,19 +251,11 @@ class LocalDisplay
 
 
 // Graficos.h
-unsigned long ultima_vez_thingspeak_actualizo = 0;
-void actualizarGraficos();
-inline bool inicializarThingSpeak();
-#define FIELD_TEMP_INT		1
-#define FIELD_TEMP_EXT		2
-#define FIELD_HUM_AIRE_INT	3
-#define FIELD_HUM_AIRE_EXT	4
-#define FIELD_HUM_SUELO_INT	5
-#define FIELD_HUM_SUELO_EXT	6
+
 
 
 // Conectividad.h
-#define CANT_REDES_WIFI 3
+const uint8_t CANT_REDES_WIFI = 3;
 class LocalWiFi
 {
 	public:
@@ -299,29 +307,29 @@ enum class ResultadoLecturaSD : uint8_t
 	NO_CONTENIDO,
 	EXITOSO
 };
-#define DELAY_DATALOG 5000UL // 9,97 años hasta alcanzar el máximo de renglones (1048576)
+const unsigned long DELAY_DATALOG = 5000; // 9,97 años hasta alcanzar el máximo de renglones (1048576)
 class LocalSD
 {
 	private:
 		unsigned long ultimo_datalog = 0;
-		char TXT[5]						= ".txt";
-		char DATALOG_NOMBRE[6]			= "datos";
-		#define DATALOG_HEADLINE		  "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VEN"
+		const char TXT[5]						= ".txt";
+		const char DATALOG_NOMBRE[6]			= "datos";
+		const char DATALOG_HEADLINE[57]		  	= "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VEN";
 		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
-		char RAIZ_PATH[13]				= "controlador/";
-		//char STRINGS_PATH[]			= "strings/";
-		char CONFIG_FOLDER_PATH[8]		= "config/";
-		char WIFI_FOLDER_PATH[6]		= "wifi/";
-		char FIREBASE_FOLDER_PATH[10]	= "firebase/";
-		char PARAMETROS_FOLDER_PATH[12]	= "parametros/";
+		const char RAIZ_PATH[13]				= "controlador/";
+		//const char STRINGS_PATH[]				= "strings/";
+		const char CONFIG_FOLDER_PATH[8]		= "config/";
+		const char WIFI_FOLDER_PATH[6]			= "wifi/";
+		const char FIREBASE_FOLDER_PATH[10]		= "firebase/";
+		const char PARAMETROS_FOLDER_PATH[12]	= "parametros/";
 		// NOMBRES DE FOLDER WIFI
-		char NOMBRE_ARCHIVO_WSSID[5]	= "ssid";
-		char NOMBRE_ARCHIVO_WPASS[5]	= "pass";
+		const char NOMBRE_ARCHIVO_WSSID[5]		= "ssid";
+		const char NOMBRE_ARCHIVO_WPASS[5]		= "pass";
 		// NOMBRES DE FOLDER FIREBASE
-		char NOMBRE_ARCHIVO_FEMAIL[6]	= "email";
-		char NOMBRE_ARCHIVO_FPASS[5]	= "pass";
-		char NOMBRE_ARCHIVO_FURL[4]		= "url";
-		char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
+		const char NOMBRE_ARCHIVO_FEMAIL[6]		= "email";
+		const char NOMBRE_ARCHIVO_FPASS[5]		= "pass";
+		const char NOMBRE_ARCHIVO_FURL[4]		= "url";
+		const char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
 	public:
 		void inicializar();
 		void leerConfigWiFi();
@@ -459,7 +467,7 @@ class LocalEEPROM
 File DatalogSD;
 WiFiMulti WiFiMultiO;
 Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
+AHTxx AhtSeleccionado(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
 AHT10Mux AhtInteriorHigh(PinsAHT10MUX::INT_HIGH);
 AHT10Mux AhtInteriorMid(PinsAHT10MUX::INT_MID);
 AHT10Mux AhtInteriorLow(PinsAHT10MUX::INT_LOW);

@@ -10,14 +10,14 @@ bool AHT10Mux::begin()
 	return AhtSeleccionado.begin();
 }
 
-float AHT10Mux::readTemperature(bool readI2C = AHT10_FORCE_READ_DATA)
+float AHT10Mux::readTemperature(bool readI2C)
 {
 	this->establecerSalidaMUX();
 	this->temperatura = AhtSeleccionado.readTemperature(readI2C);
 	return this->temperatura;
 }
 
-float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
+float AHT10Mux::readHumidity(bool readI2C)
 {
 	this->establecerSalidaMUX();
 	return AhtSeleccionado.readHumidity(readI2C);
@@ -79,13 +79,13 @@ void leerSensoresAHT10() // en leerSensores()
 
 //===============================================================================================================================//
 
-void leerSoilInteriores() // en leerSensores()
+void leerSensoresSoil() // en leerSensores()
 {
 	humedad_suelo1 = analogRead(static_cast<uint8_t>(PinsIn::SOIL1));
 	humedad_suelo1 = map(humedad_suelo1, 0, 4095, 100, 0);
 
-	humedad_suelo1 = analogRead(static_cast<uint8_t>(PinsIn::SOIL2));
-	humedad_suelo1 = map(humedad_suelo1, 0, 4095, 100, 0);
+	humedad_suelo2 = analogRead(static_cast<uint8_t>(PinsIn::SOIL2));
+	humedad_suelo2 = map(humedad_suelo1, 0, 4095, 100, 0);
 	// TODO: el 70 % del agua pura debería ser 100 %, y el 29 % del aire debería ser 0 % (ver en tierra verdadera)
 }
 

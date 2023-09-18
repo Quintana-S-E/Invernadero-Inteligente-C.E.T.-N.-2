@@ -86,11 +86,9 @@ void LocalDisplay::actualizar() // en "loop()"
 void LocalDisplay::displayTemperatura(uint8_t pantalla) // en "actualizar()"
 {
 	if (pantalla == 1)
-		display2temperaturas(	"Temperatura superior",		AhtInteriorHigh.temperatura,
-								"Temperatura medio",		AhtInteriorMid.temperatura);
+		display2temperaturas(this->msg_temp_sup, AhtInteriorHigh.temperatura, this->msg_temp_mid, AhtInteriorMid.temperatura);
 	else //else if (pantalla = 2) para expandir
-		display2temperaturas(	"Temperatura inferior",		AhtInteriorLow.temperatura,
-								"Temperatura suelo ext",	AhtGeotermico.temperatura);
+		display2temperaturas(this->msg_temp_inf, AhtInteriorLow.temperatura, this->msg_temp_geo, AhtGeotermico.temperatura);
 }
 
 //===============================================================================================================================//
@@ -98,18 +96,15 @@ void LocalDisplay::displayTemperatura(uint8_t pantalla) // en "actualizar()"
 void LocalDisplay::displayHumedadAire(uint8_t pantalla) // en "actualizar()"
 {
 	if (pantalla == 1)
-		this->display2porcentajes("Humedad aire superior",	humedad_int_high,
-							"Humedad aire medio",		humedad_int_mid);
+		this->display2porcentajes(this->msg_hum_aire_sup, humedad_int_high, this->msg_hum_aire_mid, humedad_int_mid);
 	else
-		this->display2porcentajes("Humedad aire inferior",	humedad_int_low, "");
+		this->display2porcentajes(this->msg_hum_aire_inf, humedad_int_low, this->msg_vacio);
 }
 
 //===============================================================================================================================//
 
 void LocalDisplay::displayHumedadSuelo() // en "actualizar()"
-{
-	this->display2porcentajes("Humedad del suelo 1", humedad_suelo1, "Humedad del suelo 2", humedad_suelo2);
-}
+{	this->display2porcentajes(this->msg_hum_suelo1, humedad_suelo1, this->msg_hum_suelo2, humedad_suelo2);	}
 
 //===============================================================================================================================//
 // para un solo valor enviar como parámetro "msg_abajo" un empty string ("")
@@ -176,7 +171,7 @@ void LocalDisplay::displayConectandoWiFi() // en "setup()"
 	Display.clearDisplay();
 	Display.setTextSize(2);
 	Display.setCursor(7, 15);
-	Display.print("Conectando\n a WiFi...");
+	Display.print(this->msg_conectando);
 	Display.display();
 }
 
@@ -187,7 +182,7 @@ void LocalDisplay::displayErrorWiFi() // en "setup()"
 	Display.clearDisplay();
 	Display.setTextSize(2);
 	Display.setCursor(34, 7);
-	Display.print("No se\n encuentra");
+	Display.print(this->msg_no_se_encuentra);
   	Display.setCursor(20, 40);
   	Display.print("red WiFi");
 	Display.display();
@@ -200,7 +195,7 @@ void LocalDisplay::displayConetadoA(String ssid_conectada) // en "conectarWiFiCo
 	Display.clearDisplay();
 	Display.setTextSize(2); // en grande:
 	Display.setCursor(11, 5);
-	Display.print("Conectado a la red:\n");
+	Display.print(this->msg_conectado_a);
 	Display.setTextSize(1);				 // en chiquito:
 	Display.setCursor(11, 44);
 	Display.print(ssid_conectada); // nombre de la red
@@ -213,9 +208,9 @@ void LocalDisplay::displayError()
 {
 	Display.setTextSize(1);
 	Display.setCursor(7, 7);
-    Display.println("Error al iniciar el");
+    Display.println(this->msg_error_al_iniciar);
     Display.setCursor(5, 17);
-    Display.print("controlador. Motivo:");
+    Display.print(this->msg_controlador_motivo);
 }
 
 //===============================================================================================================================//
@@ -225,7 +220,7 @@ void LocalDisplay::displayNoSD()
 	Display.clearDisplay();
 	this->displayError();
 	Display.setCursor(10, 39);
-	Display.print("Tarjeta SD ausente");
+	Display.print(this->msg_sd_ausente);
 	Display.display();
 }
 
@@ -236,7 +231,7 @@ void LocalDisplay::displayErrorSD()
 	Display.clearDisplay();
 	this->displayError();
 	Display.setCursor(7, 39);
-	Display.print("Error en tarjeta SD");
+	Display.print(this->msg_error_sd);
 	Display.display();
 }
 

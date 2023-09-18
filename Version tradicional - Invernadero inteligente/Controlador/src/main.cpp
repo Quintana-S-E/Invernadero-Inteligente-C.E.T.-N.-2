@@ -11,10 +11,11 @@
 #include "Display.h"
 #include "EEPROM_manejo.h"
 #include "Firebase.h"
-#include "Graficos.h"
+//#include "Graficos.h"
 #include "Sensores.h"
 #include "SD_manejo.h"
-#include "Telegram.h"
+#include "Tiempo.h"
+//#include "Telegram.h"
 
 #include "Claves.h"
 
@@ -85,7 +86,7 @@ void loop()
 
 		// Actualizar datos mostrables
 		LCDP.actualizar();
-		actualizarGraficos();
+		//actualizarGraficos();
 	}
 
 	// cambiamos el contenido de la pantalla

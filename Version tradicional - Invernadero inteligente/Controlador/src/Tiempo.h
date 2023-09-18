@@ -24,7 +24,7 @@ unsigned long obtenerTiempoUnix()
 	time(&ahora);
 	return ahora;
 }
-
+/*
 //==================================================================================================================//
 // El buffer debe ser igual (o mayor, pero innecesario) a 45 bytes
 void mensajeSegundosATiempo(char* buffer, uint8_t caracteres, unsigned long segundos)
@@ -91,3 +91,4 @@ void mensajeSegundosATiempo(char* buffer, uint8_t caracteres, unsigned long segu
 
 	strcpy(buffer, mensaje);
 }
+*/
