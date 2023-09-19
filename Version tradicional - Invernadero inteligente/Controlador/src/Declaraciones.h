@@ -282,7 +282,24 @@ class LocalFirebase
 		char url		[	F_URL_SIZE		];
 		char api_key	[	F_API_KEY_SIZE	];
 		bool tiene_firebase = false;
+		bool inicializado = false;
 	private:
+		char path_lecturas[23]		= "/Invernadero/lecturas/";
+		char path_respuestas[30]	= "/Invernadero/comandos/modulo/";
+		char path_escuchar[34]		= "/Invernadero/comandos/aplicacion/";
+		char path_tiempo[5]			= "T(s)";
+		char path_temp_sup[3]		= "Ts";
+		char path_temp_mid[3]		= "Tm";
+		char path_temp_inf[3]		= "Ti";
+		char path_temp_geo[8]		= "Tg(°C)";
+		char path_hum_air_sup[4]	= "HAs";
+		char path_hum_air_mid[4]	= "HAm";
+		char path_hum_air_inf[4]	= "HAi";
+		char path_hum_suelo1[4]		= "HS1";
+		char path_hum_suelo2[7]		= "HS2(%)";
+		char path_riego[4]			= "RIE";
+		char path_calefa[4]			= "CAL";
+		char path_ventilacion[5]	= "VENT";
 		FirebaseData data;
 		FirebaseData stream;
 		FirebaseAuth auth;
@@ -290,6 +307,7 @@ class LocalFirebase
 		FirebaseJson json;
 
 	public:
+		void inicializar();
 		bool correr();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
@@ -313,15 +331,12 @@ class LocalSD
 	private:
 		unsigned long ultimo_datalog = 0;
 		const char TXT[5]						= ".txt";
-		const char DATALOG_NOMBRE[6]			= "datos";
+		const char DATALOG_PATH[22]				= "controlador/datos.txt";
 		const char DATALOG_HEADLINE[57]		  	= "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VEN";
 		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
-		const char RAIZ_PATH[13]				= "controlador/";
-		//const char STRINGS_PATH[]				= "strings/";
-		const char CONFIG_FOLDER_PATH[8]		= "config/";
-		const char WIFI_FOLDER_PATH[6]			= "wifi/";
-		const char FIREBASE_FOLDER_PATH[10]		= "firebase/";
-		const char PARAMETROS_FOLDER_PATH[12]	= "parametros/";
+		const char WIFI_FOLDER_PATH[25]			= "controlador/config/wifi/";
+		const char FIREBASE_FOLDER_PATH[29]		= "controlador/config/firebase/";
+		const char PARAMETROS_FOLDER_PATH[31]	= "controlador/config/parametros/";
 		// NOMBRES DE FOLDER WIFI
 		const char NOMBRE_ARCHIVO_WSSID[5]		= "ssid";
 		const char NOMBRE_ARCHIVO_WPASS[5]		= "pass";
@@ -381,29 +396,30 @@ void comandoReprog();
 
 
 // EEMPROM_manejo.h
-#define MODOS_SALIDAS_DEFECTO				0b00000000	// todas en automático
-// alarma
-#define ALARMA_ACTIVADA_DEFECTO				true
-#define LAPSO_ALARMA_MIN_DEFECTO			60
-#define TEMP_MAXIMA_ALARMA_DEFECTO			45.0F
-#define TEMP_MINIMA_ALARMA_DEFECTO			-5.0F
-// riego
-#define HUMEDAD_SUELO_MINIMA_DEFECTO		60
-#define LAPSO_RIEGOS_MIN_DEFECTO			720			// 12 h
-#define TIEMPO_BOMBEO_SEG_DEFECTO			10
-#define TIEMPO_ESPERA_MIN_DEFECTO			15
-// calefa
-#define TEMP_MINIMA_CALEFA_DEFECTO			5.0F
-#define LAPSO_CALEFAS_MIN_DEFECTO			1440		// 24 h
-#define TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO 60
-// ventilación
-#define TEMP_MAXIMA_VENTILACION_DEFECTO		32.0F
-#define LAPSO_VENTILACIONES_MIN_DEFECTO 	1440		// 24 h
-#define TIEMPO_APERTURA_VENT_MIN_DEFECTO	30
-#define TIEMPO_MARCHA_VENT_SEG_DEFECTO		7
 class LocalEEPROM
 {
 	public:
+		const uint8_t	MODOS_SALIDAS_DEFECTO				= 0b00000000;	// todas en automático
+		// alarma
+		const bool		ALARMA_ACTIVADA_DEFECTO				= true;
+		const uint16_t	LAPSO_ALARMA_MIN_DEFECTO			= 60;
+		const float		TEMP_MAXIMA_ALARMA_DEFECTO			= 45.0;
+		const float		TEMP_MINIMA_ALARMA_DEFECTO			= -5.0;
+		// riego
+		const uint8_t	HUMEDAD_SUELO_MINIMA_DEFECTO		= 60;
+		const uint16_t	LAPSO_RIEGOS_MIN_DEFECTO			= 720;			// 12 h
+		const uint16_t	TIEMPO_BOMBEO_SEG_DEFECTO			= 10;
+		const uint16_t	TIEMPO_ESPERA_MIN_DEFECTO			= 15;
+		// calefa
+		const float		TEMP_MINIMA_CALEFA_DEFECTO			= 5.0;
+		const uint16_t	LAPSO_CALEFAS_MIN_DEFECTO			= 1440;		// 24 h
+		const uint16_t	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO = 60;
+		// ventilación
+		const float		TEMP_MAXIMA_VENTILACION_DEFECTO		= 32.0;
+		const uint16_t	LAPSO_VENTILACIONES_MIN_DEFECTO 	= 1440;		// 24 h
+		const uint16_t	TIEMPO_APERTURA_VENT_MIN_DEFECTO	= 30;
+		const uint8_t	TIEMPO_MARCHA_VENT_SEG_DEFECTO		= 7;
+
 		bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
 		uint8_t		modos_salidas;				// 1.
 		// alarma

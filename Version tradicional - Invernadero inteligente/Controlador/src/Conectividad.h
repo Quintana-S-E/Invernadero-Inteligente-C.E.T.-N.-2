@@ -36,7 +36,8 @@ bool LocalWiFi::correr()
 	if (WiFiMultiO.run() == WL_CONNECTED)
 	{
 		this->hay_conexion = true;
-		inicializarTiempoUnix(); // se ejecuta una sola vez. Acá por si en setup() se cortó WiFi pero después hay
+		inicializarTiempoUnix();
+		LCFB.inicializar(); // se ejecutan una sola vez. Acá por si en setup() se cortó WiFi pero después hay
 		return true;
 	}
 	this->hay_conexion = false;

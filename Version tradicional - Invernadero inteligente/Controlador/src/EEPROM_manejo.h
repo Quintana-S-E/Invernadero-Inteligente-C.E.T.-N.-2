@@ -71,44 +71,28 @@ void LocalEEPROM::leerCompleta()
 
 void LocalEEPROM::cargarValoresPorDefecto()
 {
-	this->eeprom_programada =				true; // ahora va a estar programada
-	this->modos_salidas =					MODOS_SALIDAS_DEFECTO;
-	this->alarma_activada =				ALARMA_ACTIVADA_DEFECTO;
-	this->lapso_alarma_min =				LAPSO_ALARMA_MIN_DEFECTO;
-	this->temp_maxima_alarma =			TEMP_MAXIMA_ALARMA_DEFECTO;
-	this->temp_minima_alarma =			TEMP_MINIMA_ALARMA_DEFECTO;
-	this->humedad_suelo_minima =			HUMEDAD_SUELO_MINIMA_DEFECTO;
-	this->lapso_riegos_min =				LAPSO_RIEGOS_MIN_DEFECTO;
-	this->tiempo_bombeo_seg =				TIEMPO_BOMBEO_SEG_DEFECTO;
-	this->tiempo_espera_min =				TIEMPO_ESPERA_MIN_DEFECTO;
-	this->temp_minima_calefa =			TEMP_MINIMA_CALEFA_DEFECTO;
-	this->lapso_calefas_min =				LAPSO_CALEFAS_MIN_DEFECTO;
-	this->tiempo_encendido_calefa_min =	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO;
-	this->temp_maxima_ventilacion =		TEMP_MAXIMA_VENTILACION_DEFECTO;
-	this->lapso_ventilaciones_min =		LAPSO_VENTILACIONES_MIN_DEFECTO;
-	this->tiempo_apertura_vent_min =		TIEMPO_APERTURA_VENT_MIN_DEFECTO;
-	this->tiempo_marcha_vent_seg =		TIEMPO_MARCHA_VENT_SEG_DEFECTO;
-
 	EEPROM.begin(this->espacios);
-	EEPROM.put(this->direccion[PROGRAMADA],						this->eeprom_programada);
-	EEPROM.put(this->direccion[MODOS_SALIDAS],					this->modos_salidas);
-	EEPROM.put(this->direccion[ALARMA_ACTIVADA],				this->alarma_activada);
-	EEPROM.put(this->direccion[LAPSO_ALARMA_MIN],				this->lapso_alarma_min);
-	EEPROM.put(this->direccion[TEMP_MAXIMA_ALARMA],				this->temp_maxima_alarma);
-	EEPROM.put(this->direccion[TEMP_MINIMA_ALARMA],				this->temp_minima_alarma);
-	EEPROM.put(this->direccion[HUMEDAD_SUELO_MINIMA],			this->humedad_suelo_minima);
-	EEPROM.put(this->direccion[LAPSO_RIEGOS_MIN],				this->lapso_riegos_min);
-	EEPROM.put(this->direccion[TIEMPO_BOMBEO_SEG],				this->tiempo_bombeo_seg);
-	EEPROM.put(this->direccion[TIEMPO_ESPERA_MIN],				this->tiempo_espera_min);
-	EEPROM.put(this->direccion[TEMP_MINIMA_CALEFA],				this->temp_minima_calefa);
-	EEPROM.put(this->direccion[LAPSO_CALEFAS_MIN],				this->lapso_calefas_min);
-	EEPROM.put(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->tiempo_encendido_calefa_min);
-	EEPROM.put(this->direccion[TEMP_MAXIMA_VENTILACION],		this->temp_maxima_ventilacion);
-	EEPROM.put(this->direccion[LAPSO_VENTILACIONES_MIN],		this->lapso_ventilaciones_min);
-	EEPROM.put(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->tiempo_apertura_vent_min);
-	EEPROM.put(this->direccion[TIEMPO_MARCHA_VENT_SEG],			this->tiempo_marcha_vent_seg);
+	EEPROM.put(this->direccion[PROGRAMADA],						true); // ahora va a estar programada
+	EEPROM.put(this->direccion[MODOS_SALIDAS],					this->MODOS_SALIDAS_DEFECTO);
+	EEPROM.put(this->direccion[ALARMA_ACTIVADA],				this->ALARMA_ACTIVADA_DEFECTO);
+	EEPROM.put(this->direccion[LAPSO_ALARMA_MIN],				this->LAPSO_ALARMA_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TEMP_MAXIMA_ALARMA],				this->TEMP_MAXIMA_ALARMA_DEFECTO);
+	EEPROM.put(this->direccion[TEMP_MINIMA_ALARMA],				this->TEMP_MINIMA_ALARMA_DEFECTO);
+	EEPROM.put(this->direccion[HUMEDAD_SUELO_MINIMA],			this->HUMEDAD_SUELO_MINIMA_DEFECTO);
+	EEPROM.put(this->direccion[LAPSO_RIEGOS_MIN],				this->LAPSO_RIEGOS_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TIEMPO_BOMBEO_SEG],				this->TIEMPO_BOMBEO_SEG_DEFECTO);
+	EEPROM.put(this->direccion[TIEMPO_ESPERA_MIN],				this->TIEMPO_ESPERA_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TEMP_MINIMA_CALEFA],				this->TEMP_MINIMA_CALEFA_DEFECTO);
+	EEPROM.put(this->direccion[LAPSO_CALEFAS_MIN],				this->LAPSO_CALEFAS_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TEMP_MAXIMA_VENTILACION],		this->TEMP_MAXIMA_VENTILACION_DEFECTO);
+	EEPROM.put(this->direccion[LAPSO_VENTILACIONES_MIN],		this->LAPSO_VENTILACIONES_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->TIEMPO_APERTURA_VENT_MIN_DEFECTO);
+	EEPROM.put(this->direccion[TIEMPO_MARCHA_VENT_SEG],			this->TIEMPO_MARCHA_VENT_SEG_DEFECTO);
 	EEPROM.commit(); // efectivamente escribir
 	EEPROM.end();
+
+	this->leerCompleta(); // asignar valores a las globales
 }
 
 //==================================================================================================================//

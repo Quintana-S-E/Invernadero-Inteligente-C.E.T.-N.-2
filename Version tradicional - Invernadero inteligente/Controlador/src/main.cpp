@@ -45,7 +45,6 @@ void setup()
 	LCSD.leerConfigWiFi();
 	LCSD.leerConfigFirebase();
 
-	// leer o escribir la EEPROM
 	LCEE.inicializar();
 
 	LCCT.configurarModosSalidas();
@@ -73,10 +72,10 @@ void loop()
 		// Manejar conexiones y comunicaciones
 		LCWF.correr();
 		LCCT.controlarAlarma();
-		LCFB.correr();
+		//LCFB.correr();
 
 		// Datalog
-		LCFB.datalog();
+		//LCFB.datalog();
 		LCSD.datalog();
 
 		// Tomar decisiones

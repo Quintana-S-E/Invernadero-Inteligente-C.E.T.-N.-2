@@ -11,16 +11,14 @@ void LocalSD::inicializar()
 			;
 	}
 
-	char path[25];
-	sprintf(path, "%s%s%s", RAIZ_PATH, DATALOG_NOMBRE, TXT);
-	File DatalogSD = SD.open(path, FILE_WRITE);
+	File DatalogSD = SD.open(this->DATALOG_PATH, FILE_WRITE);
 	if (!DatalogSD)
 	{
 		LCDP.displayErrorSD();
 		while (1)
 			;
 	}
-	DatalogSD.println(DATALOG_HEADLINE);
+	DatalogSD.println(this->DATALOG_HEADLINE);
 	DatalogSD.close();
 }
 
@@ -32,18 +30,16 @@ void LocalSD::leerConfigWiFi()
 	{
 		ResultadoLecturaSD lectura;
 		char i_txt[7];
-		char p_path[30];
 		char path[45];
 		sprintf(i_txt, "%i%s", i + 1, TXT);
-		sprintf(p_path, "%s%s%s", RAIZ_PATH, CONFIG_FOLDER_PATH, WIFI_FOLDER_PATH);
-		sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_WSSID, i_txt);
+		sprintf(path, "%s%s%s", this->WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WSSID, i_txt);
 
 		// Rellena la fila i de LCWF.ssid con un caracter por columna [i][0] = 'H', [i][1] = 'e', [i][2] = 'l', [i][3] = 'l', etc
 		lectura = leerStringA(LCWF.ssid[i], W_SSID_SIZE, path); // this-> pointer evitado para mejor lectura
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
 			continue;
 
-		sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_WPASS, i_txt);
+		sprintf(path, "%s%s%s", this->WIFI_FOLDER_PATH, NOMBRE_ARCHIVO_WPASS, i_txt);
 
 		lectura = leerStringA(LCWF.pass[i], W_PASS_SIZE, path);
 		if (lectura == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura == ResultadoLecturaSD::NO_CONTENIDO)
@@ -57,19 +53,17 @@ void LocalSD::leerConfigWiFi()
 
 void LocalSD::leerConfigFirebase()
 {
-	char p_path[35];
 	char path[50];
-	sprintf(p_path, "%s%s%s", RAIZ_PATH, CONFIG_FOLDER_PATH, FIREBASE_FOLDER_PATH);
 
 	ResultadoLecturaSD lectura[4];
-	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FEMAIL, TXT);
+	sprintf(path, "%s%s%s", this->FIREBASE_FOLDER_PATH, NOMBRE_ARCHIVO_FEMAIL, TXT);
 	lectura[0] = leerStringA(LCFB.email,	F_EMAIL_SIZE,	path);
-	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FPASS, TXT);
-	lectura[1] = leerStringA(LCFB.pass,	F_PASS_SIZE,	path);
-	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FURL, TXT);
-	lectura[2] = leerStringA(LCFB.url,	F_URL_SIZE,		path);
-	sprintf(path, "%s%s%s", p_path, NOMBRE_ARCHIVO_FAPIKEY, TXT);
-	lectura[3] = leerStringA(LCFB.api_key,F_API_KEY_SIZE,	path);	
+	sprintf(path, "%s%s%s", this->FIREBASE_FOLDER_PATH, NOMBRE_ARCHIVO_FPASS, TXT);
+	lectura[1] = leerStringA(LCFB.pass,		F_PASS_SIZE,	path);
+	sprintf(path, "%s%s%s", this->FIREBASE_FOLDER_PATH, NOMBRE_ARCHIVO_FURL, TXT);
+	lectura[2] = leerStringA(LCFB.url,		F_URL_SIZE,		path);
+	sprintf(path, "%s%s%s", this->FIREBASE_FOLDER_PATH, NOMBRE_ARCHIVO_FAPIKEY, TXT);
+	lectura[3] = leerStringA(LCFB.api_key,	F_API_KEY_SIZE,	path);	
 
 	for (uint8_t i = 0; i < 4; ++i)
 		if (lectura[i] == ResultadoLecturaSD::NO_ARCHIVO  ||  lectura[i] == ResultadoLecturaSD::NO_CONTENIDO)
@@ -88,7 +82,7 @@ void LocalSD::leerConfigParametros()
 	for (uint8_t i = 0; i < LCEE.CANT_VARIABLES; ++i)
 	{
 		char path[7];
-		sprintf(path, "%s%s%s%02d%s", RAIZ_PATH, CONFIG_FOLDER_PATH, PARAMETROS_FOLDER_PATH, i + 1, TXT);
+		sprintf(path, "%s%02d%s", this->PARAMETROS_FOLDER_PATH, i + 1, TXT);
 
 		File ArchivoSD = SD.open(path, FILE_READ);
 		if (!ArchivoSD)
@@ -143,9 +137,7 @@ void LocalSD::datalog()
 		return;
 	this->ultimo_datalog = millis_actual;
 
-	char path[25];
-	sprintf(path, "%s%s%s", RAIZ_PATH, DATALOG_NOMBRE, TXT);
-	File DatalogSD = SD.open(path, FILE_WRITE);
+	File DatalogSD = SD.open(this->DATALOG_PATH, FILE_WRITE);
 	if (!DatalogSD)
 	{
 		LCDP.displayErrorSD();
