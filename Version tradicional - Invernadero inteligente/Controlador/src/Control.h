@@ -180,7 +180,7 @@ void SalidaVentilacion::cerrar()
 	// si llegamos acá ambos están HIGH
 	digitalWrite(this->pin_marcha, LOW);
 
-	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara
 	// terminan ambos LOW

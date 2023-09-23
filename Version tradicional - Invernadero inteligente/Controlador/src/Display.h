@@ -214,7 +214,7 @@ void LocalDisplay::displayError()
 }
 
 //===============================================================================================================================//
-
+/*
 void LocalDisplay::displayNoSD()
 {
 	Display.clearDisplay();
@@ -223,6 +223,7 @@ void LocalDisplay::displayNoSD()
 	Display.print(this->msg_sd_ausente);
 	Display.display();
 }
+*/
 
 //===============================================================================================================================//
 

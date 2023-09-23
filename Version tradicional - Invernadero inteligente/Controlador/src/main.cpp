@@ -72,10 +72,10 @@ void loop()
 		// Manejar conexiones y comunicaciones
 		LCWF.correr();
 		LCCT.controlarAlarma();
-		//LCFB.correr();
+		LCFB.correr();
 
 		// Datalog
-		//LCFB.datalog();
+		//LCFB.datalog(); ahorramos líneas de código llamandola desde LCSD.datalog y pasando los datos como args
 		LCSD.datalog();
 
 		// Tomar decisiones

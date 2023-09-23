@@ -6,7 +6,8 @@ void LocalSD::inicializar()
 {
 	if (!SD.begin(SD_CS))
 	{
-		LCDP.displayNoSD();
+		//LCDP.displayNoSD();
+		LCDP.displayErrorSD();
 		while (1)
 			;
 	}
@@ -145,31 +146,25 @@ void LocalSD::datalog()
 		return;
 	}
 
-	this->escribirSDAbierta(DatalogSD, millis_actual/1000, true);
-	this->escribirSDAbierta(DatalogSD, AhtInteriorHigh.temperatura,	true);
-	this->escribirSDAbierta(DatalogSD, AhtInteriorMid.temperatura,	true);
-	this->escribirSDAbierta(DatalogSD, AhtInteriorLow.temperatura,	true);
-	this->escribirSDAbierta(DatalogSD, AhtGeotermico.temperatura,	true);
-	this->escribirSDAbierta(DatalogSD, humedad_int_high,	true);
-	this->escribirSDAbierta(DatalogSD, humedad_int_mid,		true);
-	this->escribirSDAbierta(DatalogSD, humedad_int_low,		true);
-	this->escribirSDAbierta(DatalogSD, humedad_suelo1, true);
-	this->escribirSDAbierta(DatalogSD, humedad_suelo2, true);
-	this->escribirSDAbierta(DatalogSD, Riego.encendida,		true);
-	this->escribirSDAbierta(DatalogSD, Calefa.encendida,	true);
-	this->escribirSDAbierta(DatalogSD, Ventilacion.abierta,	false);
-	DatalogSD.println();
-
+	LCFB.datalog(DatalogSD);
 	DatalogSD.close();
 }
 
 //===============================================================================================================================//
 
 template <typename T>
-void LocalSD::escribirSDAbierta(File Archivo, T dato, bool coma)
+void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma)
 {
 	Archivo.print(dato);
 	if (coma)
 		Archivo.print(',');
+	else
+		Archivo.print('\n');
 	Archivo.flush();
+
+	if (LCFB.tiene_firebase)
+	{
+		LCFB.json.set(LCFB.NOMBRES_DATOS[LCFB.i_datalog], dato);
+		++LCFB.i_datalog;
+	}
 }

@@ -76,6 +76,7 @@ enum class PinsAHT10MUX : uint8_t
 
 // Variables de tiempo y flags generales
 unsigned long ultima_vez_invernadero_funciono = 0;
+const unsigned long DELAY_DATALOG = 5000; // 9,97 años hasta alcanzar el máximo de renglones SD (1048576)
 
 
 
@@ -227,7 +228,7 @@ class LocalDisplay
 		char msg_conectado_a[21]			= "Conectado a la red:\n";
 		char msg_error_al_iniciar[20]		= "Error al iniciar el";
 		char msg_controlador_motivo[21]		= "controlador. Motivo:";
-		char msg_sd_ausente[19]				= "Tarjeta SD ausente";
+		//char msg_sd_ausente[19]			= "Tarjeta SD ausente";
 		char msg_error_sd[20]				= "Error en tarjeta SD";
 
 	public:
@@ -283,39 +284,49 @@ class LocalFirebase
 		char api_key	[	F_API_KEY_SIZE	];
 		bool tiene_firebase = false;
 		bool inicializado = false;
+		uint8_t i_datalog = 0;	// AMBOS
+		FirebaseJson json;		// AMBOS PÚBLICOS POR SER REFERENCIADOS EN SD.h, Y EL DE ABAJO TAMBIÉN
+		const char NOMBRES_DATOS[13][8]	= {"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
 	private:
-		char path_lecturas[23]		= "/Invernadero/lecturas/";
-		char path_respuestas[30]	= "/Invernadero/comandos/modulo/";
-		char path_escuchar[34]		= "/Invernadero/comandos/aplicacion/";
-		char path_tiempo[5]			= "T(s)";
-		char path_temp_sup[3]		= "Ts";
-		char path_temp_mid[3]		= "Tm";
-		char path_temp_inf[3]		= "Ti";
-		char path_temp_geo[8]		= "Tg(°C)";
-		char path_hum_air_sup[4]	= "HAs";
-		char path_hum_air_mid[4]	= "HAm";
-		char path_hum_air_inf[4]	= "HAi";
-		char path_hum_suelo1[4]		= "HS1";
-		char path_hum_suelo2[7]		= "HS2(%)";
-		char path_riego[4]			= "RIE";
-		char path_calefa[4]			= "CAL";
-		char path_ventilacion[5]	= "VENT";
+		#define CARACTERES_PATH_LECTURAS 33 // lo de abajo + caracteres necesarios para la timestamp
+		const char PATH_LECTURAS[CARACTERES_PATH_LECTURAS]	= "/Invernadero/lecturas/";
+		const char PATH_ESCUCHAR[38]						= "/Invernadero/comApp/";
+		const char PATH_ESCRITURA[24]						= "/Invernadero/comModulo/";
 		FirebaseData data;
 		FirebaseData stream;
 		FirebaseAuth auth;
 		FirebaseConfig config;
-		FirebaseJson json;
 
 	public:
 		void inicializar();
-		bool correr();
+		void correr();
+		void datalog(File sd);
+		void responderOk();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
-		void datalog();
-		//funcs
-	private:
-		//funcs
+		
+		inline void comandoRiego(uint8_t valor);
+        inline void comandoCalefa(uint8_t valor);
+        inline void comandoVent(uint8_t valor);
+        inline void cambiarModosSalidas(uint8_t valor);
+        inline void cambiarAlarmaActivada(bool valor);
+        inline void cambiarLapsoAlarma(uint16_t valor);
+        inline void cambiarTMaxAlarma(float valor);
+        inline void cambiarTMinAlarma(float valor);
+        inline void cambiarHumSueloMin(uint8_t valor);
+        inline void cambiarLapsoRiegos(uint16_t valor);
+        inline void cambiarTiempoBombeo(uint16_t valor);
+        inline void cambiarTiempoEspera(uint16_t valor);
+        inline void cambiarTMinCalefa(float valor);
+        inline void cambiarLapsoCalefas(uint16_t valor);
+        inline void cambiarTiempoEncendidoCalefa(uint16_t valor);
+        inline void cambiarTMaxVent(float valor);
+        inline void cambiarLapsoVent(uint16_t valor);
+        inline void cambiarTiempoAperturaVent(uint16_t valor);
+        inline void cambiarTiempoMarchaVent(uint8_t valor);
 } LCFB;
+void appInput(FirebaseStream data);
+void appInputTimeout(bool comandoTimeout);
 
 
 // SD_manejo.h
@@ -325,7 +336,6 @@ enum class ResultadoLecturaSD : uint8_t
 	NO_CONTENIDO,
 	EXITOSO
 };
-const unsigned long DELAY_DATALOG = 5000; // 9,97 años hasta alcanzar el máximo de renglones (1048576)
 class LocalSD
 {
 	private:
@@ -351,9 +361,9 @@ class LocalSD
 		void leerConfigFirebase();
 		void leerConfigParametros();
 		void datalog();
-	private:
 		template <typename T>
-		void escribirSDAbierta(File Archivo, T dato, bool coma);
+		void escribirFBySDabierta(File Archivo, T dato, bool coma);
+	private:
 		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
 } LCSD;
 
@@ -380,7 +390,7 @@ bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad);
 // comandos
 void comandoStart();
 void comandoLecturas();
-void comandoInfo();
+//void comandoInfo();
 void comandoProg();
 void comandoVentilar();
 void comandoTiempoAl();

@@ -42,7 +42,25 @@ void LocalEEPROM::inicializar() // en "setup()"
 }
 
 //==================================================================================================================//
-
+/*				IDEA PARA BAJAR LA CANTIDAD DE FLASH GASTADA EN INSTRUCCIONES: (investigar bien, declarar tuple global)
+Lo malo es que las variables quedarían adentro de la tuple variables, no pudiendo acceder fácilmente a ellas
+con un std::get<LAPSO_ALARMA_MIN>(variables), sino con un std::get<3>(variables)
+template <typename T>
+void EEPROMget(const T& x, std::size_t i) {
+	EEPROM.get(this->direccion[i], x);
+};
+template <typename TupleT, std::size_t... Is>
+void leerEEPROMCompleta(const TupleT& tp) {
+    (EEPROMget(std::get<Is>(tp), Is), ...);
+}
+En la función leerCompleta():
+std::tuple<bool, uint8_t, bool, uint16_t, float, float, uint8_t, uint16_t, uint16_t, uint16_t, float,
+uint16_t, uint16_t, float, uint16_t, uint16_t, uint8_t> variables(eeprom_programada, modos_salidas,
+alarma_activada, lapso_alarma_min, temp_maxima_alarma, temp_minima_alarma, humedad_suelo_minima,
+lapso_riegos_min, tiempo_bombeo_seg, tiempo_espera_min, temp_minima_calefa, lapso_calefas_min,
+tiempo_encendido_calefa_min, temp_maxima_ventilacion, lapso_ventilaciones_min, tiempo_apertura_vent_min,
+tiempo_marcha_vent_seg);
+leerEEPROMCompleta<decltype(variables), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16>(variables);*/
 void LocalEEPROM::leerCompleta()
 {
 	EEPROM.begin(this->espacios);
