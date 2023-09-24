@@ -290,10 +290,10 @@ class LocalFirebase
 		const char NOMBRES_DATOS[CANT_CANALES_DATALOG][8] =
 		{"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
 	private:
-		#define CARACTERES_PATH_LECTURAS 33 // lo de abajo + caracteres necesarios para la timestamp
-		const char PATH_LECTURAS[CARACTERES_PATH_LECTURAS]	= "/Invernadero/lecturas/";
-		const char PATH_ESCUCHAR[38]						= "/Invernadero/comApp/";
-		const char PATH_ESCRITURA[24]						= "/Invernadero/comModulo/";
+		#define CARACTERES_PATH_LECTURAS 45	// lo de abajo + caracteres necesarios para la timestamp y el '/'
+		const char PATH_LECTURAS[33]			= "/Invernadero/lecturas/";
+		const char PATH_ESCUCHAR[38]			= "/Invernadero/comApp/";
+		const char PATH_ESCRITURA[24]			= "/Invernadero/comModulo/";
 		const char NOMBRE_NODO_RTA[5] 			= "/rta";
 		const char NOMBRE_NODO_ALARMA_ALTA[12]	= "/alarmaAlta";
 		const char NOMBRE_NODO_ALARMA_BAJA[12]	= "/alarmaBaja";
@@ -330,6 +330,7 @@ class LocalFirebase
         inline void cambiarTiempoMarchaVent(uint8_t valor);
 	private:
 		void enviarParametros();
+		inline bool enviarJson(FirebaseData* data, const char* path, FirebaseJson* json);
 } LCFB;
 void appInput(FirebaseStream data);
 void appInputTimeout(bool comandoTimeout);
@@ -367,11 +368,11 @@ class LocalSD
 		void leerConfigParametros();
 		void datalog();
 		template <typename T>
-		void escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson json);
+		void escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson* json);
 	private:
 		template <typename T>
 		void escribirSDabierta(File Archivo, T dato, bool coma);
-		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
+		ResultadoLecturaSD leerStringA(char* buffer, const uint8_t caracteres, const char* path);
 } LCSD;
 
 

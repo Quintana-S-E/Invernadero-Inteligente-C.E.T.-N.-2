@@ -110,7 +110,7 @@ void LocalSD::leerConfigParametros()
 //===============================================================================================================================//
 
 // Pone el contenido del archivo "path" dentro de "buffer". "caracteres" es la cantidad máxima de caracteres a rellenar
-ResultadoLecturaSD LocalSD::leerStringA(char *buffer, const uint8_t caracteres, const char *path)
+ResultadoLecturaSD LocalSD::leerStringA(char* buffer, const uint8_t caracteres, const char* path)
 {
 	uint8_t bytes_leidos = 0;
 	char contenido[caracteres];
@@ -166,7 +166,7 @@ void LocalSD::escribirSDabierta(File Archivo, T dato, bool coma)
 }
 
 template <typename T>
-void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson json)
+void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson* json)
 {
 	this->escribirSDabierta(Archivo, dato, coma);
 

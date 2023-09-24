@@ -85,7 +85,6 @@ void loop()
 
 		// Actualizar datos mostrables
 		LCDP.actualizar();
-		//actualizarGraficos();
 	}
 
 	// cambiamos el contenido de la pantalla

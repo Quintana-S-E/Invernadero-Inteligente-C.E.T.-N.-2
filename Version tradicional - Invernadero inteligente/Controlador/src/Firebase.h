@@ -150,11 +150,19 @@ inline void LocalFirebase::cambiarTiempoMarchaVent(uint8_t valor)       { LCEE.e
 
 //===============================================================================================================================//
 
+inline bool LocalFirebase::enviarJson(FirebaseData* data, const char* path, FirebaseJson* json)
+{
+    if (Firebase.ready())
+        Firebase.RTDB.setJSON(data, path, json);
+}
+
+//===============================================================================================================================//
+
 void LocalFirebase::responderOk()
 {
     FirebaseJson json;
 	json.set(this->NOMBRE_NODO_RTA, "ok");
-    Firebase.RTDB.setJSON(&data, PATH_ESCRITURA, &json);
+    this->enviarJson(&data, this->PATH_ESCRITURA, &json);
     imprimirln("Firebase: rta ok");
 }
 
@@ -187,7 +195,7 @@ void LocalFirebase::enviarParametros()
     ++i;
     json.set(itoa(i, nodo, 10), Ventilacion.abierta);
 
-    Firebase.RTDB.setJSON(&data, this->PATH_ESCUCHAR, &json);
+    this->enviarJson(&data, this->PATH_ESCUCHAR, &json);
 }
 
 //===============================================================================================================================//
@@ -206,43 +214,48 @@ void LocalFirebase::enviarAlarmaCaliente()
 {
     FirebaseJson json;
     json.set(this->NOMBRE_NODO_ALARMA_ALTA, true);
-    Firebase.RTDB.setJSON(&data, this->PATH_ESCRITURA, &json);
+    this->enviarJson(&data, this->PATH_ESCRITURA, &json);
 }
 
 void LocalFirebase::enviarAlarmaFrio()
 {
     FirebaseJson json;
     json.set(this->NOMBRE_NODO_ALARMA_BAJA, true);
-    Firebase.RTDB.setJSON(&data, this->PATH_ESCRITURA, &json);
+    this->enviarJson(&data, this->PATH_ESCRITURA, &json);
 }
 
 //===============================================================================================================================//
 
 void LocalFirebase::datalog(File sd)
 {
+    this->i_datalog = 0;
+    unsigned long tiempo_unix;
     if (this->tiene_firebase)
-	{
-        char path[CARACTERES_PATH_LECTURAS];
-        sprintf(path, "%s%d", this->PATH_LECTURAS, obtenerTiempoUnix());
-        this->i_datalog = 0;
-    }
+        tiempo_unix = obtenerTiempoUnix(); // en un if pq tiene 5 s de timeout
+
+    char path[CARACTERES_PATH_LECTURAS];
+    sprintf(path, "%s%u%c", this->PATH_LECTURAS, tiempo_unix, '/');
     FirebaseJson json;
 
-    LCSD.escribirFBySDabierta(sd, millis()/1000, true, json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorHigh.temperatura,	true, json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorMid.temperatura,	true, json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorLow.temperatura,	true, json);
-	LCSD.escribirFBySDabierta(sd, AhtGeotermico.temperatura,	true, json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_high,	true, json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_mid,		true, json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_low,		true, json);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo1, true, json);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo2, true, json);
-	LCSD.escribirFBySDabierta(sd, Riego.encendida,		true, json);
-	LCSD.escribirFBySDabierta(sd, Calefa.encendida,	true, json);
-	LCSD.escribirFBySDabierta(sd, Ventilacion.abierta,	false, json);
+    LCSD.escribirFBySDabierta(sd, millis()/1000, true, &json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorHigh.temperatura,	true, &json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorMid.temperatura,	true, &json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorLow.temperatura,	true, &json);
+	LCSD.escribirFBySDabierta(sd, AhtGeotermico.temperatura,	true, &json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_high,	true, &json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_mid,		true, &json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_low,		true, &json);
+	LCSD.escribirFBySDabierta(sd, humedad_suelo1, true, &json);
+	LCSD.escribirFBySDabierta(sd, humedad_suelo2, true, &json);
+	LCSD.escribirFBySDabierta(sd, Riego.encendida,		true, &json);
+	LCSD.escribirFBySDabierta(sd, Calefa.encendida,	true, &json);
+	LCSD.escribirFBySDabierta(sd, Ventilacion.abierta,	false, &json);
 	sd.println();
+
 	
-    if (this->tiene_firebase  &&  Firebase.ready())
-	    Firebase.RTDB.setJSON(&data, this->PATH_LECTURAS, &json);
+    if (this->tiene_firebase)
+    {
+        json.set("unix", tiempo_unix);
+	    this->enviarJson(&data, path, &json);
+    }
 }

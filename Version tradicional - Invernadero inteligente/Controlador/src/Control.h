@@ -201,7 +201,9 @@ void LocalControl::configurarModosSalidas()
 
 void LocalControl::controlarAlarma()
 {
-	if (!LCEE.alarma_activada  ||  millis() - this->ultima_actualizacion_alarma < (unsigned long) LCEE.lapso_alarma_min * 60000UL)
+	if (!LCFB.tiene_firebase  ||  !LCWF.hay_conexion  ||  !LCEE.alarma_activada)
+		return;
+	if (millis() - this->ultima_actualizacion_alarma < (unsigned long) LCEE.lapso_alarma_min * 60000UL)
 		return;
 	this->ultima_actualizacion_alarma = millis();
 
