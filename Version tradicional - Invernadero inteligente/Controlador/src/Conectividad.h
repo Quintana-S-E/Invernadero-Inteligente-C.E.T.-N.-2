@@ -5,7 +5,7 @@
 //==================================================PARTE DE CONEXIONES A WiFi===================================================//
 
 
-bool LocalWiFi::guardarRedWiFi(const char* ssid, const char* password)	{	return WiFiMultiO.addAP(ssid, password);	}
+bool LocalWiFi::guardarRedWiFi(const char* ssid, const char* password)	{ imprimir("agregar red: "); imprimir(ssid); imprimir(", "); imprimirln(password);	return WiFiMultiO.addAP(ssid, password);	}
 bool LocalWiFi::guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(ssid);				}
 
 //===============================================================================================================================//

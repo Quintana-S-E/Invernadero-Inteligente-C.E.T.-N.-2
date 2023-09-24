@@ -238,6 +238,22 @@ void LocalDisplay::displayErrorSD()
 
 //===============================================================================================================================//
 
+void LocalDisplay::displayVentana(bool abriendo)
+{
+	Display.clearDisplay();
+    Display.setTextSize(2);
+    Display.setCursor(17, 13);
+	if (abriendo)
+    	Display.println("Abriendo");
+	else
+		Display.println("Cerrando");
+    Display.setCursor(20, 34);
+    Display.print("ventana");
+    Display.display();
+}
+
+//===============================================================================================================================//
+
 void LocalDisplay::displayLogo()
 {
 	Display.clearDisplay();

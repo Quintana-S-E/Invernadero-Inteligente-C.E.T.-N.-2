@@ -21,8 +21,10 @@ void LocalControl::controlarRiego() // en "loop()"
 		return;
 	case SalidaModos::Temporizada:
 		this->riegoTemporizado();
+		break;
 	case SalidaModos::Automatica:
 		this->riegoAutomatico();
+		break;
 	}
 }
 
@@ -37,6 +39,7 @@ void LocalControl::riegoTemporizado()
 
 void LocalControl::riegoAutomatico()
 {
+	imprimirln("rieg auto...");
 	unsigned long millis_actual = millis();
 	this->monitorearBombeoRiego(millis_actual);
 
@@ -75,8 +78,10 @@ void LocalControl::controlarCalefa() // en "loop()"
 		return;
 	case SalidaModos::Temporizada:
 		this->calefaTemporizada();
+		break;
 	case SalidaModos::Automatica:
 		this->calefaAutomatica();
+		break;
 	}
 }
 
@@ -92,6 +97,7 @@ void LocalControl::calefaTemporizada()
 
 void LocalControl::calefaAutomatica()
 {
+	imprimirln("calefa auto...");
 	if (AhtInteriorMid.temperatura <= LCEE.temp_minima_calefa - DELTA_T_CALEFA)
 		Calefa.encender(millis());
 	else if (AhtInteriorMid.temperatura >= LCEE.temp_minima_calefa + DELTA_T_CALEFA)
@@ -127,6 +133,7 @@ void LocalControl::ventilacionTemporizada()
 
 void LocalControl::ventilacionAutomatica()
 {
+	imprimirln("vent auto...");
 	if (AhtInteriorHigh.temperatura >= LCEE.temp_maxima_ventilacion + DELTA_T_VENTILACION)
 		Ventilacion.abrir(millis());
 	else if (AhtInteriorHigh.temperatura < LCEE.temp_maxima_ventilacion - DELTA_T_VENTILACION)
@@ -165,6 +172,7 @@ void SalidaVentilacion::abrir(unsigned long millis_actual)
 	// si llegamos acá ambos están LOW
 	digitalWrite(this->pin_marcha, HIGH);
 
+	LCDP.displayVentana(true);
 	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, HIGH); // ambos relés activados para encender lámpara
@@ -180,6 +188,7 @@ void SalidaVentilacion::cerrar()
 	// si llegamos acá ambos están HIGH
 	digitalWrite(this->pin_marcha, LOW);
 
+	LCDP.displayVentana(false);
 	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara

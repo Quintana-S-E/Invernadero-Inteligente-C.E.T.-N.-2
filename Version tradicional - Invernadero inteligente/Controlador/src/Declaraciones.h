@@ -26,7 +26,7 @@ Lo intenté el 22/8, pareciera que iba todo bien pero hubo un problema en AHT10.
 tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer este cambio.
 */
 
-//#define DEBUG_SERIAL // Comentar para eliminar los Serial.print
+#define DEBUG_SERIAL // Comentar para eliminar los Serial.print
 #ifdef DEBUG_SERIAL
 	#define imprimir(x) Serial.print(x)
 	#define imprimirln(x) Serial.println(x)
@@ -241,6 +241,7 @@ class LocalDisplay
 		void displayConetadoA(String ssid_conectada);
 		void displayNoSD();
 		void displayErrorSD();
+		void displayVentana(bool abriendo);
 	private:
 		void displayTemperatura(uint8_t pantalla);
 		void displayHumedadAire(uint8_t pantalla);
@@ -286,9 +287,9 @@ class LocalFirebase
 		bool inicializado = false;
 		const uint8_t CARACTERES_NODO_ESCUCHAR = 10;
 		uint8_t i_datalog = 0;
-		#define CANT_CANALES_DATALOG 13
-		const char NOMBRES_DATOS[CANT_CANALES_DATALOG][8] =
+		const char NOMBRES_DATOS[13][8] =
 		{"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
+		const char HEADLINE_DATALOG[58] = "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VENT";
 	private:
 		#define CARACTERES_PATH_LECTURAS 45	// lo de abajo + caracteres necesarios para la timestamp y el '/'
 		const char PATH_LECTURAS[33]			= "/Invernadero/lecturas/";
@@ -305,7 +306,7 @@ class LocalFirebase
 	public:
 		void inicializar();
 		void correr();
-		void datalog(File sd);
+		void datalog(const char* path_sd);
 		void responderOk();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
@@ -345,14 +346,15 @@ enum class ResultadoLecturaSD : uint8_t
 };
 class LocalSD
 {
+	public:
+		const char DATALOG_PATH[23]				= "/controlador/datos.txt";
 	private:
 		unsigned long ultimo_datalog = 0;
 		const char TXT[5]						= ".txt";
-		const char DATALOG_PATH[22]				= "controlador/datos.txt";
 		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
-		const char WIFI_FOLDER_PATH[25]			= "controlador/config/wifi/";
-		const char FIREBASE_FOLDER_PATH[29]		= "controlador/config/firebase/";
-		const char PARAMETROS_FOLDER_PATH[31]	= "controlador/config/parametros/";
+		const char WIFI_FOLDER_PATH[26]			= "/controlador/config/wifi/";
+		const char FIREBASE_FOLDER_PATH[30]		= "/controlador/config/firebase/";
+		const char PARAMETROS_FOLDER_PATH[32]	= "/controlador/config/parametros/";
 		// NOMBRES DE FOLDER WIFI
 		const char NOMBRE_ARCHIVO_WSSID[5]		= "ssid";
 		const char NOMBRE_ARCHIVO_WPASS[5]		= "pass";
@@ -368,10 +370,9 @@ class LocalSD
 		void leerConfigParametros();
 		void datalog();
 		template <typename T>
-		void escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson* json);
+		void escribirFBySD(const char* path, String &string, bool coma, T dato, FirebaseJson* json);
 	private:
-		template <typename T>
-		void escribirSDabierta(File Archivo, T dato, bool coma);
+		void escribir(const char* path, String string);
 		ResultadoLecturaSD leerStringA(char* buffer, const uint8_t caracteres, const char* path);
 } LCSD;
 

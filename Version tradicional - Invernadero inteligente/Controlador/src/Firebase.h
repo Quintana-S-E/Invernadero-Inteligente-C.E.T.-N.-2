@@ -153,7 +153,8 @@ inline void LocalFirebase::cambiarTiempoMarchaVent(uint8_t valor)       { LCEE.e
 inline bool LocalFirebase::enviarJson(FirebaseData* data, const char* path, FirebaseJson* json)
 {
     if (Firebase.ready())
-        Firebase.RTDB.setJSON(data, path, json);
+        return Firebase.RTDB.setJSON(data, path, json);
+    return false;
 }
 
 //===============================================================================================================================//
@@ -226,7 +227,7 @@ void LocalFirebase::enviarAlarmaFrio()
 
 //===============================================================================================================================//
 
-void LocalFirebase::datalog(File sd)
+void LocalFirebase::datalog(const char* path_sd)
 {
     this->i_datalog = 0;
     unsigned long tiempo_unix;
@@ -237,21 +238,21 @@ void LocalFirebase::datalog(File sd)
     sprintf(path, "%s%u%c", this->PATH_LECTURAS, tiempo_unix, '/');
     FirebaseJson json;
 
-    LCSD.escribirFBySDabierta(sd, millis()/1000, true, &json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorHigh.temperatura,	true, &json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorMid.temperatura,	true, &json);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorLow.temperatura,	true, &json);
-	LCSD.escribirFBySDabierta(sd, AhtGeotermico.temperatura,	true, &json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_high,	true, &json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_mid,		true, &json);
-	LCSD.escribirFBySDabierta(sd, humedad_int_low,		true, &json);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo1, true, &json);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo2, true, &json);
-	LCSD.escribirFBySDabierta(sd, Riego.encendida,		true, &json);
-	LCSD.escribirFBySDabierta(sd, Calefa.encendida,	true, &json);
-	LCSD.escribirFBySDabierta(sd, Ventilacion.abierta,	false, &json);
-	sd.println();
-
+    String string;
+    imprimir("escribiendo SD: ");
+    LCSD.escribirFBySD(path_sd, string, true, millis()/1000, &json);
+	LCSD.escribirFBySD(path_sd, string, true, AhtInteriorHigh.temperatura, &json);
+	LCSD.escribirFBySD(path_sd, string, true, AhtInteriorMid.temperatura, &json);
+	LCSD.escribirFBySD(path_sd, string, true, AhtInteriorLow.temperatura, &json);
+	LCSD.escribirFBySD(path_sd, string, true, AhtGeotermico.temperatura, &json);
+	LCSD.escribirFBySD(path_sd, string, true, humedad_int_high, &json);
+	LCSD.escribirFBySD(path_sd, string, true, humedad_int_mid, &json);
+	LCSD.escribirFBySD(path_sd, string, true, humedad_int_low, &json);
+	LCSD.escribirFBySD(path_sd, string, true, humedad_suelo1, &json);
+	LCSD.escribirFBySD(path_sd, string, true, humedad_suelo2, &json);
+	LCSD.escribirFBySD(path_sd, string, true, Riego.encendida, &json);
+	LCSD.escribirFBySD(path_sd, string, true, Calefa.encendida, &json);
+	LCSD.escribirFBySD(path_sd, string, false, Ventilacion.abierta, &json);
 	
     if (this->tiene_firebase)
     {

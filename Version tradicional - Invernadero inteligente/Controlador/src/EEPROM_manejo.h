@@ -36,8 +36,8 @@ void LocalEEPROM::inicializar() // en "setup()"
 			LCSD.leerConfigParametros();
 	}
 
-#ifdef DEBUGserial
-	this->imprimirEEPROMValsDirsReads();
+#ifdef DEBUG_SERIAL
+	this->imprimirValsDirsReads();
 #endif
 }
 
@@ -169,8 +169,8 @@ void LocalEEPROM::imprimirValsDirsReads()
 	}
 	Serial.println();
 
-	EEPROM.begin(30);
-	for (int j = 0; j < 30; ++j)
+	EEPROM.begin(100);
+	for (int j = 0; j < 37; ++j)
 	{
 		Serial.print("Dirección ");
 		Serial.print(j);

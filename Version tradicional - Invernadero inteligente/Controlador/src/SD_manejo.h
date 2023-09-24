@@ -19,9 +19,10 @@ void LocalSD::inicializar()
 		while (1)
 			;
 	}
+	DatalogSD.close();
 	
-	for (uint8_t i = 0; i < CANT_CANALES_DATALOG; ++i)
-		this->escribirSDabierta(DatalogSD, LCFB.NOMBRES_DATOS[i], (i < CANT_CANALES_DATALOG - 1));
+	String headline = String(LCFB.HEADLINE_DATALOG);
+	this->escribir(this->DATALOG_PATH, headline);
 	DatalogSD.close();
 }
 
@@ -82,10 +83,10 @@ void LocalSD::leerConfigParametros()
 {
 	LCEE.cargarValoresPorDefecto();
 
-	for (uint8_t i = 0; i < LCEE.CANT_VARIABLES; ++i)
+	for (uint8_t i = 1; i < LCEE.CANT_VARIABLES; ++i)
 	{
-		char path[7];
-		sprintf(path, "%s%02d%s", this->PARAMETROS_FOLDER_PATH, i + 1, TXT);
+		char path[50];
+		sprintf(path, "%s%02d%s", this->PARAMETROS_FOLDER_PATH, i, TXT);
 
 		File ArchivoSD = SD.open(path, FILE_READ);
 		if (!ArchivoSD)
@@ -122,11 +123,17 @@ ResultadoLecturaSD LocalSD::leerStringA(char* buffer, const uint8_t caracteres, 
 		return ResultadoLecturaSD::NO_ARCHIVO;
 	}
 
-	bytes_leidos = ArchivoSD.readBytes(contenido, caracteres);
+	int bytes_disponibles = ArchivoSD.available();
+	if (bytes_disponibles == 0)
+	{
+		ArchivoSD.close();
+		return ResultadoLecturaSD::NO_CONTENIDO;
+	}
+
+	ArchivoSD.readBytes(contenido, bytes_disponibles);
+	contenido[bytes_disponibles] = '\0'; // readBytes no pone el null terminator
 	ArchivoSD.close();
 
-	if (bytes_leidos == 0)
-		return ResultadoLecturaSD::NO_CONTENIDO;
 	strcpy(buffer, contenido);
 	return ResultadoLecturaSD::EXITOSO;
 }
@@ -140,39 +147,41 @@ void LocalSD::datalog()
 		return;
 	this->ultimo_datalog = millis_actual;
 
-	File DatalogSD = SD.open(this->DATALOG_PATH, FILE_WRITE);
-	if (!DatalogSD)
-	{
-		LCDP.displayErrorSD();
-		DatalogSD.close();
-		return;
-	}
-
-	LCFB.datalog(DatalogSD);
-	DatalogSD.close();
+	LCFB.datalog(this->DATALOG_PATH);
 }
 
 //===============================================================================================================================//
 
-template <typename T>
-void LocalSD::escribirSDabierta(File Archivo, T dato, bool coma)
+void LocalSD::escribir(const char* path, String string)
 {
-	Archivo.print(dato);
-	if (coma)
-		Archivo.print(',');
+	File Archivo = SD.open(path, FILE_WRITE);
+	if (Archivo) 
+	{
+		imprimirln(string);
+		Archivo.println(string);
+	}
 	else
-		Archivo.print('\n');
-	Archivo.flush();
+		imprimirln("error abriendo archivo SD");
+	Archivo.close();
 }
 
 template <typename T>
-void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson* json)
+void LocalSD::escribirFBySD(const char* path, String &string, bool coma, T dato, FirebaseJson* json)
 {
-	this->escribirSDabierta(Archivo, dato, coma);
+	if (coma)
+	{
+		string += String(dato);
+		string += ',';
+	}
+	else
+	{
+		string += String(dato);
+		this->escribir(path, string);
+	}
 
 	if (LCFB.tiene_firebase)
 	{
-		json.set(LCFB.NOMBRES_DATOS[LCFB.i_datalog], dato);
+		json->set(LCFB.NOMBRES_DATOS[LCFB.i_datalog], dato);
 		++LCFB.i_datalog;
 	}
 }

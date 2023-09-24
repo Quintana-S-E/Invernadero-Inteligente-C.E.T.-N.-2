@@ -23,7 +23,7 @@ void setup()
 {
 	// inicializaciones varias
 	#ifdef DEBUG_SERIAL
-		Serial.begin(9600);
+		Serial.begin(115200);
 	#endif
 	for (PinsOut pin : {PinsOut::RIEGO, PinsOut::CALEFA,
 						PinsOut::MARCHA, PinsOut::CONTRAMARCHA,
