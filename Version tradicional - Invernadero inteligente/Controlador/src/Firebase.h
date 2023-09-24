@@ -17,6 +17,7 @@ void LocalFirebase::inicializar()
 
     Firebase.reconnectWiFi(true);
     data.setResponseSize(4096);
+    data.keepAlive(5, 5, 1);
 
     // Assign the callback function for the long running token generation task
     config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
@@ -26,20 +27,21 @@ void LocalFirebase::inicializar()
     while (auth.token.uid == "")
         delay(500);
 
+    this->enviarParametros();
     Firebase.RTDB.beginStream(&stream, PATH_ESCUCHAR);
     Firebase.RTDB.setStreamCallback(&stream, appInput, appInputTimeout);
 }
 
 //===============================================================================================================================//
 
-void appInputTimeout(bool comandoTimeout) { return; } // TODO: error checking
+void appInputTimeout(bool comandoTimeout) { imprimirln("Firebase: timeout"); } // TODO: error checking
 void appInput(FirebaseStream data)
 {
     int     inumero = data.intData();
     float   fnumero = data.floatData();
+    char nodo[LCFB.CARACTERES_NODO_ESCUCHAR];
+    data.dataPath().substring(1).toCharArray(nodo, LCFB.CARACTERES_NODO_ESCUCHAR);
 
-    char nodo[10];
-    data.dataPath().substring(1).toCharArray(nodo, 10);
     if      (strcmp(nodo, "riego")  == 0)
         LCFB.comandoRiego(inumero);
     else if (strcmp(nodo, "calefa") == 0)
@@ -53,64 +55,51 @@ void appInput(FirebaseStream data)
     case LCEE.MODOS_SALIDAS:
         LCFB.cambiarModosSalidas(inumero);
         break;
-    
     case LCEE.ALARMA_ACTIVADA:
         LCFB.cambiarAlarmaActivada(inumero);
         break;
-
     case LCEE.LAPSO_ALARMA_MIN:
         LCFB.cambiarLapsoAlarma(inumero);
         break;
-    
     case LCEE.TEMP_MAXIMA_ALARMA:
         LCFB.cambiarTMaxAlarma(fnumero);
         break;
-    
 	case LCEE.TEMP_MINIMA_ALARMA:
         LCFB.cambiarTMinAlarma(fnumero);
         break;
-        
     case LCEE.HUMEDAD_SUELO_MINIMA:
         LCFB.cambiarHumSueloMin(inumero);
         break;
-    
 	case LCEE.LAPSO_RIEGOS_MIN:
         LCFB.cambiarLapsoRiegos(inumero);
         break;
-			
     case LCEE.TIEMPO_BOMBEO_SEG:
         LCFB.cambiarTiempoBombeo(inumero);
         break;
-    
     case LCEE.TIEMPO_ESPERA_MIN:
         LCFB.cambiarTiempoEspera(inumero);
-    
+        break;
     case LCEE.TEMP_MINIMA_CALEFA:
         LCFB.cambiarTMinCalefa(fnumero);
         break;
-    
 	case LCEE.LAPSO_CALEFAS_MIN:
         LCFB.cambiarLapsoCalefas(inumero);
         break;
-
 	case LCEE.TIEMPO_ENCENDIDO_CALEFA_MIN:
         LCFB.cambiarTiempoEncendidoCalefa(inumero);
-    
+        break;
 	case LCEE.TEMP_MAXIMA_VENTILACION:
         LCFB.cambiarTMaxVent(fnumero);
         break;
-			
     case LCEE.LAPSO_VENTILACIONES_MIN:
         LCFB.cambiarLapsoVent(inumero);
         break;
-
 	case LCEE.TIEMPO_APERTURA_VENT_MIN:
         LCFB.cambiarTiempoAperturaVent(inumero);
         break;
-    
 	case LCEE.TIEMPO_MARCHA_VENT_SEG:
         LCFB.cambiarTiempoMarchaVent(inumero);
-
+        break;
     default:
         return; // para no responder ok
     }
@@ -158,12 +147,47 @@ inline void LocalFirebase::cambiarTMaxVent(float valor)         { LCEE.escribir(
 inline void LocalFirebase::cambiarLapsoVent(uint16_t valor)     { LCEE.escribir(LCEE.direccion[LCEE.LAPSO_VENTILACIONES_MIN], valor);}
 inline void LocalFirebase::cambiarTiempoAperturaVent(uint16_t valor)    { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_APERTURA_VENT_MIN], valor);}
 inline void LocalFirebase::cambiarTiempoMarchaVent(uint8_t valor)       { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_MARCHA_VENT_SEG], valor);}
+
 //===============================================================================================================================//
 
 void LocalFirebase::responderOk()
 {
-	json.set("rta", "ok");
+    FirebaseJson json;
+	json.set(this->NOMBRE_NODO_RTA, "ok");
     Firebase.RTDB.setJSON(&data, PATH_ESCRITURA, &json);
+    imprimirln("Firebase: rta ok");
+}
+
+//===============================================================================================================================//
+
+void LocalFirebase::enviarParametros()
+{
+    FirebaseJson json;
+    char nodo[this->CARACTERES_NODO_ESCUCHAR];
+    int i;
+    for (i = 1; i < LCEE.CANT_VARIABLES; ++i)
+    {
+        itoa(i, nodo, 10);
+        switch (LCEE.LONGITUD_DATO[i])
+        {
+        case 1:
+            json.set( nodo, LCEE.leer<uint8_t>(LCEE.direccion[i]) );
+            break;
+        case 2:
+            json.set( nodo, LCEE.leer<uint16_t>(LCEE.direccion[i]) );
+            break;
+        case 4:
+            json.set( nodo, LCEE.leer<float>(LCEE.direccion[i]) );
+            break;
+        }
+    }
+    json.set(itoa(i, nodo, 10), Riego.encendida);
+    ++i;
+    json.set(itoa(i, nodo, 10), Calefa.encendida);
+    ++i;
+    json.set(itoa(i, nodo, 10), Ventilacion.abierta);
+
+    Firebase.RTDB.setJSON(&data, this->PATH_ESCUCHAR, &json);
 }
 
 //===============================================================================================================================//
@@ -178,6 +202,22 @@ void LocalFirebase::correr()
 
 //===============================================================================================================================//
 
+void LocalFirebase::enviarAlarmaCaliente()
+{
+    FirebaseJson json;
+    json.set(this->NOMBRE_NODO_ALARMA_ALTA, true);
+    Firebase.RTDB.setJSON(&data, this->PATH_ESCRITURA, &json);
+}
+
+void LocalFirebase::enviarAlarmaFrio()
+{
+    FirebaseJson json;
+    json.set(this->NOMBRE_NODO_ALARMA_BAJA, true);
+    Firebase.RTDB.setJSON(&data, this->PATH_ESCRITURA, &json);
+}
+
+//===============================================================================================================================//
+
 void LocalFirebase::datalog(File sd)
 {
     if (this->tiene_firebase)
@@ -186,20 +226,21 @@ void LocalFirebase::datalog(File sd)
         sprintf(path, "%s%d", this->PATH_LECTURAS, obtenerTiempoUnix());
         this->i_datalog = 0;
     }
+    FirebaseJson json;
 
-    LCSD.escribirFBySDabierta(sd, millis()/1000, true);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorHigh.temperatura,	true);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorMid.temperatura,	true);
-	LCSD.escribirFBySDabierta(sd, AhtInteriorLow.temperatura,	true);
-	LCSD.escribirFBySDabierta(sd, AhtGeotermico.temperatura,	true);
-	LCSD.escribirFBySDabierta(sd, humedad_int_high,	true);
-	LCSD.escribirFBySDabierta(sd, humedad_int_mid,		true);
-	LCSD.escribirFBySDabierta(sd, humedad_int_low,		true);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo1, true);
-	LCSD.escribirFBySDabierta(sd, humedad_suelo2, true);
-	LCSD.escribirFBySDabierta(sd, Riego.encendida,		true);
-	LCSD.escribirFBySDabierta(sd, Calefa.encendida,	true);
-	LCSD.escribirFBySDabierta(sd, Ventilacion.abierta,	false);
+    LCSD.escribirFBySDabierta(sd, millis()/1000, true, json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorHigh.temperatura,	true, json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorMid.temperatura,	true, json);
+	LCSD.escribirFBySDabierta(sd, AhtInteriorLow.temperatura,	true, json);
+	LCSD.escribirFBySDabierta(sd, AhtGeotermico.temperatura,	true, json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_high,	true, json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_mid,		true, json);
+	LCSD.escribirFBySDabierta(sd, humedad_int_low,		true, json);
+	LCSD.escribirFBySDabierta(sd, humedad_suelo1, true, json);
+	LCSD.escribirFBySDabierta(sd, humedad_suelo2, true, json);
+	LCSD.escribirFBySDabierta(sd, Riego.encendida,		true, json);
+	LCSD.escribirFBySDabierta(sd, Calefa.encendida,	true, json);
+	LCSD.escribirFBySDabierta(sd, Ventilacion.abierta,	false, json);
 	sd.println();
 	
     if (this->tiene_firebase  &&  Firebase.ready())

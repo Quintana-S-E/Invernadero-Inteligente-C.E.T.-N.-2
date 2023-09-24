@@ -207,9 +207,9 @@ void LocalControl::controlarAlarma()
 
 	// evaluamos la temperatura
 	if (AhtInteriorMid.temperatura >= LCEE.temp_maxima_alarma)
-		;//LCFB.enviarAlarmaCaliente();
+		LCFB.enviarAlarmaCaliente();
 	else if (AhtInteriorMid.temperatura <= LCEE.temp_minima_alarma)
-		;//LCFB.enviarAlarmaFrio();
+		LCFB.enviarAlarmaFrio();
 }
 
 

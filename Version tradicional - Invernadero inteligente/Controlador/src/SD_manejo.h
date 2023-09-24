@@ -19,7 +19,9 @@ void LocalSD::inicializar()
 		while (1)
 			;
 	}
-	DatalogSD.println(this->DATALOG_HEADLINE);
+	
+	for (uint8_t i = 0; i < CANT_CANALES_DATALOG; ++i)
+		this->escribirSDabierta(DatalogSD, LCFB.NOMBRES_DATOS[i], (i < CANT_CANALES_DATALOG - 1));
 	DatalogSD.close();
 }
 
@@ -153,7 +155,7 @@ void LocalSD::datalog()
 //===============================================================================================================================//
 
 template <typename T>
-void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma)
+void LocalSD::escribirSDabierta(File Archivo, T dato, bool coma)
 {
 	Archivo.print(dato);
 	if (coma)
@@ -161,10 +163,16 @@ void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma)
 	else
 		Archivo.print('\n');
 	Archivo.flush();
+}
+
+template <typename T>
+void LocalSD::escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson json)
+{
+	this->escribirSDabierta(Archivo, dato, coma);
 
 	if (LCFB.tiene_firebase)
 	{
-		LCFB.json.set(LCFB.NOMBRES_DATOS[LCFB.i_datalog], dato);
+		json.set(LCFB.NOMBRES_DATOS[LCFB.i_datalog], dato);
 		++LCFB.i_datalog;
 	}
 }

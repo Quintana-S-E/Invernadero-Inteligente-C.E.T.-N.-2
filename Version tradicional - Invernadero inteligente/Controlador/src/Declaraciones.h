@@ -284,14 +284,19 @@ class LocalFirebase
 		char api_key	[	F_API_KEY_SIZE	];
 		bool tiene_firebase = false;
 		bool inicializado = false;
-		uint8_t i_datalog = 0;	// AMBOS
-		FirebaseJson json;		// AMBOS PÚBLICOS POR SER REFERENCIADOS EN SD.h, Y EL DE ABAJO TAMBIÉN
-		const char NOMBRES_DATOS[13][8]	= {"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
+		const uint8_t CARACTERES_NODO_ESCUCHAR = 10;
+		uint8_t i_datalog = 0;
+		#define CANT_CANALES_DATALOG 13
+		const char NOMBRES_DATOS[CANT_CANALES_DATALOG][8] =
+		{"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
 	private:
 		#define CARACTERES_PATH_LECTURAS 33 // lo de abajo + caracteres necesarios para la timestamp
 		const char PATH_LECTURAS[CARACTERES_PATH_LECTURAS]	= "/Invernadero/lecturas/";
 		const char PATH_ESCUCHAR[38]						= "/Invernadero/comApp/";
 		const char PATH_ESCRITURA[24]						= "/Invernadero/comModulo/";
+		const char NOMBRE_NODO_RTA[5] 			= "/rta";
+		const char NOMBRE_NODO_ALARMA_ALTA[12]	= "/alarmaAlta";
+		const char NOMBRE_NODO_ALARMA_BAJA[12]	= "/alarmaBaja";
 		FirebaseData data;
 		FirebaseData stream;
 		FirebaseAuth auth;
@@ -304,7 +309,6 @@ class LocalFirebase
 		void responderOk();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
-		
 		inline void comandoRiego(uint8_t valor);
         inline void comandoCalefa(uint8_t valor);
         inline void comandoVent(uint8_t valor);
@@ -324,6 +328,8 @@ class LocalFirebase
         inline void cambiarLapsoVent(uint16_t valor);
         inline void cambiarTiempoAperturaVent(uint16_t valor);
         inline void cambiarTiempoMarchaVent(uint8_t valor);
+	private:
+		void enviarParametros();
 } LCFB;
 void appInput(FirebaseStream data);
 void appInputTimeout(bool comandoTimeout);
@@ -342,7 +348,6 @@ class LocalSD
 		unsigned long ultimo_datalog = 0;
 		const char TXT[5]						= ".txt";
 		const char DATALOG_PATH[22]				= "controlador/datos.txt";
-		const char DATALOG_HEADLINE[57]		  	= "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VEN";
 		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
 		const char WIFI_FOLDER_PATH[25]			= "controlador/config/wifi/";
 		const char FIREBASE_FOLDER_PATH[29]		= "controlador/config/firebase/";
@@ -362,47 +367,12 @@ class LocalSD
 		void leerConfigParametros();
 		void datalog();
 		template <typename T>
-		void escribirFBySDabierta(File Archivo, T dato, bool coma);
+		void escribirFBySDabierta(File Archivo, T dato, bool coma, FirebaseJson json);
 	private:
+		template <typename T>
+		void escribirSDabierta(File Archivo, T dato, bool coma);
 		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
 } LCSD;
-
-
-// Telegram.h
-// variables
-#define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
-unsigned long ultima_vez_comprobacion_wifi = 0;
-String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()
-uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en controlarAlarma()
-uint16_t 	chat_numero_entrada_int;	// cuando preguntamos por un número entero de entrada
-float		chat_numero_entrada_float;	// cuando preguntamos por un número con decimal de entrada
-bool		chat_primer_mensaje = true; // para controlarMensajesRecibidosTelegram()
-// WiFi
-void conectarWiFi(bool parar_programa);
-bool conectarWiFiCon(const String& Assid, const String& Apassword);
-void controlarConexion();
-// funciones varias
-void controlarMensajesRecibidosTelegram();
-void controlarAlarma();
-void enviarMensaje(const uint64_t Aid, const String& Amensaje);
-bool evaluarMensajeInt(uint16_t Avalor_min, uint16_t Avalor_max, String Aunidad);
-bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad);
-// comandos
-void comandoStart();
-void comandoLecturas();
-//void comandoInfo();
-void comandoProg();
-void comandoVentilar();
-void comandoTiempoAl();
-void comandoTiempoRiego();
-void comandoTiempoEspera();
-void comandoTmax();
-void comandoTmin();
-void comandoTvent();
-void comandoAlarma();
-void comandoHum();
-void comandoLed();
-void comandoReprog();
 
 
 // EEMPROM_manejo.h
@@ -422,11 +392,11 @@ class LocalEEPROM
 		const uint16_t	TIEMPO_ESPERA_MIN_DEFECTO			= 15;
 		// calefa
 		const float		TEMP_MINIMA_CALEFA_DEFECTO			= 5.0;
-		const uint16_t	LAPSO_CALEFAS_MIN_DEFECTO			= 1440;		// 24 h
+		const uint16_t	LAPSO_CALEFAS_MIN_DEFECTO			= 1440;			// 24 h
 		const uint16_t	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO = 60;
 		// ventilación
 		const float		TEMP_MAXIMA_VENTILACION_DEFECTO		= 32.0;
-		const uint16_t	LAPSO_VENTILACIONES_MIN_DEFECTO 	= 1440;		// 24 h
+		const uint16_t	LAPSO_VENTILACIONES_MIN_DEFECTO 	= 1440;			// 24 h
 		const uint16_t	TIEMPO_APERTURA_VENT_MIN_DEFECTO	= 30;
 		const uint8_t	TIEMPO_MARCHA_VENT_SEG_DEFECTO		= 7;
 
@@ -472,7 +442,7 @@ class LocalEEPROM
 			TIEMPO_MARCHA_VENT_SEG,
 			CANT_VARIABLES
 		};//									   bool, uint8_t = 1;		uint16_t = 2;		float = 4
-		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 1, 2, 4, 4, 1, 2, 2, 2, 4, 2, 2, 4, 2, 2, 1};
+		const uint8_t LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 1, 2, 4, 4, 1, 2, 2, 2, 4, 2, 2, 4, 2, 2, 1};
 		int direccion[CANT_VARIABLES];
 	private:
 		int espacios;
@@ -483,6 +453,8 @@ class LocalEEPROM
 		void cargarValoresPorDefecto();
 		template <typename T>
 		void escribir(int Adireccion, T Adato);
+		template <typename T>
+		T leer(int Adireccion);
 	private:
 		void setDirecciones();
 		void imprimirValsDirsReads();

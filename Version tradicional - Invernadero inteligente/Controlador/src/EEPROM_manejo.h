@@ -116,12 +116,22 @@ void LocalEEPROM::cargarValoresPorDefecto()
 //==================================================================================================================//
 
 template <typename T>
-void LocalEEPROM::escribir(int Adireccion, T Adato)
+void LocalEEPROM::escribir(int direccion, T dato)
 {
 	EEPROM.begin(this->espacios);
-	EEPROM.put(Adireccion, Adato);
+	EEPROM.put(direccion, dato);
 	EEPROM.commit(); // efectivamente escribir
 	EEPROM.end();
+}
+
+template <typename T>
+T LocalEEPROM::leer(int direccion)
+{
+	T valor;
+	EEPROM.begin(this->espacios);
+	EEPROM.get(direccion, valor);
+	EEPROM.end();
+	return valor;
 }
 
 //==================================================================================================================//
