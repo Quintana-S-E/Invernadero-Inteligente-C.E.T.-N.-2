@@ -40,17 +40,27 @@ void appInput(FirebaseStream data)
     int     inumero = data.intData();
     float   fnumero = data.floatData();
     char nodo[LCFB.CARACTERES_NODO_ESCUCHAR];
+    int nodo_numero;
     data.dataPath().substring(1).toCharArray(nodo, LCFB.CARACTERES_NODO_ESCUCHAR);
 
-    if      (strcmp(nodo, "riego")  == 0)
+    if      (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_RIEGO)  == 0)
+    {
         LCFB.comandoRiego(inumero);
-    else if (strcmp(nodo, "calefa") == 0)
+        goto responderOk;
+    }
+    else if (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_CALEFA) == 0)
+    {
         LCFB.comandoCalefa(inumero);
-    else if (strcmp(nodo, "vent")   == 0)
+        goto responderOk;
+    }
+    else if (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_VENT)   == 0)
+    {
         LCFB.comandoVent(inumero);
+        goto responderOk;
+    }
 
-    int numero = atoi(nodo);
-	switch (numero)
+    nodo_numero = atoi(nodo);
+	switch (nodo_numero)
     {
     case LCEE.MODOS_SALIDAS:
         LCFB.cambiarModosSalidas(inumero);
@@ -103,50 +113,67 @@ void appInput(FirebaseStream data)
     default:
         return; // para no responder ok
     }
+responderOk:
     LCFB.responderOk();
 }
 
 inline void LocalFirebase::comandoRiego(uint8_t valor)
 {
-	if (valor)
+	if (valor && !Riego.encendida)
 		Riego.encender(millis());
-	else
+	else if (!valor && Riego.encendida)
 		Riego.apagar();
 }
 inline void LocalFirebase::comandoCalefa(uint8_t valor)
 {
-    if (valor)
+    if (valor && !Calefa.encendida)
         Calefa.encender(millis());
-    else
+    else if (!valor && Calefa.encendida)
         Calefa.apagar();
 }
 inline void LocalFirebase::comandoVent(uint8_t valor)
 {
-    if (valor)
+    if (valor && !Ventilacion.abierta)
         Ventilacion.abrir(millis());
-    else
+    else if (!valor && Ventilacion.abierta)
         Ventilacion.cerrar();
 }
 inline void LocalFirebase::cambiarModosSalidas(uint8_t valor)
 {
+    LCEE.modos_salidas = valor;
     LCEE.escribir(LCEE.direccion[LCEE.MODOS_SALIDAS], valor);
     LCCT.configurarModosSalidas();
 }
-inline void LocalFirebase::cambiarAlarmaActivada(bool valor)    { LCEE.escribir(LCEE.direccion[LCEE.ALARMA_ACTIVADA], valor); }
-inline void LocalFirebase::cambiarLapsoAlarma(uint16_t valor)   { LCEE.escribir(LCEE.direccion[LCEE.LAPSO_ALARMA_MIN], valor); }
-inline void LocalFirebase::cambiarTMaxAlarma(float valor)       { LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_ALARMA], valor); }
-inline void LocalFirebase::cambiarTMinAlarma(float valor)       { LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_ALARMA], valor); }
-inline void LocalFirebase::cambiarHumSueloMin(uint8_t valor)    { LCEE.escribir(LCEE.direccion[LCEE.HUMEDAD_SUELO_MINIMA], valor);}
-inline void LocalFirebase::cambiarLapsoRiegos(uint16_t valor)   { LCEE.escribir(LCEE.direccion[LCEE.LAPSO_RIEGOS_MIN], valor);}
-inline void LocalFirebase::cambiarTiempoBombeo(uint16_t valor)  { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_BOMBEO_SEG], valor);}
-inline void LocalFirebase::cambiarTiempoEspera(uint16_t valor)  { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ESPERA_MIN], valor);}
-inline void LocalFirebase::cambiarTMinCalefa(float valor)       { LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_CALEFA], valor);}
-inline void LocalFirebase::cambiarLapsoCalefas(uint16_t valor)  { LCEE.escribir(LCEE.direccion[LCEE.LAPSO_CALEFAS_MIN], valor);}
-inline void LocalFirebase::cambiarTiempoEncendidoCalefa(uint16_t valor) { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ENCENDIDO_CALEFA_MIN], valor);}
-inline void LocalFirebase::cambiarTMaxVent(float valor)         { LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_VENTILACION], valor);}
-inline void LocalFirebase::cambiarLapsoVent(uint16_t valor)     { LCEE.escribir(LCEE.direccion[LCEE.LAPSO_VENTILACIONES_MIN], valor);}
-inline void LocalFirebase::cambiarTiempoAperturaVent(uint16_t valor)    { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_APERTURA_VENT_MIN], valor);}
-inline void LocalFirebase::cambiarTiempoMarchaVent(uint8_t valor)       { LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_MARCHA_VENT_SEG], valor);}
+inline void LocalFirebase::cambiarAlarmaActivada(bool valor)
+{ LCEE.alarma_activada = valor;             LCEE.escribir(LCEE.direccion[LCEE.ALARMA_ACTIVADA], valor);}
+inline void LocalFirebase::cambiarLapsoAlarma(uint16_t valor)
+{ LCEE.lapso_alarma_min = valor;            LCEE.escribir(LCEE.direccion[LCEE.LAPSO_ALARMA_MIN], valor); }
+inline void LocalFirebase::cambiarTMaxAlarma(float valor)
+{ LCEE.temp_maxima_alarma = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_ALARMA], valor); }
+inline void LocalFirebase::cambiarTMinAlarma(float valor)
+{ LCEE.temp_minima_alarma = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_ALARMA], valor); }
+inline void LocalFirebase::cambiarHumSueloMin(uint8_t valor)
+{ LCEE.humedad_suelo_minima = valor;        LCEE.escribir(LCEE.direccion[LCEE.HUMEDAD_SUELO_MINIMA], valor);}
+inline void LocalFirebase::cambiarLapsoRiegos(uint16_t valor)
+{ LCEE.lapso_riegos_min = valor;            LCEE.escribir(LCEE.direccion[LCEE.LAPSO_RIEGOS_MIN], valor);}
+inline void LocalFirebase::cambiarTiempoBombeo(uint16_t valor)
+{ LCEE.tiempo_bombeo_seg = valor;           LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_BOMBEO_SEG], valor);}
+inline void LocalFirebase::cambiarTiempoEspera(uint16_t valor)
+{ LCEE.tiempo_espera_min = valor;           LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ESPERA_MIN], valor);}
+inline void LocalFirebase::cambiarTMinCalefa(float valor)
+{ LCEE.temp_minima_calefa = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_CALEFA], valor);}
+inline void LocalFirebase::cambiarLapsoCalefas(uint16_t valor)
+{ LCEE.lapso_calefas_min = valor;           LCEE.escribir(LCEE.direccion[LCEE.LAPSO_CALEFAS_MIN], valor);}
+inline void LocalFirebase::cambiarTiempoEncendidoCalefa(uint16_t valor)
+{ LCEE.tiempo_encendido_calefa_min = valor; LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ENCENDIDO_CALEFA_MIN], valor);}
+inline void LocalFirebase::cambiarTMaxVent(float valor)
+{ LCEE.temp_maxima_ventilacion = valor;     LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_VENTILACION], valor);}
+inline void LocalFirebase::cambiarLapsoVent(uint16_t valor)
+{ LCEE.lapso_ventilaciones_min = valor;     LCEE.escribir(LCEE.direccion[LCEE.LAPSO_VENTILACIONES_MIN], valor);}
+inline void LocalFirebase::cambiarTiempoAperturaVent(uint16_t valor)
+{ LCEE.tiempo_apertura_vent_min = valor;    LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_APERTURA_VENT_MIN], valor);}
+inline void LocalFirebase::cambiarTiempoMarchaVent(uint8_t valor)
+{ LCEE.tiempo_marcha_vent_seg = valor;      LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_MARCHA_VENT_SEG], valor);}
 
 //===============================================================================================================================//
 
@@ -177,24 +204,32 @@ void LocalFirebase::enviarParametros()
     for (i = 1; i < LCEE.CANT_VARIABLES; ++i)
     {
         itoa(i, nodo, 10);
+        imprimir("Parametros. Subnodo: "); imprimir(nodo); imprimir(": ");
         switch (LCEE.LONGITUD_DATO[i])
         {
         case 1:
             json.set( nodo, LCEE.leer<uint8_t>(LCEE.direccion[i]) );
+            imprimirln(LCEE.leer<uint8_t>(LCEE.direccion[i]));
             break;
         case 2:
             json.set( nodo, LCEE.leer<uint16_t>(LCEE.direccion[i]) );
+            imprimirln(LCEE.leer<uint16_t>(LCEE.direccion[i]));
             break;
         case 4:
             json.set( nodo, LCEE.leer<float>(LCEE.direccion[i]) );
+            imprimirln(LCEE.leer<float>(LCEE.direccion[i]));
             break;
         }
     }
-    json.set(itoa(i, nodo, 10), Riego.encendida);
-    ++i;
-    json.set(itoa(i, nodo, 10), Calefa.encendida);
-    ++i;
-    json.set(itoa(i, nodo, 10), Ventilacion.abierta);
+    strcpy(nodo, this->NOMBRE_NODO_COMAPP_RIEGO);
+    imprimir("Parametros. Subnodo: "); imprimir(nodo); imprimir(": "); imprimirln(Riego.encendida);
+    json.set<char*, uint8_t>(nodo, Riego.encendida);
+    strcpy(nodo, this->NOMBRE_NODO_COMAPP_CALEFA);
+    imprimir("Parametros. Subnodo: "); imprimir(nodo); imprimir(": "); imprimirln(Calefa.encendida);
+    json.set<char*, uint8_t>(nodo, Calefa.encendida);
+    strcpy(nodo, this->NOMBRE_NODO_COMAPP_VENT);
+    imprimir("Parametros. Subnodo: "); imprimir(nodo); imprimir(": "); imprimirln(Ventilacion.abierta);
+    json.set<char*, uint8_t>(nodo, Ventilacion.abierta);
 
     this->enviarJson(&data, this->PATH_ESCUCHAR, &json);
 }

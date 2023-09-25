@@ -14,7 +14,7 @@ void LocalDisplay::inicializar() // en "setup()"
 }
 
 //===============================================================================================================================//
-// TODO: añadir un estado que sea EstadoWiFi y que diga conectado/desconectado y el nombre de la red
+
 void LocalDisplay::cambiarDato()
 {
 	switch (DatoDelDisplay)

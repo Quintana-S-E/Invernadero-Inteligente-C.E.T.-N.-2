@@ -1,0 +1,7 @@
+{
+"rules": {
+ ".read": "auth.uid === ''",
+ ".write": "auth.uid === ''"
+   }
+}
+// solo pueden leer y escribir aquellos que al autenticar (mail + pass) poseen la UID.

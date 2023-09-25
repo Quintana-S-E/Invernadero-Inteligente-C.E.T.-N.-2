@@ -144,7 +144,7 @@ class SalidaOnOff
 	public:
 		SalidaModos modo;
 		bool encendida = false;
-		unsigned long ultima_vez_encendida = 0; // TODO: poner un datalog channel con encendida/apagada
+		unsigned long ultima_vez_encendida = 0;
 		//unsigned long ultima_vez_apagado;
 	private:
 		uint8_t pin_mosfet;
@@ -159,7 +159,7 @@ class SalidaVentilacion
 	public:
 		SalidaModos modo;
 		bool abierta = false;
-		unsigned long ultima_vez_abierta = 0; // TODO: poner un datalog channel con encendida/apagada
+		unsigned long ultima_vez_abierta = 0;
 	private:
 		uint8_t pin_marcha;
 		uint8_t pin_contramarcha;
@@ -233,7 +233,7 @@ class LocalDisplay
 
 	public:
 		void inicializar();
-		void displayLogo(/*TODO: SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
+		void displayLogo();
 		void actualizar();
 		void cambiarDato();
 		void displayConectandoWiFi();
@@ -290,14 +290,17 @@ class LocalFirebase
 		const char NOMBRES_DATOS[13][8] =
 		{"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
 		const char HEADLINE_DATALOG[58] = "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VENT";
+		const char NOMBRE_NODO_COMAPP_RIEGO[6]	= "riego";
+		const char NOMBRE_NODO_COMAPP_CALEFA[7]	= "calefa";
+		const char NOMBRE_NODO_COMAPP_VENT[5]	= "vent";
 	private:
 		#define CARACTERES_PATH_LECTURAS 45	// lo de abajo + caracteres necesarios para la timestamp y el '/'
 		const char PATH_LECTURAS[33]			= "/Invernadero/lecturas/";
 		const char PATH_ESCUCHAR[38]			= "/Invernadero/comApp/";
 		const char PATH_ESCRITURA[24]			= "/Invernadero/comModulo/";
-		const char NOMBRE_NODO_RTA[5] 			= "/rta";
-		const char NOMBRE_NODO_ALARMA_ALTA[12]	= "/alarmaAlta";
-		const char NOMBRE_NODO_ALARMA_BAJA[12]	= "/alarmaBaja";
+		const char NOMBRE_NODO_RTA[5] 			= "rta";
+		const char NOMBRE_NODO_ALARMA_ALTA[12]	= "alarmaAlta";
+		const char NOMBRE_NODO_ALARMA_BAJA[12]	= "alarmaBaja";
 		FirebaseData data;
 		FirebaseData stream;
 		FirebaseAuth auth;

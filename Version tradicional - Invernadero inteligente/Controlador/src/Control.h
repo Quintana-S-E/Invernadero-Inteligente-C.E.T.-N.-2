@@ -172,7 +172,7 @@ void SalidaVentilacion::abrir(unsigned long millis_actual)
 	// si llegamos acá ambos están LOW
 	digitalWrite(this->pin_marcha, HIGH);
 
-	LCDP.displayVentana(true);
+	LCDP.displayVentana(true);	// TODO IMPORTANTE: HACER UN WHILE LOOP EN VEZ DE DELAY
 	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, HIGH); // ambos relés activados para encender lámpara
@@ -188,7 +188,7 @@ void SalidaVentilacion::cerrar()
 	// si llegamos acá ambos están HIGH
 	digitalWrite(this->pin_marcha, LOW);
 
-	LCDP.displayVentana(false);
+	LCDP.displayVentana(false);	// TODO IMPORTANTE: HACER UN WHILE LOOP EN VEZ DE DELAY
 	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE EN MOVIMIENTO
 
 	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara
