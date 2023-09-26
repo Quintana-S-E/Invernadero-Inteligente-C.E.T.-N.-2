@@ -13,7 +13,7 @@ body {
 	overflow: hidden;
 	background-color: #049faa;
 	color: white;
-	font-size: 1rem;
+	font-size: 0.85rem;
 	padding: 5px;
 }
 
@@ -92,7 +92,7 @@ input[type=password] {
 table {
 	width: 100%;
 	text-align: center;
-	font-size: 0.8rem;
+	font-size: 0.18rem;
 }
 
 tr,

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>ESP Datalogging Firebase App</title>
+	<title>Mi Invernadero Remoto</title>
 
 	<!-- include Firebase SDK -->
 	<script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-app.js"></script>
@@ -56,14 +56,14 @@
 
 	<!--TOP BAR-->
 	<div class="topnav">
-		<h1>Sensor Readings App <i class="fas fa-clipboard-list"></i></h1>
+		<h1>Mi Invernadero Remoto <i class="fas fa-clipboard-list"></i></h1>
 	</div>
 
 	<!--AUTHENTICATION BAR (USER DETAILS/LOGOUT BUTTON)-->
 	<div id="authentication-bar" style="display: none;">
-		<p><span id="authentication-status">User logged in</span>
+		<p><span id="authentication-status">Usuario conectado</span>
 			<span id="user-details">USEREMAIL</span>
-			<a href="/" id="logout-link">(logout)</a>
+			<a href="/" id="logout-link">cerrar sesión</a>
 		</p>
 	</div>
 
@@ -71,12 +71,12 @@
 	<form id="login-form" style="display: none;">
 		<div class="form-elements-container">
 			<label for="input-email"><b>Email</b></label>
-			<input type="text" placeholder="Enter Username" id="input-email" required>
+			<input type="text" placeholder="Ingresar Email" id="input-email" required>
 
 			<label for="input-password"><b>Password</b></label>
-			<input type="password" placeholder="Enter Password" id="input-password" required>
+			<input type="password" placeholder="Ingresar contraseña" id="input-password" required>
 
-			<button type="submit" id="login-button">Login</button>
+			<button type="submit" id="login-button">Iniciar sesión</button>
 			<p id="error-message" style="color:red;"></p>
 		</div>
 	</form>
@@ -85,70 +85,149 @@
 	<div class="content-sign-in" id="content-sign-in" style="display: none;">
 
 		<!--LAST UPDATE-->
-		<p><span class="date-time">Last update: <span id="lastUpdate"></span></span></p>
+		<p><span class="date-time">Última actualización: <span id="lastUpdate"></span></span></p>
 		<p>
-			Cards: <input type="checkbox" id="cards-checkbox" name="cards-checkbox" checked>
-			Gauges: <input type="checkbox" id="gauges-checkbox" name="gauges-checkbox" checked>
-			Charts: <input type="checkbox" id="charts-checkbox" name="charts-checkbox" unchecked>
+			Estados: <input type="checkbox" id="cards-checkbox" name="cards-checkbox" checked>
+			Indicadores: <input type="checkbox" id="gauges-checkbox" name="gauges-checkbox" checked>
+			Gráficos: <input type="checkbox" id="charts-checkbox" name="charts-checkbox" checked>
 		</p>
+
+
 		<div id="cards-div">
 			<div class="cards">
-				<!--TEMPERATURE-->
-				<div class="card">
-					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE</p>
-					<p><span class="reading"><span id="temp"></span> &deg;C</span></p>
+				<!--TIEMPO DESDE ENCENDIDO-->
+				<div class="card">					<!--TODO: CAMBIAR ICONOS-->
+					<p><i class="fas fa-clock" style="color:#484848;"></i>  TIEMPO ENCENDIDO</p>
+					<p><span class="reading"><span id="tiempo"></span> s</span></p>
 				</div>
-				<!--HUMIDITY-->
-				<div class="card">
-					<p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY</p>
-					<p><span class="reading"><span id="hum"></span> &percnt;</span></p>
+				<!--RIEGO-->
+				<div class="card">					<!--TODO: CAMBIAR ICONOS-->
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  RIEGO</p>
+					<p><span class="reading">Estado: <span id="riego"></span></span></p>
 				</div>
-				<!--PRESSURE-->
+				<!--CALEFA-->
 				<div class="card">
-					<p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE</p>
-					<p><span class="reading"><span id="pres"></span> hPa</span></p>
+					<p><i class="fa fa-fire" style="color:#fab846;"></i>  CALEFACCIÓN</p>
+					<p><span class="reading">Estado: <span id="calefa"></span></span></p>
 				</div>
-			</div>
-		</div>
-		<!--GAUGES-->
-		<div id="gauges-div">
-			<div class="cards">
-				<!--TEMPERATURE-->
+				<!--VENTILACIÓN-->
 				<div class="card">
-					<canvas id="gauge-temperature"></canvas>
-				</div>
-				<!--HUMIDITY-->
-				<div class="card">
-					<canvas id="gauge-humidity"></canvas>
+					<p><i class="fa fa-dot-circle" style="color:#1a679a;"></i>  VENTILACIÓN</p>
+					<p><span class="reading">Estado: <span id="vent"></span></span></p>
 				</div>
 			</div>
 		</div>
 
+
+		<!--INDICADORES-->
+		<div id="gauges-div">
+			<div class="cards">
+				<!--TEMPERATURA INTH
+				<div class="card">
+					<canvas id="reloj-temperatura-inth"></canvas>
+				</div>-->
+				<!--TEMPERATURA INTM-->
+				<div class="card">
+					<canvas id="reloj-temperatura-intm"></canvas>
+				</div>
+				<!--TEMPERATURA INTL
+				<div class="card">
+					<canvas id="reloj-temperatura-intl"></canvas>
+				</div>-->
+				<!--TEMPERATURA GEO
+				<div class="card">
+					<canvas id="reloj-temperatura-geo"></canvas>
+				</div>-->
+				<!--HUM INTH
+				<div class="card">
+					<canvas id="reloj-humedad-inth"></canvas>
+				</div>-->
+				<!--HUM INTM
+				<div class="card">
+					<canvas id="reloj-humedad-intm"></canvas>
+				</div>-->
+				<!--HUM INTL
+				<div class="card">
+					<canvas id="reloj-humedad-intl"></canvas>
+				</div>-->
+				<!--HUM SOIL1-->
+				<div class="card">
+					<canvas id="reloj-humedad-soil1"></canvas>
+				</div>
+				<!--HUM SOIL2
+				<div class="card">
+					<canvas id="reloj-humedad-soil2"></canvas>
+				</div>-->
+			</div>
+		</div>
+
 		<!--CHARTS-->
-		<div id="charts-div" style="display:none">
+		<div id="charts-div">
 			<!--SET NUMBER OF READINGS INPUT FIELD-->
 			<div>
-				<p> Number of readings: <input type="number" id="charts-range"></p>
+				<p> Número de lecturas: <input type="number" id="charts-range"></p>
 			</div>
-			<!--TEMPERATURE-CHART-->
+			<!--Ts-CHART-->
 			<div class="cards">
 				<div class="card">
-					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE CHART</p>
-					<div id="chart-temperature" class="chart-container"></div>
+					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i>  TEMPERATURA SUPERIOR</p>
+					<div id="chart-Ts" class="chart-container"></div>
 				</div>
 			</div>
-			<!--HUMIDITY-CHART-->
+			<!--Tm-CHART-->
 			<div class="cards">
 				<div class="card">
-					<p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY CHART</p>
-					<div id="chart-humidity" class="chart-container"></div>
+					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i>  TEMPERATURA MEDIA</p>
+					<div id="chart-Tm" class="chart-container"></div>
 				</div>
 			</div>
-			<!--PRESSURE-CHART-->
+			<!--Ti-CHART-->
 			<div class="cards">
 				<div class="card">
-					<p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE CHART</p>
-					<div id="chart-pressure" class="chart-container"></div>
+					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i>  TEMPERATURA INFERIOR</p>
+					<div id="chart-Ti" class="chart-container"></div>
+				</div>
+			</div>
+			<!--Tg-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i>  TEMPERATURA GEOTÉRMICA</p>
+					<div id="chart-Tg" class="chart-container"></div>
+				</div>
+			</div>
+			<!--HAs-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  HUMEDAD SUPERIOR</p>
+					<div id="chart-HAs" class="chart-container"></div>
+				</div>
+			</div>
+			<!--HAm-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  HUMEDAD MEDIA</p>
+					<div id="chart-HAm" class="chart-container"></div>
+				</div>
+			</div>
+			<!--HAI-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  HUMEDAD INFERIOR</p>
+					<div id="chart-HAi" class="chart-container"></div>
+				</div>
+			</div>
+			<!--HS1-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  HUMEDAD SUELO 1</p>
+					<div id="chart-HS1" class="chart-container"></div>
+				</div>
+			</div>
+			<!--HS2-CHART-->
+			<div class="cards">
+				<div class="card">
+					<p><i class="fas fa-tint" style="color:#00add6;"></i>  HUMEDAD SUELO 2</p>
+					<div id="chart-HS2" class="chart-container"></div>
 				</div>
 			</div>
 		</div>
@@ -156,11 +235,11 @@
 		<!--BUTTONS TO HANDLE DATA-->
 		<p>
 			<!--View data button-->
-			<button id="view-data-button">View all data</button>
+			<button id="view-data-button">Ver tabla</button>
 			<!--Hide data button-->
-			<button id="hide-data-button" style="display:none;">Hide data</button>
+			<button id="hide-data-button" style="display:none;">Esconder tabla</button>
 			<!--Delete data button-->
-			<button id="delete-button" class="deletebtn">Delete data</button>
+			<button id="delete-button" class="deletebtn">Borrar datos</button>
 		</p>
 		<!--Modal to delete data-->
 		<div id="delete-modal" class="modal" sytle="display:none">
@@ -168,13 +247,13 @@
 				title="Close Modal">×</span>
 			<form id="delete-data-form" class="modal-content" action="/">
 				<div class="container">
-					<h1>Delete Data</h1>
-					<p>Are you sure you want to delete all data from database?</p>
+					<h1>Borrar Datos</h1>
+					<p>¿Está seguro de querer borrar todos los datos de la base?</p>
 					<div class="clearfix">
 						<button type="button" onclick="document.getElementById('delete-modal').style.display='none'"
-							class="cancelbtn">Cancel</button>
+							class="cancelbtn">Cancelar</button>
 						<button type="submit" onclick="document.getElementById('delete-modal').style.display='none'"
-							class="deletebtn">Delete</button>
+							class="deletebtn">Borrar</button>
 					</div>
 				</div>
 			</form>
@@ -185,15 +264,25 @@
 			<div class="card" id="table-container" style="display:none;">
 				<table id="readings-table">
 					<tr id="theader">
-						<th>Timestamp</th>
-						<th>Temp (ºC)</th>
-						<th>Hum (%)</th>
-						<th>Pres (hPa)</th>
+						<th>Hora Unix</th>
+						<th>T (s)</th>
+						<th>Tsup (°C)</th>
+						<th>Tmed (°C)</th>
+						<th>Tinf (°C)</th>
+						<th>Tgeo (°C)</th>
+						<th>HAsup (%)</th>
+						<th>HAmed (%)</th>
+						<th>HAinf (%)</th>
+						<th>HS1 (%)</th>
+						<th>HS2 (%)</th>
+						<th>Riego</th>
+						<th>Calefac.</th>
+						<th>Vent.</th>
 					</tr>
 					<tbody id="tbody">
 					</tbody>
 				</table>
-				<p><button id="load-data" style="display:none;">More results...</button></p>
+				<p><button id="load-data" style="display:none;">Más resultados...</button></p>
 			</div>
 		</div>
 

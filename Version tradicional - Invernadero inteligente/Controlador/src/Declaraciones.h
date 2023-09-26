@@ -39,6 +39,7 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 
 // Constantes de funcionamiento generales
 const unsigned long DELAY_ACTIVIDAD_INVERNADERO = 0;		// (ms) tiempo de espera para el loop del invernadero
+const unsigned long DELAY_DATALOG = 10000; // 9,97 años hasta alcanzar el máximo de renglones SD (1048576)
 const uint8_t W_SSID_SIZE		= 33; // 32 caracteres + null terminator
 const uint8_t W_PASS_SIZE		= 64; // 63 caracteres + null terminator
 const uint8_t F_EMAIL_SIZE		= 86; // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
@@ -76,7 +77,6 @@ enum class PinsAHT10MUX : uint8_t
 
 // Variables de tiempo y flags generales
 unsigned long ultima_vez_invernadero_funciono = 0;
-const unsigned long DELAY_DATALOG = 5000; // 9,97 años hasta alcanzar el máximo de renglones SD (1048576)
 
 
 
@@ -287,9 +287,9 @@ class LocalFirebase
 		bool inicializado = false;
 		const uint8_t CARACTERES_NODO_ESCUCHAR = 10;
 		uint8_t i_datalog = 0;
-		const char NOMBRES_DATOS[13][8] =
-		{"T(s)","Ts","Tm","Ti","Tg(°C)","HAs","HAm","HAi","HS1","HS2(%)","RIE","CAL","VENT"};
-		const char HEADLINE_DATALOG[58] = "T(s),Ts,Tm,Ti,Tg(°C),HAs,HAm,HAi,HS1,HS2(%),RIE,CAL,VENT";
+		const char NOMBRES_DATOS[13][5] =
+		{"T","Ts","Tm","Ti","Tg","HAs","HAm","HAi","HS1","HS2","RIE","CAL","VENT"};
+		const char HEADLINE_DATALOG[58] = "T,Ts,Tm,Ti,Tg,HAs,HAm,HAi,HS1,HS2,RIE,CAL,VENT";
 		const char NOMBRE_NODO_COMAPP_RIEGO[6]	= "riego";
 		const char NOMBRE_NODO_COMAPP_CALEFA[7]	= "calefa";
 		const char NOMBRE_NODO_COMAPP_VENT[5]	= "vent";

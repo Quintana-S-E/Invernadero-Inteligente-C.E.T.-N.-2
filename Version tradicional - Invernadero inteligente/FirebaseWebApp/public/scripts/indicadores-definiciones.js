@@ -1,10 +1,10 @@
 // Create Temperature Gauge
-function createTemperatureGauge() {
+function createTemperatureGauge(renderToId) {
 	var gauge = new LinearGauge({
-		renderTo: 'gauge-temperature',
+		renderTo: renderToId,
 		width: 120,
 		height: 400,
-		units: "Temperature C",
+		units: "Temperatura (°C)",
 		minValue: 0,
 		startAngle: 90,
 		ticksAngle: 180,
@@ -52,12 +52,12 @@ function createTemperatureGauge() {
 }
 
 // Create Humidity Gauge
-function createHumidityGauge() {
+function createHumidityGauge(renderToId) {
 	var gauge = new RadialGauge({
-		renderTo: 'gauge-humidity',
+		renderTo: renderToId,
 		width: 300,
 		height: 300,
-		units: "Humidity (%)",
+		units: "Humedad (%)",
 		minValue: 0,
 		maxValue: 100,
 		colorValueBoxRect: "#049faa",

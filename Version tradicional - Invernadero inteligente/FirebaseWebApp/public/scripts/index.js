@@ -6,9 +6,9 @@ function epochToJsDate(epochTime) {
 // convert time to human-readable format YYYY/MM/DD HH:MM:SS
 function epochToDateTime(epochTime) {
 	var epochDate = new Date(epochToJsDate(epochTime));
-	var dateTime = epochDate.getFullYear() + "/" +
+	var dateTime = ("00" + epochDate.getDate()).slice(-2) + "/" +
 		("00" + (epochDate.getMonth() + 1)).slice(-2) + "/" +
-		("00" + epochDate.getDate()).slice(-2) + " " +
+		epochDate.getFullYear() + " " +
 		("00" + epochDate.getHours()).slice(-2) + ":" +
 		("00" + epochDate.getMinutes()).slice(-2) + ":" +
 		("00" + epochDate.getSeconds()).slice(-2);
@@ -48,10 +48,14 @@ const chartsCheckboxElement = document.querySelector('input[name=charts-checkbox
 const cardsReadingsElement = document.querySelector("#cards-div");
 const gaugesReadingsElement = document.querySelector("#gauges-div");
 const chartsDivElement = document.querySelector('#charts-div');
-const tempElement = document.getElementById("temp");
-const humElement = document.getElementById("hum");
-const presElement = document.getElementById("pres");
-const updateElement = document.getElementById("lastUpdate")
+
+const riegoElemento = document.getElementById("riego");
+const calefaElemento = document.getElementById("calefa");
+const ventElemento = document.getElementById("vent");
+const updateElement = document.getElementById("lastUpdate");
+
+const tiempoElemento = document.getElementById("tiempo");
+//const las demás variables 
 
 // MANAGE LOGIN/LOGOUT UI
 const setupUI = (user) => {
@@ -68,8 +72,8 @@ const setupUI = (user) => {
 		console.log(uid);
 
 		// Database paths (with user UID)
-		var dbPath = 'UsersData/' + uid.toString() + '/readings';
-		var chartPath = 'UsersData/' + uid.toString() + '/charts/range';
+		var dbPath = 'Invernadero/lecturas';
+		var chartPath = 'Invernadero/graficos/rango';
 
 		// Database references
 		var dbRef = firebase.database().ref(dbPath);
@@ -83,26 +87,57 @@ const setupUI = (user) => {
 			chartRange = Number(snapshot.val());
 			console.log(chartRange);
 			// Delete all data from charts to update with new values when a new range is selected
-			chartT.destroy();
-			chartH.destroy();
-			chartP.destroy();
+			chartTs.destroy();
+			chartTm.destroy();
+			chartTi.destroy();
+			chartTg.destroy();
+			chartHAs.destroy();
+			chartHAm.destroy();
+			chartHAi.destroy();
+			chartHS1.destroy();
+			chartHS2.destroy();
+			//chartRie.destroy();
+			//chartCal.destroy();
+			//chartVent.destroy();
 			// Render new charts to display new range of data
-			chartT = createTemperatureChart();
-			chartH = createHumidityChart();
-			chartP = createPressureChart();
+			chartTs = createTemperatureChart('chart-Ts');
+			chartTm = createTemperatureChart('chart-Tm');
+			chartTi = createTemperatureChart('chart-Ti');
+			chartTg = createTemperatureChart('chart-Tg');
+			chartHAs = createHumidityChart('chart-HAs', true);
+			chartHAm = createHumidityChart('chart-HAm', true);
+			chartHAi = createHumidityChart('chart-HAi', true);
+			chartHS1 = createHumidityChart('chart-HS1', false);
+			chartHS2 = createHumidityChart('chart-HS2', false);
+			//chartRie = createTemperatureChart('chart-Ts');
+			//chartCal = createTemperatureChart('chart-Ts');
+			//chartVent = createTemperatureChart('chart-Ts');
+
 			// Update the charts with the new range
 			// Get the latest readings and plot them on charts (the number of plotted readings corresponds to the chartRange value)
 			dbRef.orderByKey().limitToLast(chartRange).on('child_added', snapshot => {
 				var jsonData = snapshot.toJSON(); // example: {temperature: 25.02, humidity: 50.20, pressure: 1008.48, timestamp:1641317355}
 				// Save values on variables
-				var temperature = jsonData.temperature;
-				var humidity = jsonData.humidity;
-				var pressure = jsonData.pressure;
-				var timestamp = jsonData.timestamp;
+				var Ts = jsonData.Ts;
+				var Tm = jsonData.Tm;
+				var Ti = jsonData.Ti;
+				var Tg = jsonData.Tg;
+				var HAs = jsonData.HAs;
+				var HAm = jsonData.HAm;
+				var HAi = jsonData.HAi;
+				var HS1 = jsonData.HS1;
+				var HS2 = jsonData.HS2;
+				var timestamp = jsonData.unix;
 				// Plot the values on the charts
-				plotValues(chartT, timestamp, temperature);
-				plotValues(chartH, timestamp, humidity);
-				plotValues(chartP, timestamp, pressure);
+				plotValues(chartTs, timestamp, Ts);
+				plotValues(chartTm, timestamp, Tm);
+				plotValues(chartTi, timestamp, Ti);
+				plotValues(chartTg, timestamp, Tg);
+				plotValues(chartHAs, timestamp, HAs);
+				plotValues(chartHAm, timestamp, HAm);
+				plotValues(chartHAi, timestamp, HAi);
+				plotValues(chartHS1, timestamp, HS1);
+				plotValues(chartHS2, timestamp, HS2);
 			});
 		});
 
@@ -144,14 +179,16 @@ const setupUI = (user) => {
 		// Get the latest readings and display on cards
 		dbRef.orderByKey().limitToLast(1).on('child_added', snapshot => {
 			var jsonData = snapshot.toJSON(); // example: {temperature: 25.02, humidity: 50.20, pressure: 1008.48, timestamp:1641317355}
-			var temperature = jsonData.temperature;
-			var humidity = jsonData.humidity;
-			var pressure = jsonData.pressure;
-			var timestamp = jsonData.timestamp;
+			var tiempo = jsonData.T;
+			var riego = jsonData.RIE;
+			var calefa = jsonData.CAL;
+			var vent = jsonData.VENT;
+			var timestamp = jsonData.unix;
 			// Update DOM elements
-			tempElement.innerHTML = temperature;
-			humElement.innerHTML = humidity;
-			presElement.innerHTML = pressure;
+			tiempoElemento.innerHTML = tiempo;
+			riegoElemento.innerHTML = riego ? 'encendido' : 'apagado';
+			calefaElemento.innerHTML = calefa ? 'encendida' : 'apagada';
+			ventElemento.innerHTML = vent ? 'abierta' : 'cerrada';
 			updateElement.innerHTML = epochToDateTime(timestamp);
 		});
 
@@ -159,17 +196,38 @@ const setupUI = (user) => {
 		// Get the latest readings and display on gauges
 		dbRef.orderByKey().limitToLast(1).on('child_added', snapshot => {
 			var jsonData = snapshot.toJSON(); // example: {temperature: 25.02, humidity: 50.20, pressure: 1008.48, timestamp:1641317355}
-			var temperature = jsonData.temperature;
-			var humidity = jsonData.humidity;
-			var pressure = jsonData.pressure;
-			var timestamp = jsonData.timestamp;
+			//var temp_int_high = jsonData.Ts;
+			var temp_int_mid = jsonData.Tm;
+			//var temp_int_low = jsonData.Ti;
+			//var temp_geo = jsonData.Tg(C);
+
+			//var hum_int_high = jsonData.HAs;
+			//var hum_int_mid = jsonData.HAm;
+			//var hum_int_low = jsonData.HAi;
+			var hum_soil1 = jsonData.HS1;
+			//var hum_soil2 = jsonData.HS2;
+
+			var timestamp = jsonData.unix;
 			// Update DOM elements
-			var gaugeT = createTemperatureGauge();
-			var gaugeH = createHumidityGauge();
-			gaugeT.draw();
-			gaugeH.draw();
-			gaugeT.value = temperature;
-			gaugeH.value = humidity;
+			//var gaugeT1 = createTemperatureGauge('reloj-temperatura-inth');
+			var gaugeT2 = createTemperatureGauge('reloj-temperatura-intm');
+			//var gaugeT3 = createTemperatureGauge('reloj-temperatura-intl');
+			//var gaugeT4 = createTemperatureGauge('reloj-temperatura-geo');
+			//var gaugeH1 = createHumidityGauge('reloj-humedad-inth');
+			//var gaugeH2 = createHumidityGauge('reloj-humedad-intm');
+			//var gaugeH3 = createHumidityGauge('reloj-humedad-intl');
+			var gaugeH4 = createHumidityGauge('reloj-humedad-soil1');
+			//var gaugeH5 = createHumidityGauge('reloj-humedad-soil2');
+			//gaugeT1.draw();	gaugeT1.value = temp_int_high;
+			gaugeT2.draw();	gaugeT2.value = temp_int_mid;
+			//gaugeT3.draw();	gaugeT3.value = temp_int_low;
+			//gaugeT4.draw();	gaugeT4.value = temp_geo;
+
+			//gaugeH1.draw();	gaugeH1.value = hum_int_high;
+			//gaugeH2.draw();	gaugeH2.value = hum_int_mid;
+			//gaugeH3.draw();	gaugeH3.value = hum_int_low;
+			gaugeH4.draw();	gaugeH4.value = hum_soil1;
+			//gaugeH5.draw();	gaugeH5.value = hum_soil2;
 			updateElement.innerHTML = epochToDateTime(timestamp);
 		});
 
@@ -197,16 +255,36 @@ const setupUI = (user) => {
 				if (snapshot.exists()) {
 					var jsonData = snapshot.toJSON();
 					console.log(jsonData);
-					var temperature = jsonData.temperature;
-					var humidity = jsonData.humidity;
-					var pressure = jsonData.pressure;
-					var timestamp = jsonData.timestamp;
+					var tiempo = jsonData.T;
+					var Ts = jsonData.Ts;
+					var Tm = jsonData.Tm;
+					var Ti = jsonData.Ti;
+					var Tg = jsonData.Tg;
+					var HAs = jsonData.HAs;
+					var HAm = jsonData.HAm;
+					var HAi = jsonData.HAi;
+					var HS1 = jsonData.HS1;
+					var HS2 = jsonData.HS2;
+					var riego = jsonData.RIE ? 'encendido' : 'apagado';
+					var calefa = jsonData.CAL ? 'encendida' : 'apagada';
+					var vent = jsonData.VENT ? 'abierta' : 'cerrada';
+					var timestamp = jsonData.unix;
 					var content = '';
 					content += '<tr>';
-					content += '<td>' + epochToDateTime(timestamp) + '</td>';
-					content += '<td>' + temperature + '</td>';
-					content += '<td>' + humidity + '</td>';
-					content += '<td>' + pressure + '</td>';
+					content += '<td>' + timestamp + '</td>';
+					content += '<td>' + tiempo + '</td>';
+					content += '<td>' + Ts + '</td>';
+					content += '<td>' + Tm + '</td>';
+					content += '<td>' + Ti + '</td>';
+					content += '<td>' + Tg + '</td>';
+					content += '<td>' + HAs + '</td>';
+					content += '<td>' + HAm + '</td>';
+					content += '<td>' + HAi + '</td>';
+					content += '<td>' + HS1 + '</td>';
+					content += '<td>' + HS2 + '</td>';
+					content += '<td>' + riego + '</td>';
+					content += '<td>' + calefa + '</td>';
+					content += '<td>' + vent + '</td>';
 					content += '</tr>';
 					$('#tbody').prepend(content);
 					// Save lastReadingTimestamp --> corresponds to the first timestamp on the returned snapshot data
@@ -241,16 +319,36 @@ const setupUI = (user) => {
 							firstTime = false;
 						}
 						else {
-							var temperature = element.temperature;
-							var humidity = element.humidity;
-							var pressure = element.pressure;
-							var timestamp = element.timestamp;
+							var tiempo = element.T;
+							var Ts = element.Ts;
+							var Tm = element.Tm;
+							var Ti = element.Ti;
+							var Tg = element.Tg;
+							var HAs = element.HAs;
+							var HAm = element.HAm;
+							var HAi = element.HAi;
+							var HS1 = element.HS1;
+							var HS2 = element.HS2;
+							var riego = element.RIE ? 'encendido' : 'apagado';
+							var calefa = element.CAL ? 'encendida' : 'apagada';
+							var vent = element.VENT ? 'abierta' : 'cerrada';
+							var timestamp = element.unix;
 							var content = '';
 							content += '<tr>';
-							content += '<td>' + epochToDateTime(timestamp) + '</td>';
-							content += '<td>' + temperature + '</td>';
-							content += '<td>' + humidity + '</td>';
-							content += '<td>' + pressure + '</td>';
+							content += '<td>' + timestamp + '</td>';
+							content += '<td>' + tiempo + '</td>';
+							content += '<td>' + Ts + '</td>';
+							content += '<td>' + Tm + '</td>';
+							content += '<td>' + Ti + '</td>';
+							content += '<td>' + Tg + '</td>';
+							content += '<td>' + HAs + '</td>';
+							content += '<td>' + HAm + '</td>';
+							content += '<td>' + HAi + '</td>';
+							content += '<td>' + HS1 + '</td>';
+							content += '<td>' + HS2 + '</td>';
+							content += '<td>' + riego + '</td>';
+							content += '<td>' + calefa + '</td>';
+							content += '<td>' + vent + '</td>';
 							content += '</tr>';
 							$('#tbody').append(content);
 						}

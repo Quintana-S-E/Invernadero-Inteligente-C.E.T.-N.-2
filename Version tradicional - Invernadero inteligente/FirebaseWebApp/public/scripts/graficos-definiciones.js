@@ -2,21 +2,33 @@
 window.addEventListener('load', onload);
 
 function onload(event) {
-	chartT = createTemperatureChart();
-	chartH = createHumidityChart();
-	chartP = createPressureChart();
+	chartTs = createTemperatureChart('chart-Ts');
+	chartTm = createTemperatureChart('chart-Tm');
+	chartTi = createTemperatureChart('chart-Ti');
+	chartTg = createTemperatureChart('chart-Tg');
+	chartHAs = createHumidityChart('chart-HAs', true);
+	chartHAm = createHumidityChart('chart-HAm', true);
+	chartHAi = createHumidityChart('chart-HAi', true);
+	chartHS1 = createHumidityChart('chart-HS1', false);
+	chartHS2 = createHumidityChart('chart-HS2', false);
+	//chartRie = createTemperatureChart('chart-Ts');
+	//chartCal = createTemperatureChart('chart-Ts');
+	//chartVent = createTemperatureChart('chart-Ts');
 }
 
 // Create Temperature Chart
-function createTemperatureChart() {
+function createTemperatureChart(renderToId) {
 	var chart = new Highcharts.Chart({
+		time:{
+			useUTC: false
+		},
 		chart: {
-			renderTo: 'chart-temperature',
+			renderTo: renderToId,
 			type: 'spline'
 		},
 		series: [
 			{
-				name: 'BME280'
+				name: 'Sensor AHT10'
 			}
 		],
 		title: {
@@ -36,7 +48,7 @@ function createTemperatureChart() {
 		},
 		yAxis: {
 			title: {
-				text: 'Temperature Celsius Degrees'
+				text: 'Temperatura (°C)'
 			}
 		},
 		credits: {
@@ -47,14 +59,17 @@ function createTemperatureChart() {
 }
 
 // Create Humidity Chart
-function createHumidityChart() {
+function createHumidityChart(renderToId, AHT10) {
 	var chart = new Highcharts.Chart({
+		time:{
+			useUTC: false
+		},
 		chart: {
-			renderTo: 'chart-humidity',
+			renderTo: renderToId,
 			type: 'spline'
 		},
 		series: [{
-			name: 'BME280'
+			name: AHT10 ? 'Sensor AHT10' : 'Sensor capacitivo'
 		}],
 		title: {
 			text: undefined
@@ -76,47 +91,7 @@ function createHumidityChart() {
 		},
 		yAxis: {
 			title: {
-				text: 'Humidity (%)'
-			}
-		},
-		credits: {
-			enabled: false
-		}
-	});
-	return chart;
-}
-
-// Create Pressure Chart
-function createPressureChart() {
-	var chart = new Highcharts.Chart({
-		chart: {
-			renderTo: 'chart-pressure',
-			type: 'spline'
-		},
-		series: [{
-			name: 'BME280'
-		}],
-		title: {
-			text: undefined
-		},
-		plotOptions: {
-			line: {
-				animation: false,
-				dataLabels: {
-					enabled: true
-				}
-			},
-			series: {
-				color: '#A62639'
-			}
-		},
-		xAxis: {
-			type: 'datetime',
-			dateTimeLabelFormats: { second: '%H:%M:%S' }
-		},
-		yAxis: {
-			title: {
-				text: 'Pressure (hPa)'
+				text: 'Humedad (%)'
 			}
 		},
 		credits: {
