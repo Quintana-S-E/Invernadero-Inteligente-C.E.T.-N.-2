@@ -258,6 +258,15 @@ void LocalFirebase::enviarParametros()
     json.set<char*, uint8_t>(nodo, Ventilacion.abierta);
 
     this->enviarJson(&data, this->PATH_ESCUCHAR, &json);
+    this->setAlarmasFalse();
+}
+
+inline void LocalFirebase::setAlarmasFalse()
+{
+    FirebaseJson json;
+    json.set(this->NOMBRE_NODO_ALARMA_ALTA, false);
+    json.set(this->NOMBRE_NODO_ALARMA_BAJA, false);
+    this->enviarJson(&data, this->PATH_ESCRITURA, &json);
 }
 
 //===============================================================================================================================//

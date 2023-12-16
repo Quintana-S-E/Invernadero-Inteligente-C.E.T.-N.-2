@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Claves.h"
-
 #include <Arduino.h>
 #include <Adafruit_GFX.h>	  // display OLED
 #include <Adafruit_SSD1306.h> // display OLED
@@ -300,6 +298,7 @@ class LocalFirebase
 
 	public:
 		void inicializar();
+		inline void setAlarmasFalse();
 		void correr();
 		void datalog(const char* path_sd);
 		void responderOk();

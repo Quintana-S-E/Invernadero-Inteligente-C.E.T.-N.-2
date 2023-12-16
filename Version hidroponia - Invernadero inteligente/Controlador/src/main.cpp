@@ -15,8 +15,6 @@
 #include "Sensores.h"
 #include "Tiempo.h"
 
-#include "Claves.h"
-
 void setup()
 {
 	// inicializaciones varias
