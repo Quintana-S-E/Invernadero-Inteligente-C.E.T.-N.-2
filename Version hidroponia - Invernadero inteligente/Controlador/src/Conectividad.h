@@ -5,22 +5,22 @@
 //==================================================PARTE DE CONEXIONES A WiFi===================================================//
 
 
-bool LocalWiFi::guardarRedWiFi(const char* ssid, const char* password)	{	return WiFiMultiO.addAP(ssid, password);	}
+bool LocalWiFi::guardarRedWiFi(const char* ssid, const char* password)	{ imprimir("agregar red: "); imprimir(ssid); imprimir(", "); imprimirln(password);	return WiFiMultiO.addAP(ssid, password);	}
 bool LocalWiFi::guardarRedWiFi(const char* ssid)						{	return WiFiMultiO.addAP(ssid);				}
 
 //===============================================================================================================================//
 
 void LocalWiFi::inicializarWiFi()
 {
-	displayConectandoWiFi();
+	LCDP.displayConectandoWiFi();
 	if(!this->correr())
 	{
 		imprimirln("No se encuentra red WiFi.");
-		displayErrorWiFi();
+		LCDP.displayErrorWiFi();
 		return;
 	}
 
-	displayConetadoA( WiFi.SSID() );
+	LCDP.displayConetadoA( WiFi.SSID() );
 }
 
 //===============================================================================================================================//
@@ -35,14 +35,28 @@ bool LocalWiFi::correr()
 
 	if (WiFiMultiO.run() == WL_CONNECTED)
 	{
-		// TODO: Actualizar hay_conexion
-		inicializarTiempoUnix(); // se ejecuta una sola vez. Acá por si en setup() se cortó WiFi pero después hay
-		digitalWrite(LED_WIFI, LOW); // encender
+		this->hay_conexion = true;
+		inicializarTiempoUnix();
+		LCFB.inicializar(); // se ejecutan una sola vez. Acá por si en setup() se cortó WiFi pero después hay
 		return true;
 	}
-	// TODO: Actualizar hay_conexion
-	digitalWrite(LED_WIFI, HIGH); // apagar
+	this->hay_conexion = false;
 	return false;
+}
+
+//===============================================================================================================================//
+
+void LocalWiFi::correrDisplayWiFi()
+{
+	if (this->cant_redes == 0)
+	{
+		LCDP.cambiarDato();
+		return;
+	}
+	if (this->hay_conexion)
+		LCDP.displayConetadoA( WiFi.SSID() );
+	else
+		LCDP.displayErrorWiFi();
 }
 
 

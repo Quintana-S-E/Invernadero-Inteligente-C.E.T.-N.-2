@@ -116,8 +116,10 @@ void LocalControl::controlarVentilacion() // en "loop()"
 		return;
 	case SalidaModos::Temporizada:
 		this->ventilacionTemporizada();
+		break;
 	case SalidaModos::Automatica:
 		this->ventilacionAutomatica();
+		break;
 	}
 }
 
@@ -200,10 +202,9 @@ void SalidaVentilacion::cerrar()
 
 void LocalControl::configurarModosSalidas()
 {
-	//Riego1.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 6) & 0b00000011); primeros dos bits son para salida no usada
-	Riego.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 4) & 0b00000011);
-	Calefa.modo =		static_cast<SalidaModos>((LCEE.modos_salidas >> 2) & 0b00000011);
-	Ventilacion.modo =	static_cast<SalidaModos>(LCEE.modos_salidas & 0b00000011);
+	Riego.modo =		static_cast<SalidaModos>(LCEE.modo_riego);
+	Calefa.modo =		static_cast<SalidaModos>(LCEE.modo_calefa);
+	Ventilacion.modo =	static_cast<SalidaModos>(LCEE.modo_vent);
 }
 
 //===============================================================================================================================//

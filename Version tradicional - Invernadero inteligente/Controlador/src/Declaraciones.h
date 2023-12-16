@@ -94,8 +94,6 @@ void leerSensores();
 void leerSensoresAHT10();
 void leerSensoresSoil();
 // AHT10
-//float temp_interior_promedio;			// TODO: ver si son necesarias
-//float humedad_aire_interior_promedio;
 float humedad_int_high;
 float humedad_int_mid;
 float humedad_int_low;
@@ -130,8 +128,6 @@ enum class EstadoBoton : uint8_t
 	DobleClickeado
 };
 EstadoBoton leerBoton(unsigned long timeout_lectura);*/
-const float DELTA_T_VENTILACION	= 1;	// ver Control.h
-const float DELTA_T_CALEFA		= DELTA_T_VENTILACION;
 enum class SalidaModos : uint8_t
 {
 	Automatica,
@@ -174,6 +170,8 @@ class LocalControl
 	private:
 		bool esperando_riego = false; // para riegoAutomatico()
 		unsigned long ultima_actualizacion_alarma = 0;
+		const float DELTA_T_VENTILACION	= 1;
+		const float DELTA_T_CALEFA		= DELTA_T_VENTILACION;
 	public:
 		void configurarModosSalidas();
 		void controlarRiego();
@@ -193,9 +191,6 @@ class LocalControl
 
 // Display.h
 const unsigned long DELAY_CAMBIO_DISPLAY		= 6000;
-const unsigned long DELAY_ACTUALIZACION_DISPLAY	= 500;
-const uint8_t SCREEN_WIDTH	= 128;		// ancho del display OLED display, en píxeles
-const uint8_t SCREEN_HEIGHT	= 64;		// alto del display OLED display, en píxeles
 enum class DisplayDato : uint8_t
 {
 	Temperatura1,
@@ -212,6 +207,7 @@ class LocalDisplay
 		unsigned long ultima_actualizacion = 0;
 		unsigned long ultima_vez_cambio = 0;
 	private:
+		const unsigned long DELAY_ACTUALIZACION_DISPLAY	= 500;
 		char msg_temp_sup[21] = "Temperatura superior";
 		char msg_temp_mid[18] = "Temperatura medio";
 		char msg_temp_inf[21] = "Temperatura inferior";
@@ -239,7 +235,7 @@ class LocalDisplay
 		void displayConectandoWiFi();
 		void displayErrorWiFi();
 		void displayConetadoA(String ssid_conectada);
-		void displayNoSD();
+		//void displayNoSD();
 		void displayErrorSD();
 		void displayVentana(bool abriendo);
 	private:
@@ -250,10 +246,6 @@ class LocalDisplay
 		void display2porcentajes(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo = 0);
 		void displayError();
 } LCDP;
-
-
-// Graficos.h
-
 
 
 // Conectividad.h
@@ -287,9 +279,9 @@ class LocalFirebase
 		bool inicializado = false;
 		const uint8_t CARACTERES_NODO_ESCUCHAR = 10;
 		uint8_t i_datalog = 0;
-		const char NOMBRES_DATOS[13][5] =
-		{"T","Ts","Tm","Ti","Tg","HAs","HAm","HAi","HS1","HS2","RIE","CAL","VENT"};
-		const char HEADLINE_DATALOG[58] = "T,Ts,Tm,Ti,Tg,HAs,HAm,HAi,HS1,HS2,RIE,CAL,VENT";
+		const char NOMBRES_DATOS[16][5] =
+		{"T","Ts","Tm","Ti","Tg","HAs","HAm","HAi","HS1","HS2","mRIE","RIE","mCAL","CAL","mVEN","VENT"};
+		const char HEADLINE_DATALOG[62] = "T,Ts,Tm,Ti,Tg,HAs,HAm,HAi,HS1,HS2,mRIE,RIE,mCAL,CAL,mVEN,VENT";
 		const char NOMBRE_NODO_COMAPP_RIEGO[6]	= "riego";
 		const char NOMBRE_NODO_COMAPP_CALEFA[7]	= "calefa";
 		const char NOMBRE_NODO_COMAPP_VENT[5]	= "vent";
@@ -313,21 +305,22 @@ class LocalFirebase
 		void responderOk();
 		void enviarAlarmaCaliente();
 		void enviarAlarmaFrio();
-		inline void comandoRiego(uint8_t valor);
-        inline void comandoCalefa(uint8_t valor);
+		inline void comandoSalidaOnOff(SalidaOnOff Salida, uint8_t valor);
         inline void comandoVent(uint8_t valor);
-        inline void cambiarModosSalidas(uint8_t valor);
         inline void cambiarAlarmaActivada(bool valor);
         inline void cambiarLapsoAlarma(uint16_t valor);
         inline void cambiarTMaxAlarma(float valor);
         inline void cambiarTMinAlarma(float valor);
+		inline void cambiarModoRiego(uint8_t valor);
         inline void cambiarHumSueloMin(uint8_t valor);
         inline void cambiarLapsoRiegos(uint16_t valor);
         inline void cambiarTiempoBombeo(uint16_t valor);
         inline void cambiarTiempoEspera(uint16_t valor);
+		inline void cambiarModoCalefa(uint8_t valor);
         inline void cambiarTMinCalefa(float valor);
         inline void cambiarLapsoCalefas(uint16_t valor);
         inline void cambiarTiempoEncendidoCalefa(uint16_t valor);
+		inline void cambiarModoVent(uint8_t valor);
         inline void cambiarTMaxVent(float valor);
         inline void cambiarLapsoVent(uint16_t valor);
         inline void cambiarTiempoAperturaVent(uint16_t valor);
@@ -384,70 +377,76 @@ class LocalSD
 class LocalEEPROM
 {
 	public:
-		const uint8_t	MODOS_SALIDAS_DEFECTO				= 0b00000000;	// todas en automático
 		// alarma
 		const bool		ALARMA_ACTIVADA_DEFECTO				= true;
 		const uint16_t	LAPSO_ALARMA_MIN_DEFECTO			= 60;
 		const float		TEMP_MAXIMA_ALARMA_DEFECTO			= 45.0;
 		const float		TEMP_MINIMA_ALARMA_DEFECTO			= -5.0;
 		// riego
+		const uint8_t	MODO_RIEGO_DEFECTO					= static_cast<uint8_t>(SalidaModos::Automatica);
 		const uint8_t	HUMEDAD_SUELO_MINIMA_DEFECTO		= 60;
 		const uint16_t	LAPSO_RIEGOS_MIN_DEFECTO			= 720;			// 12 h
 		const uint16_t	TIEMPO_BOMBEO_SEG_DEFECTO			= 10;
 		const uint16_t	TIEMPO_ESPERA_MIN_DEFECTO			= 15;
 		// calefa
+		const uint8_t	MODO_CALEFA_DEFECTO					= static_cast<uint8_t>(SalidaModos::Automatica);
 		const float		TEMP_MINIMA_CALEFA_DEFECTO			= 5.0;
 		const uint16_t	LAPSO_CALEFAS_MIN_DEFECTO			= 1440;			// 24 h
 		const uint16_t	TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO = 60;
 		// ventilación
+		const uint8_t	MODO_VENT_DEFECTO					= static_cast<uint8_t>(SalidaModos::Automatica);
 		const float		TEMP_MAXIMA_VENTILACION_DEFECTO		= 32.0;
 		const uint16_t	LAPSO_VENTILACIONES_MIN_DEFECTO 	= 1440;			// 24 h
 		const uint16_t	TIEMPO_APERTURA_VENT_MIN_DEFECTO	= 30;
 		const uint8_t	TIEMPO_MARCHA_VENT_SEG_DEFECTO		= 7;
 
 		bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
-		uint8_t		modos_salidas;				// 1.
 		// alarma
-		bool		alarma_activada;			// 2.
-		uint16_t	lapso_alarma_min;			// 3.
-		float		temp_maxima_alarma;			// 4.
-		float		temp_minima_alarma;			// 5.
+		bool		alarma_activada;			// 1.
+		uint16_t	lapso_alarma_min;			// 2.
+		float		temp_maxima_alarma;			// 3.
+		float		temp_minima_alarma;			// 4.
 		// riego
-		uint8_t		humedad_suelo_minima;		// 6.	70 % es vaso de agua, 29 % es el aire
-		uint16_t	lapso_riegos_min;			// 7.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-		uint16_t	tiempo_bombeo_seg;			// 8.	10 segundos (máx 65535 seg o 18,2 horas)
-		uint16_t	tiempo_espera_min;			// 9.	15 minutos (máx 65535 min)
+		uint8_t		modo_riego;					//   5.
+		uint8_t		humedad_suelo_minima;		//a  6.	70 % es vaso de agua, 29 % es el aire
+		uint16_t	lapso_riegos_min;			// t 7.	60 minutos (máx 65535 min o 1092 horas o 45 días)
+		uint16_t	tiempo_bombeo_seg;			//at 8.	10 segundos (máx 65535 seg o 18,2 horas)
+		uint16_t	tiempo_espera_min;			//at 9.	15 minutos (máx 65535 min)
 		// calefa
-		float		temp_minima_calefa;			// 10.
-		uint16_t	lapso_calefas_min;			// 11.
-		uint16_t	tiempo_encendido_calefa_min;// 12.
+		uint8_t		modo_calefa;				//   10.
+		float		temp_minima_calefa;			//a  11.
+		uint16_t	lapso_calefas_min;			// t 12.
+		uint16_t	tiempo_encendido_calefa_min;// t 13.
 		// ventilación
-		float		temp_maxima_ventilacion;	// 13.
-		uint16_t	lapso_ventilaciones_min;	// 14.
-		uint16_t	tiempo_apertura_vent_min;	// 15.
-		uint8_t		tiempo_marcha_vent_seg;		// 16.
+		uint8_t		modo_vent;					//   14.
+		float		temp_maxima_ventilacion;	//a  15.
+		uint16_t	lapso_ventilaciones_min;	// t 16.
+		uint16_t	tiempo_apertura_vent_min;	// t 17.
+		uint8_t		tiempo_marcha_vent_seg;		//at 18.
 		enum OrdenParametros : uint8_t
 		{
 			PROGRAMADA,
-			MODOS_SALIDAS,
 			ALARMA_ACTIVADA,
 			LAPSO_ALARMA_MIN,
 			TEMP_MAXIMA_ALARMA,
 			TEMP_MINIMA_ALARMA,
+			MODO_RIEGO,
 			HUMEDAD_SUELO_MINIMA,
 			LAPSO_RIEGOS_MIN,
 			TIEMPO_BOMBEO_SEG,
 			TIEMPO_ESPERA_MIN,
+			MODO_CALEFA,
 			TEMP_MINIMA_CALEFA,
 			LAPSO_CALEFAS_MIN,
 			TIEMPO_ENCENDIDO_CALEFA_MIN,
+			MODO_VENT,
 			TEMP_MAXIMA_VENTILACION,
 			LAPSO_VENTILACIONES_MIN,
 			TIEMPO_APERTURA_VENT_MIN,
 			TIEMPO_MARCHA_VENT_SEG,
 			CANT_VARIABLES
 		};//									   bool, uint8_t = 1;		uint16_t = 2;		float = 4
-		const uint8_t LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 1, 2, 4, 4, 1, 2, 2, 2, 4, 2, 2, 4, 2, 2, 1};
+		const uint8_t LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 2, 4, 4, 1, 1, 2, 2, 2, 1, 4, 2, 2, 1, 4, 2, 2, 1};
 		int direccion[CANT_VARIABLES];
 	private:
 		int espacios;
@@ -469,7 +468,7 @@ class LocalEEPROM
 // Clases
 File DatalogSD;
 WiFiMulti WiFiMultiO;
-Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SSD1306 Display(128, 64, &Wire, -1); // 128 px de ancho por 64 px de alto
 AHTxx AhtSeleccionado(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
 AHT10Mux AhtInteriorHigh(PinsAHT10MUX::INT_HIGH);
 AHT10Mux AhtInteriorMid(PinsAHT10MUX::INT_MID);

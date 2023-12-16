@@ -45,12 +45,12 @@ void appInput(FirebaseStream data)
 
     if      (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_RIEGO)  == 0)
     {
-        LCFB.comandoRiego(inumero);
+        LCFB.comandoSalidaOnOff(Riego, inumero);
         goto responderOk;
     }
     else if (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_CALEFA) == 0)
     {
-        LCFB.comandoCalefa(inumero);
+        LCFB.comandoSalidaOnOff(Calefa, inumero);
         goto responderOk;
     }
     else if (strcmp(nodo, LCFB.NOMBRE_NODO_COMAPP_VENT)   == 0)
@@ -62,9 +62,6 @@ void appInput(FirebaseStream data)
     nodo_numero = atoi(nodo);
 	switch (nodo_numero)
     {
-    case LCEE.MODOS_SALIDAS:
-        LCFB.cambiarModosSalidas(inumero);
-        break;
     case LCEE.ALARMA_ACTIVADA:
         LCFB.cambiarAlarmaActivada(inumero);
         break;
@@ -76,6 +73,9 @@ void appInput(FirebaseStream data)
         break;
 	case LCEE.TEMP_MINIMA_ALARMA:
         LCFB.cambiarTMinAlarma(fnumero);
+        break;
+    case LCEE.MODO_RIEGO:
+        LCFB.cambiarModoRiego(inumero);
         break;
     case LCEE.HUMEDAD_SUELO_MINIMA:
         LCFB.cambiarHumSueloMin(inumero);
@@ -89,6 +89,9 @@ void appInput(FirebaseStream data)
     case LCEE.TIEMPO_ESPERA_MIN:
         LCFB.cambiarTiempoEspera(inumero);
         break;
+    case LCEE.MODO_CALEFA:
+        LCFB.cambiarModoCalefa(inumero);
+        break;
     case LCEE.TEMP_MINIMA_CALEFA:
         LCFB.cambiarTMinCalefa(fnumero);
         break;
@@ -97,6 +100,9 @@ void appInput(FirebaseStream data)
         break;
 	case LCEE.TIEMPO_ENCENDIDO_CALEFA_MIN:
         LCFB.cambiarTiempoEncendidoCalefa(inumero);
+        break;
+    case LCEE.MODO_VENT:
+        LCFB.cambiarModoVent(inumero);
         break;
 	case LCEE.TEMP_MAXIMA_VENTILACION:
         LCFB.cambiarTMaxVent(fnumero);
@@ -117,32 +123,22 @@ responderOk:
     LCFB.responderOk();
 }
 
-inline void LocalFirebase::comandoRiego(uint8_t valor)
+//===============================================================================================================================//
+
+inline void LocalFirebase::comandoSalidaOnOff(SalidaOnOff Salida, uint8_t valor)
 {
-	if (valor && !Riego.encendida)
-		Riego.encender(millis());
-	else if (!valor && Riego.encendida)
-		Riego.apagar();
+    if (valor && !Salida.encendida)
+        Salida.encender(millis());
+    else if (!valor && Salida.encendida)
+        Salida.apagar();
 }
-inline void LocalFirebase::comandoCalefa(uint8_t valor)
-{
-    if (valor && !Calefa.encendida)
-        Calefa.encender(millis());
-    else if (!valor && Calefa.encendida)
-        Calefa.apagar();
-}
+
 inline void LocalFirebase::comandoVent(uint8_t valor)
 {
     if (valor && !Ventilacion.abierta)
         Ventilacion.abrir(millis());
     else if (!valor && Ventilacion.abierta)
         Ventilacion.cerrar();
-}
-inline void LocalFirebase::cambiarModosSalidas(uint8_t valor)
-{
-    LCEE.modos_salidas = valor;
-    LCEE.escribir(LCEE.direccion[LCEE.MODOS_SALIDAS], valor);
-    LCCT.configurarModosSalidas();
 }
 inline void LocalFirebase::cambiarAlarmaActivada(bool valor)
 { LCEE.alarma_activada = valor;             LCEE.escribir(LCEE.direccion[LCEE.ALARMA_ACTIVADA], valor);}
@@ -152,6 +148,12 @@ inline void LocalFirebase::cambiarTMaxAlarma(float valor)
 { LCEE.temp_maxima_alarma = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_ALARMA], valor); }
 inline void LocalFirebase::cambiarTMinAlarma(float valor)
 { LCEE.temp_minima_alarma = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_ALARMA], valor); }
+inline void LocalFirebase::cambiarModoRiego(uint8_t valor)
+{
+    LCEE.modo_riego = valor;
+    LCEE.escribir(LCEE.direccion[LCEE.MODO_RIEGO], valor);
+    LCCT.configurarModosSalidas();    
+}
 inline void LocalFirebase::cambiarHumSueloMin(uint8_t valor)
 { LCEE.humedad_suelo_minima = valor;        LCEE.escribir(LCEE.direccion[LCEE.HUMEDAD_SUELO_MINIMA], valor);}
 inline void LocalFirebase::cambiarLapsoRiegos(uint16_t valor)
@@ -160,12 +162,24 @@ inline void LocalFirebase::cambiarTiempoBombeo(uint16_t valor)
 { LCEE.tiempo_bombeo_seg = valor;           LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_BOMBEO_SEG], valor);}
 inline void LocalFirebase::cambiarTiempoEspera(uint16_t valor)
 { LCEE.tiempo_espera_min = valor;           LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ESPERA_MIN], valor);}
+inline void LocalFirebase::cambiarModoCalefa(uint8_t valor)
+{
+    LCEE.modo_calefa = valor;
+    LCEE.escribir(LCEE.direccion[LCEE.MODO_CALEFA], valor);
+    LCCT.configurarModosSalidas();    
+}
 inline void LocalFirebase::cambiarTMinCalefa(float valor)
 { LCEE.temp_minima_calefa = valor;          LCEE.escribir(LCEE.direccion[LCEE.TEMP_MINIMA_CALEFA], valor);}
 inline void LocalFirebase::cambiarLapsoCalefas(uint16_t valor)
 { LCEE.lapso_calefas_min = valor;           LCEE.escribir(LCEE.direccion[LCEE.LAPSO_CALEFAS_MIN], valor);}
 inline void LocalFirebase::cambiarTiempoEncendidoCalefa(uint16_t valor)
 { LCEE.tiempo_encendido_calefa_min = valor; LCEE.escribir(LCEE.direccion[LCEE.TIEMPO_ENCENDIDO_CALEFA_MIN], valor);}
+inline void LocalFirebase::cambiarModoVent(uint8_t valor)
+{
+    LCEE.modo_vent = valor;
+    LCEE.escribir(LCEE.direccion[LCEE.MODO_VENT], valor);
+    LCCT.configurarModosSalidas();    
+}
 inline void LocalFirebase::cambiarTMaxVent(float valor)
 { LCEE.temp_maxima_ventilacion = valor;     LCEE.escribir(LCEE.direccion[LCEE.TEMP_MAXIMA_VENTILACION], valor);}
 inline void LocalFirebase::cambiarLapsoVent(uint16_t valor)
@@ -285,8 +299,11 @@ void LocalFirebase::datalog(const char* path_sd)
 	LCSD.escribirFBySD(path_sd, string, true, humedad_int_low, &json);
 	LCSD.escribirFBySD(path_sd, string, true, humedad_suelo1, &json);
 	LCSD.escribirFBySD(path_sd, string, true, humedad_suelo2, &json);
+	LCSD.escribirFBySD(path_sd, string, true, static_cast<uint8_t>(Riego.modo), &json);
 	LCSD.escribirFBySD(path_sd, string, true, Riego.encendida, &json);
+	LCSD.escribirFBySD(path_sd, string, true, static_cast<uint8_t>(Calefa.modo), &json);
 	LCSD.escribirFBySD(path_sd, string, true, Calefa.encendida, &json);
+	LCSD.escribirFBySD(path_sd, string, true, static_cast<uint8_t>(Ventilacion.modo), &json);
 	LCSD.escribirFBySD(path_sd, string, false, Ventilacion.abierta, &json);
 	
     if (this->tiene_firebase)

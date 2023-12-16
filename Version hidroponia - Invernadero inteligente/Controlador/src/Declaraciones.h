@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <Adafruit_GFX.h>	  // display OLED
 #include <Adafruit_SSD1306.h> // display OLED
-#include <AHT10.h>
+#include <AHTxx.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <Firebase_ESP_Client.h>
@@ -38,18 +38,16 @@ tenía que ver con haberlo cambiado todo). Sólo una vez que todo funcione hacer
 
 
 // Constantes de funcionamiento generales
-#define DELAY_ACTIVIDAD_INVERNADERO 0UL // (ms) tiempo de espera para el loop del invernadero
-#define W_SSID_SIZE		33 // 32 caracteres + null terminator
-#define W_PASS_SIZE		64 // 63 caracteres + null terminator
-#define F_EMAIL_SIZE	86 // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
-#define F_PASS_SIZE		31 // 30 caracteres + null terminator
-#define F_API_KEY_SIZE	40 // 39 caracteres + null terminator
-#define F_URL_SIZE		68 // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
+const unsigned long DELAY_ACTIVIDAD_INVERNADERO = 0;		// (ms) tiempo de espera para el loop del invernadero
+const unsigned long DELAY_DATALOG = 10000; // 9,97 años hasta alcanzar el máximo de renglones SD (1048576)
+const uint8_t W_SSID_SIZE		= 33; // 32 caracteres + null terminator
+const uint8_t W_PASS_SIZE		= 64; // 63 caracteres + null terminator
+const uint8_t F_EMAIL_SIZE		= 86; // 63 de domain + 21 de @cet2bariloche.edu.ar (o menos de @gmail y @hotmail.com) + null terminator
+const uint8_t F_PASS_SIZE		= 31; // 30 caracteres + null terminator
+const uint8_t F_API_KEY_SIZE	= 40; // 39 caracteres + null terminator
+const uint8_t F_URL_SIZE		= 68; // "https://" (8 chars) + 30 chars name + "-default-rtdb.firebaseio.com/" (29 chars) + null terminator
 // Pines
-#define SD_CS			5
-#ifndef LED_BUILTIN
-	#define LED_BUILTIN	2
-#endif
+const uint8_t SD_CS			= 5;
 enum class PinsOut : uint8_t
 {
 	// de los relés
@@ -85,8 +83,6 @@ enum class PinsAHT10MUX : uint8_t
 
 // Variables de tiempo y flags generales
 unsigned long ultima_vez_invernadero_funciono = 0;
-unsigned long ultima_vez_display_cambio = 0;
-bool esperando_riego = false; // para controlarRiego()
 
 
 
@@ -99,51 +95,39 @@ String mensajeSegundosATiempo(unsigned long segundos);
 
 
 // Sensores.h
-#define MUESTRAS_HUMEDAD_SUELO 16		// 16 máximo
-void establecerSalidaMUX(uint8_t salida);
 void inicializarSensores();
 void leerSensores();
-void leerAHT10Interiores();
-void leerSoilInteriores();
-void leerAHT10Exteriores();
-void leerSoilExteriores();
-// variables
-// AHTs interiores
-float temp_interior_promedio;
-float humedad_aire_interior_promedio;
-// AHTs exteriores
-float temp_exterior;
-float humedad_aire_exterior;
-float temp_exterior_geotermica;
+void leerSensoresAHT10();
+void leerSensoresSoil();
+// AHT10
+float humedad_int_high;
+float humedad_int_mid;
+float humedad_int_low;
 // soil moisture sensors
-int humedad_suelo_interior;
-int humedad_suelo_exterior;
+int humedad_suelo1;
+int humedad_suelo2;
+int humedad_suelo3;
+int humedad_suelo4;
 class AHT10Mux
 {
+	public:
+		float temperatura;
 	private:
 		uint8_t salida_del_mux;
 
 	public:
 		AHT10Mux(PinsAHT10MUX salida_del_mux);
 		bool     begin();
-		float    readTemperature(bool readI2C = AHT10_FORCE_READ_DATA);
-		float    readHumidity(bool readI2C = AHT10_FORCE_READ_DATA);
+		float    readTemperature(bool readI2C = AHTXX_FORCE_READ_DATA);
+		float    readHumidity(bool readI2C = AHTXX_FORCE_READ_DATA);
+	private:
+		void establecerSalidaMUX();
 };
 
 
 // Control.h
-unsigned long ultima_vez_bomba_encendio = 0;
-void controlarVentilacion();
-void controlarRiego();
-void activarVentilacion();
-void desactivarVentilacion();
-//void abrirVentana();
-//void cerrarVentana();
-//void controlarIluminacion();
-#define ANGULO_APERTURA	90		// posición de apertura de la ventana
-#define ANGULO_CERRADO	0		// posición de cerrado de la ventana
-// parte del botón (no utilizado, bueno tenerlo)
-#define TIEMPO_MIN_BTN_MANTENIDO 800UL
+//#define TIEMPO_MIN_BTN_MANTENIDO 800UL
+/*parte del botón (no utilizado, bueno tenerlo)
 enum class EstadoBoton : uint8_t
 {
 	Suelto,
@@ -151,8 +135,7 @@ enum class EstadoBoton : uint8_t
 	Mantenido,
 	DobleClickeado
 };
-EstadoBoton leerBoton(unsigned long timeout_lectura);
-
+EstadoBoton leerBoton(unsigned long timeout_lectura);*/
 enum class SalidaModos : uint8_t
 {
 	Automatica,
@@ -163,84 +146,127 @@ enum class SalidaModos : uint8_t
 class SalidaOnOff
 {
 	public:
-		SalidaModos modo = SalidaModos::Automatica;
+		SalidaModos modo;
 		bool encendida = false;
-		//unsigned long ultima_vez_encendido;	LO OBVIAMOS, ponemos un datalog channel por cada salida y dataloggeamos 1 si
-		//unsigned long ultima_vez_apagado;		está encendida y 0 si está apagada
+		unsigned long ultima_vez_encendida = 0;
+		//unsigned long ultima_vez_apagado;
 	private:
-		uint8_t pin_rele;
-		uint8_t pin_led;
+		uint8_t pin_mosfet;
 
 	public:
-		SalidaOnOff(uint8_t pin_rele, uint8_t pin_led);
-		void encender();
+		SalidaOnOff(PinsOut pin_mosfet);
+		void encender(unsigned long millis_actual);
 		void apagar();
 };
 class SalidaVentilacion
 {
 	public:
-		SalidaModos modo = SalidaModos::Automatica;
+		SalidaModos modo;
+		bool abierta = false;
+		unsigned long ultima_vez_abierta = 0;
 	private:
-		uint8_t pin_rele1;
-		uint8_t pin_rele2;
-		uint8_t pin_led;
+		uint8_t pin_marcha;
+		uint8_t pin_contramarcha;
 
 	public:
-		SalidaVentilacion(uint8_t pin_rele1, uint8_t pin_rele2, uint8_t pin_led);
-		// TODO: que las funciones de abrir/cerrar accionen el LED
-	// A decidir método de movimiento
+		SalidaVentilacion(PinsOut pin_marcha, PinsOut pin_contramarcha);
+		void abrir(unsigned long millis_actual);
+		void cerrar();
 };
+class LocalControl
+{
+	private:
+		unsigned long ultima_actualizacion_alarma = 0;
+		const float DELTA_T_VENTILACION	= 1;
+	public:
+		void configurarModosSalidas();
+		void controlarBomba1();
+		void controlarBomba2();
+		void controlarBomba3();
+		void controlarVentilacion();
+		void controlarAlarma();
+	private:
+		void bomba1Temporizada();
+		void bomba2Temporizada();
+		void bomba3Temporizada();
+		void ventilacionTemporizada();
+		void ventilacionAutomatica();
+} LCCT;
 
 
 // Display.h
-unsigned long ultima_vez_display_actualizo = 0;
-void inicializarDisplay();
-void cambiarDatoDisplay();
-void displayConectandoWiFi();
-void displayErrorWiFi();
-void displayConetadoA(String ssid_conectada);
-void actualizarDisplay();
-void displayHumedadAire();
-void displayHumedadSuelo();
-void displayTemperatura();
-void displayError();
-void displayNoSD();
-void displayErrorSD();
-// TODO:
-void displayLogo(/*SE VALE PONER DELAY (1-2 seg)*/); // Invernadero inteligente que esté centrado, nada más
-
-
-#define DELAY_CAMBIO_DISPLAY		10000UL
-#define DELAY_ACTUALIZACION_DISPLAY	500UL
-#define SCREEN_WIDTH				128		// ancho del display OLED display, en píxeles
-#define SCREEN_HEIGHT				64		// alto del display OLED display, en píxeles
+const unsigned long DELAY_CAMBIO_DISPLAY		= 6000;
 enum class DisplayDato : uint8_t
 {
-	Temperatura,
-	HumedadAire,
-	HumedadSuelo
+	Temperatura1,
+	Temperatura2,
+	Temperatura3,
+	Temperatura4,
+	HumedadAire1,
+	HumedadAire2,
+	HumedadSuelo1,
+	HumedadSuelo2,
+	WiFi
 };
-DisplayDato DatoDelDisplay = DisplayDato::Temperatura;
+DisplayDato DatoDelDisplay = DisplayDato::Temperatura1;
+class LocalDisplay
+{
+	public:
+		unsigned long ultima_actualizacion = 0;
+		unsigned long ultima_vez_cambio = 0;
+	private:
+		const unsigned long DELAY_ACTUALIZACION_DISPLAY	= 500;
+		char msg_temp_sup[21] = "Temperatura superior";
+		char msg_temp_mid[18] = "Temperatura medio";
+		char msg_temp_inf[21] = "Temperatura inferior";
+		char msg_temp_geo[22] = "Temperatura suelo ext";
+		char msg_temp_agua1[21] = "Temperatura tanque 1";
+		char msg_temp_agua2[21] = "Temperatura tanque 2";
+		char msg_temp_agua3[21] = "Temperatura tanque 3";
+		char msg_hum_aire_sup[22] = "Humedad aire superior";
+		char msg_hum_aire_mid[19] = "Humedad aire medio";
+		char msg_hum_aire_inf[22] = "Humedad aire inferior";
+		char msg_vacio[1] = "";
+		char msg_hum_suelo1[20] = "Humedad del suelo 1";
+		char msg_hum_suelo2[20] = "Humedad del suelo 2";
+		char msg_hum_suelo3[20] = "Humedad del suelo 3";
+		char msg_hum_suelo4[20] = "Humedad del suelo 4";
 
+		char msg_conectando[22] 			= "Conectando\n a WiFi...";
+		char msg_no_se_encuentra[17]		= "No se\n encuentra";
+		char msg_conectado_a[21]			= "Conectado a la red:\n";
+		char msg_error_al_iniciar[20]		= "Error al iniciar el";
+		char msg_controlador_motivo[21]		= "controlador. Motivo:";
+		//char msg_sd_ausente[19]			= "Tarjeta SD ausente";
+		char msg_error_sd[20]				= "Error en tarjeta SD";
 
-// Graficos.h
-unsigned long ultima_vez_thingspeak_actualizo = 0;
-void actualizarGraficos();
-inline bool inicializarThingSpeak();
-#define FIELD_TEMP_INT		1
-#define FIELD_TEMP_EXT		2
-#define FIELD_HUM_AIRE_INT	3
-#define FIELD_HUM_AIRE_EXT	4
-#define FIELD_HUM_SUELO_INT	5
-#define FIELD_HUM_SUELO_EXT	6
+	public:
+		void inicializar();
+		void displayLogo();
+		void actualizar();
+		void cambiarDato();
+		void displayConectandoWiFi();
+		void displayErrorWiFi();
+		void displayConetadoA(String ssid_conectada);
+		void displayNoSD();
+		void displayErrorSD();
+		void displayVentana(bool abriendo);
+	private:
+		void displayTemperatura(uint8_t pantalla);
+		void displayHumedadAire(uint8_t pantalla);
+		void displayHumedadSuelo(uint8_t pantalla);
+		void display2temperaturas(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo = 0);
+		void display2porcentajes(char msg_arriba[22], float valor_arriba, char msg_abajo[22], float valor_abajo = 0);
+		void displayError();
+} LCDP;
 
 
 // Conectividad.h
-#define CANT_REDES_WIFI 3
+const uint8_t CANT_REDES_WIFI = 3;
 class LocalWiFi
 {
 	public:
-		bool hay_conexion;
+		bool hay_conexion = false;
 		uint8_t cant_redes = 0;
 		char ssid[CANT_REDES_WIFI][W_SSID_SIZE];
 		char pass[CANT_REDES_WIFI][W_PASS_SIZE];
@@ -250,6 +276,7 @@ class LocalWiFi
 		bool guardarRedWiFi(const char* ssid, const char* password);
 		bool guardarRedWiFi(const char* ssid);
 		bool correr();
+		void correrDisplayWiFi();
 } LCWF;
 
 
@@ -262,18 +289,66 @@ class LocalFirebase
 		char url		[	F_URL_SIZE		];
 		char api_key	[	F_API_KEY_SIZE	];
 		bool tiene_firebase = false;
+		bool inicializado = false;
+		const uint8_t CARACTERES_NODO_ESCUCHAR = 10;
+		uint8_t i_datalog = 0;
+		const char NOMBRES_DATOS[23][5] =
+		{"T","Ts","Tm","Ti","Tg","Ta1","Ta2","Ta3","HAs","HAm","HAi","HS1","HS2","HS3","HS4",
+		"mBO1","BOM1","mBO2","BOM2","mBO3","BOM3","mVEN","VENT"};
+		const char HEADLINE_DATALOG[94] =
+		"T,Ts,Tm,Ti,Tg,Ta1,Ta2,Ta3,HAs,HAm,HAi,HS1,HS2,HS3,HS4,mBO1,BOM1,mBO2,BOM2,mBO3,BOM3,mVEN,VENT";
+		const char NOMBRE_NODO_COMAPP_BOMBA1[7]	= "bomba1";
+		const char NOMBRE_NODO_COMAPP_BOMBA2[7]	= "bomba2";
+		const char NOMBRE_NODO_COMAPP_BOMBA3[7]	= "bomba3";
+		const char NOMBRE_NODO_COMAPP_VENT[5]	= "vent";
 	private:
+		#define CARACTERES_PATH_LECTURAS 45	// lo de abajo + caracteres necesarios para la timestamp y el '/'
+		const char PATH_LECTURAS[33]			= "/Invernadero/lecturas/";
+		const char PATH_ESCUCHAR[38]			= "/Invernadero/comApp/";
+		const char PATH_ESCRITURA[24]			= "/Invernadero/comModulo/";
+		const char NOMBRE_NODO_RTA[5] 			= "rta";
+		const char NOMBRE_NODO_ALARMA_ALTA[12]	= "alarmaAlta";
+		const char NOMBRE_NODO_ALARMA_BAJA[12]	= "alarmaBaja";
 		FirebaseData data;
 		FirebaseData stream;
 		FirebaseAuth auth;
 		FirebaseConfig config;
-		FirebaseJson json;
 
 	public:
-		//funcs
+		void inicializar();
+		void correr();
+		void datalog(const char* path_sd);
+		void responderOk();
+		void enviarAlarmaCaliente();
+		void enviarAlarmaFrio();
+		inline void comandoSalidaOnOff(SalidaOnOff Salida, uint8_t valor);
+        inline void comandoVent(uint8_t valor);
+        inline void cambiarAlarmaActivada(bool valor);
+        inline void cambiarLapsoAlarma(uint16_t valor);
+        inline void cambiarTMaxAlarma(float valor);
+        inline void cambiarTMinAlarma(float valor);
+
+		inline void cambiarModoBomba1(uint8_t valor);
+		inline void cambiarLapsoBombeo1(uint8_t valor);
+		inline void cambiarTiempoEncendidoBomba1(uint8_t valor);
+		inline void cambiarModoBomba2(uint8_t valor);
+		inline void cambiarLapsoBombeo2(uint8_t valor);
+		inline void cambiarTiempoEncendidoBomba2(uint8_t valor);
+		inline void cambiarModoBomba3(uint8_t valor);
+		inline void cambiarLapsoBombeo3(uint8_t valor);
+		inline void cambiarTiempoEncendidoBomba3(uint8_t valor);
+		
+		inline void cambiarModoVent(uint8_t valor);
+        inline void cambiarTMaxVent(float valor);
+        inline void cambiarLapsoVent(uint16_t valor);
+        inline void cambiarTiempoAperturaVent(uint16_t valor);
+        inline void cambiarTiempoMarchaVent(uint8_t valor);
 	private:
-		//funcs
+		void enviarParametros();
+		inline bool enviarJson(FirebaseData* data, const char* path, FirebaseJson* json);
 } LCFB;
+void appInput(FirebaseStream data);
+void appInputTimeout(bool comandoTimeout);
 
 
 // SD_manejo.h
@@ -285,106 +360,113 @@ enum class ResultadoLecturaSD : uint8_t
 };
 class LocalSD
 {
+	public:
+		const char DATALOG_PATH[23]				= "/controlador/datos.txt";
 	private:
-		// NOMBRES DE LOS FOLDERS (Y.TXT)
-		//char STRINGS_PATH[]			= "controlador/strings/";
-		char CONFIG_FOLDER_PATH[20]		= "controlador/config/";
-		char WIFI_FOLDER_PATH[6]		= "wifi/";
-		char FIREBASE_FOLDER_PATH[10]	= "firebase/";
-		//char PARAMETROS_FOLDER_PATH[]	= "parametros/";
-		char TXT[5]						= ".txt";
+		unsigned long ultimo_datalog = 0;
+		const char TXT[5]						= ".txt";
+		// NOMBRES DE LOS FOLDERS Y ARCHIVOS
+		const char WIFI_FOLDER_PATH[26]			= "/controlador/config/wifi/";
+		const char FIREBASE_FOLDER_PATH[30]		= "/controlador/config/firebase/";
+		const char PARAMETROS_FOLDER_PATH[32]	= "/controlador/config/parametros/";
 		// NOMBRES DE FOLDER WIFI
-		char NOMBRE_ARCHIVO_WSSID[5]	= "ssid";
-		char NOMBRE_ARCHIVO_WPASS[5]	= "pass";
+		const char NOMBRE_ARCHIVO_WSSID[5]		= "ssid";
+		const char NOMBRE_ARCHIVO_WPASS[5]		= "pass";
 		// NOMBRES DE FOLDER FIREBASE
-		char NOMBRE_ARCHIVO_FEMAIL[6]	= "email";
-		char NOMBRE_ARCHIVO_FPASS[5]	= "pass";
-		char NOMBRE_ARCHIVO_FURL[4]		= "url";
-		char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
+		const char NOMBRE_ARCHIVO_FEMAIL[6]		= "email";
+		const char NOMBRE_ARCHIVO_FPASS[5]		= "pass";
+		const char NOMBRE_ARCHIVO_FURL[4]		= "url";
+		const char NOMBRE_ARCHIVO_FAPIKEY[7]	= "apikey";
 	public:
 		void inicializar();
 		void leerConfigWiFi();
 		void leerConfigFirebase();
 		void leerConfigParametros();
+		void datalog();
+		template <typename T>
+		void escribirFBySD(const char* path, String &string, bool coma, T dato, FirebaseJson* json);
 	private:
-		ResultadoLecturaSD leerStringA(char *buffer, const uint8_t caracteres, const char *path);
+		void escribir(const char* path, String string);
+		ResultadoLecturaSD leerStringA(char* buffer, const uint8_t caracteres, const char* path);
 } LCSD;
 
 
-// Telegram.h
-// variables
-#define TELEGRAM_TIEMPO_MAX_CONFIGURACION	15000UL
-unsigned long ultima_vez_alarma_funciono = 0;
-unsigned long ultima_vez_comprobacion_wifi = 0;
-String		chat_rpta; // necesariamente global para cambiarla en evaluarMensajeFloat() y evaluarMensajeInt()
-uint64_t 	chat_id = 0; // comienza en 0 para comprobaciones en controlarAlarma()
-uint16_t 	chat_numero_entrada_int;	// cuando preguntamos por un número entero de entrada
-float		chat_numero_entrada_float;	// cuando preguntamos por un número con decimal de entrada
-bool		chat_primer_mensaje = true; // para controlarMensajesRecibidosTelegram()
-// WiFi
-void conectarWiFi(bool parar_programa);
-bool conectarWiFiCon(const String& Assid, const String& Apassword);
-void controlarConexion();
-// funciones varias
-void controlarMensajesRecibidosTelegram();
-void controlarAlarma();
-void enviarMensaje(const uint64_t Aid, const String& Amensaje);
-bool evaluarMensajeInt(uint16_t Avalor_min, uint16_t Avalor_max, String Aunidad);
-bool evaluarMensajeFloat(float Avalor_min, float Avalor_max, String Aunidad);
-// comandos
-void comandoStart();
-void comandoLecturas();
-void comandoInfo();
-void comandoProg();
-void comandoVentilar();
-void comandoTiempoAl();
-void comandoTiempoRiego();
-void comandoTiempoEspera();
-void comandoTmax();
-void comandoTmin();
-void comandoTvent();
-void comandoAlarma();
-void comandoHum();
-void comandoLed();
-void comandoReprog();
-
-
 // EEMPROM_manejo.h
-// variables de la EEPROM con sus valores por defecto
-#define ALARMA_ACTIVADA_DEFECTO			true
-#define TEMP_MAXIMA_ALARMA_DEFECTO		45.0F
-#define TEMP_MINIMA_ALARMA_DEFECTO		-5.0F
-#define TEMP_MAXIMA_VENTILACION_DEFECTO	35.0F
-#define HUMEDAD_SUELO_MINIMA_DEFECTO	60
-#define LAPSO_ALARMA_MINUTOS_DEFECTO	60
-#define TIEMPO_BOMBEO_SEGUNDOS_DEFECTO	10
-#define TIEMPO_ESPERA_MINUTOS_DEFECTO	15
-bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
-bool		alarma_activada;			// 1.
-float		temp_maxima_alarma;			// 2.
-float		temp_minima_alarma;			// 3.
-float		temp_maxima_ventilacion;	// 4.
-uint8_t		humedad_suelo_minima;		// 5.	70 % es vaso de agua, 29 % es el aire
-uint16_t	lapso_alarma_minutos;		// 6.	60 minutos (máx 65535 min o 1092 horas o 45 días)
-uint16_t	tiempo_bombeo_segundos;		// 7.	4 segundos (máx 65535 seg o 18,2 horas)
-uint16_t	tiempo_espera_minutos;		// 8.	15 minutos (máx 65535 min)
 class LocalEEPROM
 {
 	public:
+		// alarma
+		const bool		ALARMA_ACTIVADA_DEFECTO				= true;
+		const uint16_t	LAPSO_ALARMA_MIN_DEFECTO			= 60;
+		const float		TEMP_MAXIMA_ALARMA_DEFECTO			= 45.0;
+		const float		TEMP_MINIMA_ALARMA_DEFECTO			= -5.0;
+		// bomba1
+		const uint8_t	MODO_BOMBA1_DEFECTO					= static_cast<uint8_t>(SalidaModos::Forzada);
+		const uint16_t	LAPSO_BOMBEO1_MIN_DEFECTO			= 1440;			// 24 h
+		const uint16_t	TIEMPO_ENCENDIDO_BOMBA1_MIN_DEFECTO = 60;
+		// bomba2
+		const uint8_t	MODO_BOMBA2_DEFECTO					= static_cast<uint8_t>(SalidaModos::Forzada);
+		const uint16_t	LAPSO_BOMBEO2_MIN_DEFECTO			= 1440;			// 24 h
+		const uint16_t	TIEMPO_ENCENDIDO_BOMBA2_MIN_DEFECTO = 60;
+		// bomba3
+		const uint8_t	MODO_BOMBA3_DEFECTO					= static_cast<uint8_t>(SalidaModos::Forzada);
+		const uint16_t	LAPSO_BOMBEO3_MIN_DEFECTO			= 1440;			// 24 h
+		const uint16_t	TIEMPO_ENCENDIDO_BOMBA3_MIN_DEFECTO = 60;
+		// ventilación
+		const uint8_t	MODO_VENT_DEFECTO					= static_cast<uint8_t>(SalidaModos::Automatica);
+		const float		TEMP_MAXIMA_VENTILACION_DEFECTO		= 32.0;
+		const uint16_t	LAPSO_VENTILACIONES_MIN_DEFECTO 	= 1440;			// 24 h
+		const uint16_t	TIEMPO_APERTURA_VENT_MIN_DEFECTO	= 30;
+		const uint8_t	TIEMPO_MARCHA_VENT_SEG_DEFECTO		= 7;
+
+		bool		eeprom_programada;			// 0.	para verificar si está programada o no la EEPROM
+		// alarma
+		bool		alarma_activada;			// 1.
+		uint16_t	lapso_alarma_min;			// 2.
+		float		temp_maxima_alarma;			// 3.
+		float		temp_minima_alarma;			// 4.
+		// bomba1
+		uint8_t		modo_bomba1;				// 5.
+		uint16_t	lapso_bombeo1_min;			// 6.
+		uint16_t	tiempo_encendido_bomba1_min;// 7.
+		// bomba2
+		uint8_t		modo_bomba2;				// 8.
+		uint16_t	lapso_bombeo2_min;			// 9.
+		uint16_t	tiempo_encendido_bomba2_min;// 10.
+		// bomba1
+		uint8_t		modo_bomba3;				// 11.
+		uint16_t	lapso_bombeo3_min;			// 12.
+		uint16_t	tiempo_encendido_bomba3_min;// 13.
+		// ventilación
+		uint8_t		modo_vent;					//   14
+		float		temp_maxima_ventilacion;	//a  15.
+		uint16_t	lapso_ventilaciones_min;	// t 16.
+		uint16_t	tiempo_apertura_vent_min;	// t 17.
+		uint8_t		tiempo_marcha_vent_seg;		//at 18.
 		enum OrdenParametros : uint8_t
 		{
 			PROGRAMADA,
 			ALARMA_ACTIVADA,
+			LAPSO_ALARMA_MIN,
 			TEMP_MAXIMA_ALARMA,
 			TEMP_MINIMA_ALARMA,
+			MODO_BOMBA1,
+			LAPSO_BOMBEO1_MIN,
+			TIEMPO_ENCENDIDO_BOMBA1_MIN,
+			MODO_BOMBA2,
+			LAPSO_BOMBEO2_MIN,
+			TIEMPO_ENCENDIDO_BOMBA2_MIN,
+			MODO_BOMBA3,
+			LAPSO_BOMBEO3_MIN,
+			TIEMPO_ENCENDIDO_BOMBA3_MIN,
+			MODO_VENT,
 			TEMP_MAXIMA_VENTILACION,
-			HUMEDAD_SUELO_MINIMA,
-			LAPSO_ALARMA_MINUTOS,
-			TIEMPO_BOMBEO_SEGUNDOS,
-			TIEMPO_ESPERA_MINUTOS,
+			LAPSO_VENTILACIONES_MIN,
+			TIEMPO_APERTURA_VENT_MIN,
+			TIEMPO_MARCHA_VENT_SEG,
 			CANT_VARIABLES
-		};											// bool, bool, float, float, float, int8, int, int, int
-		const int LONGITUD_DATO[CANT_VARIABLES] = {1, 1, 4, 4, 4, 1, 2, 2, 2};
+		};//									   bool, uint8_t = 1;		uint16_t = 2;		float = 4
+		const uint8_t LONGITUD_DATO[CANT_VARIABLES] = { 1, 1, 2, 4, 4, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 4, 2, 2, 1};
 		int direccion[CANT_VARIABLES];
 	private:
 		int espacios;
@@ -395,6 +477,8 @@ class LocalEEPROM
 		void cargarValoresPorDefecto();
 		template <typename T>
 		void escribir(int Adireccion, T Adato);
+		template <typename T>
+		T leer(int Adireccion);
 	private:
 		void setDirecciones();
 		void imprimirValsDirsReads();
@@ -404,8 +488,8 @@ class LocalEEPROM
 // Clases
 File DatalogSD;
 WiFiMulti WiFiMultiO;
-Adafruit_SSD1306 Display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-AHT10 AhtSeleccionado(AHT10_ADDRESS_0X38);
+Adafruit_SSD1306 Display(128, 64, &Wire, -1); // 128 px de ancho por 64 px de alto
+AHTxx AhtSeleccionado(AHTXX_ADDRESS_X38, AHT1x_SENSOR);
 AHT10Mux AhtInteriorHigh(PinsAHT10MUX::INT_HIGH);
 AHT10Mux AhtInteriorMid(PinsAHT10MUX::INT_MID);
 AHT10Mux AhtInteriorLow(PinsAHT10MUX::INT_LOW);
@@ -413,3 +497,7 @@ AHT10Mux AhtAgua1(PinsAHT10MUX::AGUA1);
 AHT10Mux AhtAgua2(PinsAHT10MUX::AGUA2);
 AHT10Mux AhtAgua3(PinsAHT10MUX::AGUA3);
 AHT10Mux AhtGeotermico(PinsAHT10MUX::GEOTERMICO);
+SalidaOnOff Bomba1(PinsOut::BOMBA1);
+SalidaOnOff Bomba2(PinsOut::BOMBA2);
+SalidaOnOff Bomba3(PinsOut::BOMBA3);
+SalidaVentilacion Ventilacion(PinsOut::MARCHA, PinsOut::CONTRAMARCHA);

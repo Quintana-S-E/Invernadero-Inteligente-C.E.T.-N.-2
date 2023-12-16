@@ -1,86 +1,214 @@
 #pragma once
 
 #include "Declaraciones.h"
-#include "EEPROM_manejo.h"
 
 /*
-TODO: Para determinar la temperatura de activación/desactivación de ventilación utilizar la lógica de un Schmitt trigger: Activar a
-T(elegida) + ΔT;  y luego desactivar en T(elegida) - ΔT. La temp. haría un ripple centrado en T(elegida), con una variación
+Para determinar la temperatura de activación/desactivación de ventilación utilizamos la lógica de un Schmitt trigger: Activamos a
+T(elegida) + ΔT;  y luego desactivamos en T(elegida) - ΔT. La temp. haría un ripple centrado en T(elegida), con una variación
 de temperatura de 2ΔT (por ejemplo, T(elegida) = 25 °C  y ΔT = 0,5 °C. La temp. variaría entre 25,5 y 24,5 °C o un poquito
 más, debido a un overshoot desde que se activa hasta que empieza a bajar; o desactiva y empieza a subir [inercia térmica]).
 	https://forum.allaboutcircuits.com/threads/schmitt-trigger-vs-rc-low-pass-filter-for-signal-conditioning.187898/
-Es muy fácil de implementar, solo una suma y resta.
 */
-void controlarVentilacion() // en "loop()"
-{
-	if (ventilacion_forzada)
-		return; // si la ventilación es forzada por telegram, ignorar lo automático
 
-	if (temp_exterior >= temp_maxima_ventilacion && !ventilando)
+void LocalControl::controlarBomba1()
+{
+	switch (Bomba1.modo)
 	{
-		ventilando = true;
-		activarVentilacion();
-	}
-	else if (temp_exterior < temp_maxima_ventilacion && ventilando)
-	{
-		ventilando = false;
-		desactivarVentilacion();
+	case SalidaModos::Deshabilitada:
+		Bomba1.apagar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		this->bomba1Temporizada();
+		break;
 	}
 }
 
-//==================================================================================================================//
-
-// Regar y esperar el tiempo necesario para la filtración del agua antes de medir de nuevo
-void controlarRiego() // en "loop()"
+void LocalControl::bomba1Temporizada()
 {
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_bombeo1_min" desde "Bomba1.ultima_vez_encendida"
+	if (millis_actual - Bomba1.ultima_vez_encendida >= (unsigned long) LCEE.lapso_bombeo1_min * 60000UL)
+		Bomba1.encender(millis_actual);
+	if (millis_actual - Bomba1.ultima_vez_encendida >= (unsigned long) LCEE.tiempo_encendido_bomba1_min * 60000UL)
+		Bomba1.apagar();
+}
 
+//===============================================================================================================================//
 
-	/*if (riego_forzado) // idea centralita
-		return;*/
-
-
-	// apagar la bomba después del tiempo definido
-	if (millis() - ultima_vez_bomba_encendio >= (tiempo_bombeo_segundos * 1000UL))
-		digitalWrite(PIN_BOMBA, HIGH);
-
-	// si se está esperando, comprobar si pasó el tiempo desde ultima_vez_bomba_encendio. De ser así, dejar de esperar
-	if (esperando_riego)
+void LocalControl::controlarBomba2()
+{
+	switch (Bomba2.modo)
 	{
-		if (millis() - ultima_vez_bomba_encendio >= (tiempo_espera_minutos * 60000UL))
-		{
-			esperando_riego = false;
-			imprimirln("La espera desde el riego finalizó");
-		}
-	}
-
-	// controlar la humedad y regar (si no se está esperando la filtración del agua)
-	if (humedad_suelo_exterior <= humedad_suelo_minima && !esperando_riego)
-	{
-		ultima_vez_bomba_encendio = millis();
-		digitalWrite(PIN_BOMBA, LOW);
-		esperando_riego = true; // hay que esperar desde el tiempo 0 (ultima_vez_bomba_encendio)
+	case SalidaModos::Deshabilitada:
+		Bomba2.apagar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		this->bomba2Temporizada();
+		break;
 	}
 }
 
-//==================================================================================================================//
-
-void activarVentilacion()
+void LocalControl::bomba2Temporizada()
 {
-	Ventana.write(ANGULO_APERTURA); // sacar cuando separemos ventiladores de ventana
-	digitalWrite(PIN_VENTILADOR, LOW);
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_bombeo2_min" desde "Bomba2.ultima_vez_encendida"
+	if (millis_actual - Bomba2.ultima_vez_encendida >= (unsigned long) LCEE.lapso_bombeo2_min * 60000UL)
+		Bomba2.encender(millis_actual);
+	if (millis_actual - Bomba2.ultima_vez_encendida >= (unsigned long) LCEE.tiempo_encendido_bomba2_min * 60000UL)
+		Bomba2.apagar();
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-void desactivarVentilacion()
+void LocalControl::controlarBomba3()
 {
-	Ventana.write(ANGULO_CERRADO); // sacar cuando separemos ventiladores de ventana
-	digitalWrite(PIN_VENTILADOR, HIGH);
+	switch (Bomba3.modo)
+	{
+	case SalidaModos::Deshabilitada:
+		Bomba3.apagar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		this->bomba3Temporizada();
+		break;
+	}
 }
 
-//==================================================================================================================//
+void LocalControl::bomba3Temporizada()
+{
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_bombeo3_min" desde "Bomba3.ultima_vez_encendida"
+	if (millis_actual - Bomba3.ultima_vez_encendida >= (unsigned long) LCEE.lapso_bombeo3_min * 60000UL)
+		Bomba3.encender(millis_actual);
+	if (millis_actual - Bomba3.ultima_vez_encendida >= (unsigned long) LCEE.tiempo_encendido_bomba3_min * 60000UL)
+		Bomba3.apagar();
+}
 
-// Devuelve clickeado, mantenido, o suelto si pasó el timeout
+//===============================================================================================================================//
+
+void LocalControl::controlarVentilacion() // en "loop()"
+{
+	switch (Ventilacion.modo)
+	{
+	case SalidaModos::Deshabilitada:
+		Ventilacion.cerrar();
+	case SalidaModos::Forzada:
+		return;
+	case SalidaModos::Temporizada:
+		this->ventilacionTemporizada();
+		break;
+	case SalidaModos::Automatica:
+		this->ventilacionAutomatica();
+		break;
+	}
+}
+
+void LocalControl::ventilacionTemporizada()
+{
+	unsigned long millis_actual = millis();
+	// si pasó "lapso_ventilaciones_min" desde "Ventilacion.ultima_vez_abierta"
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) LCEE.lapso_ventilaciones_min * 60000UL)
+		Ventilacion.abrir(millis_actual);
+	if (millis_actual - Ventilacion.ultima_vez_abierta >= (unsigned long) LCEE.tiempo_apertura_vent_min * 60000UL)
+		Ventilacion.cerrar();
+}
+
+void LocalControl::ventilacionAutomatica()
+{
+	imprimirln("vent auto...");
+	if (AhtInteriorHigh.temperatura >= LCEE.temp_maxima_ventilacion + DELTA_T_VENTILACION)
+		Ventilacion.abrir(millis());
+	else if (AhtInteriorHigh.temperatura < LCEE.temp_maxima_ventilacion - DELTA_T_VENTILACION)
+		Ventilacion.cerrar();
+}
+
+//===============================================================================================================================//
+
+SalidaOnOff::SalidaOnOff(PinsOut pin_mosfet)	{	this->pin_mosfet = static_cast<int>(pin_mosfet);	}
+
+void SalidaOnOff::encender(unsigned long millis_actual)
+{
+	digitalWrite(this->pin_mosfet, HIGH);
+	this->ultima_vez_encendida = millis_actual;
+	this->encendida = true;
+}
+
+void SalidaOnOff::apagar()
+{
+	digitalWrite(this->pin_mosfet, LOW);
+	this->encendida = false;
+}
+
+//===============================================================================================================================//
+
+SalidaVentilacion::SalidaVentilacion(PinsOut pin_marcha, PinsOut pin_contramarcha)
+{
+	this->pin_marcha = static_cast<int>(pin_marcha);
+	this->pin_contramarcha = static_cast<int>(pin_contramarcha);
+}
+
+void SalidaVentilacion::abrir(unsigned long millis_actual)
+{
+	if (this->abierta)
+		return;
+	// si llegamos acá ambos están LOW
+	digitalWrite(this->pin_marcha, HIGH);
+
+	LCDP.displayVentana(true);	// TODO IMPORTANTE: HACER UN WHILE LOOP EN VEZ DE DELAY
+	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE. EN MOVIMIENTO
+
+	digitalWrite(this->pin_contramarcha, HIGH); // ambos relés activados para encender lámpara
+	this->ultima_vez_abierta = millis_actual;
+	// terminan ambos HIGH
+	this->abierta = true;
+}
+
+void SalidaVentilacion::cerrar()
+{
+	if (!this->abierta)
+		return;
+	// si llegamos acá ambos están HIGH
+	digitalWrite(this->pin_marcha, LOW);
+
+	LCDP.displayVentana(false);	// TODO IMPORTANTE: HACER UN WHILE LOOP EN VEZ DE DELAY
+	delay(LCEE.tiempo_marcha_vent_seg * 1000UL);	// ATENCIÓN: ZONA CRÍTICA, NO DEBE APAGARSE EN MOVIMIENTO
+
+	digitalWrite(this->pin_contramarcha, LOW); // ambos relés desactivados para apagar lámpara
+	// terminan ambos LOW
+	this->abierta = false;
+}
+
+//===============================================================================================================================//
+
+void LocalControl::configurarModosSalidas()
+{
+	Bomba1.modo =		static_cast<SalidaModos>(LCEE.modo_bomba1);
+	Bomba2.modo =		static_cast<SalidaModos>(LCEE.modo_bomba2);
+	Bomba3.modo =		static_cast<SalidaModos>(LCEE.modo_bomba3);
+	Ventilacion.modo =	static_cast<SalidaModos>(LCEE.modo_vent);
+}
+
+//===============================================================================================================================//
+
+void LocalControl::controlarAlarma()
+{
+	if (!LCFB.tiene_firebase  ||  !LCWF.hay_conexion  ||  !LCEE.alarma_activada)
+		return;
+	if (millis() - this->ultima_actualizacion_alarma < (unsigned long) LCEE.lapso_alarma_min * 60000UL)
+		return;
+	this->ultima_actualizacion_alarma = millis();
+
+	// evaluamos la temperatura
+	if (AhtInteriorMid.temperatura >= LCEE.temp_maxima_alarma)
+		LCFB.enviarAlarmaCaliente();
+	else if (AhtInteriorMid.temperatura <= LCEE.temp_minima_alarma)
+		LCFB.enviarAlarmaFrio();
+}
+
+
+/*// Devuelve clickeado, mantenido, o suelto si pasó el timeout
 EstadoBoton leerBoton(unsigned long timeout_lectura)
 {
 	bool btn_presionado_anterior = false;
@@ -111,25 +239,4 @@ EstadoBoton leerBoton(unsigned long timeout_lectura)
 	}
 
 	return EstadoBoton::Suelto;
-}
-
-//================================================FUTURAS VERSIONES=================================================//
-// Identifica la necesidad de iluminar, basándose en la lectura de un sensor LDR
-void controlarIluminacion()
-{
-	// ...
-}
-//==========================HABILITAR PARA CUANDO SEPAREMOS LOS VENTILADORES DE LA VENTANA==========================//
-/*
-void abrirVentana()
-{
-	Ventana.write(ANGULO_APERTURA);
-}
-
-//==========================HABILITAR PARA CUANDO SEPAREMOS LOS VENTILADORES DE LA VENTANA==========================//
-
-void cerrarVentana()
-{
-	Ventana.write(ANGULO_CERRADO);
-}
-*/
+}*/

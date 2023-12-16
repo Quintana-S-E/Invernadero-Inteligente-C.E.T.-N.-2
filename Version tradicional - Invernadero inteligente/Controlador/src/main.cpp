@@ -5,17 +5,15 @@
 	Creado por:			Quintana Santiago Esteban
 \*------------------------------------------------------------------------------------------------------------------*/
 
-#include "Control.h"
 #include "Conectividad.h"
+#include "Control.h"
 #include "Declaraciones.h" // contiene <Arduino.h> y todas las librerías
 #include "Display.h"
 #include "EEPROM_manejo.h"
 #include "Firebase.h"
-//#include "Graficos.h"
-#include "Sensores.h"
 #include "SD_manejo.h"
+#include "Sensores.h"
 #include "Tiempo.h"
-//#include "Telegram.h"
 
 #include "Claves.h"
 

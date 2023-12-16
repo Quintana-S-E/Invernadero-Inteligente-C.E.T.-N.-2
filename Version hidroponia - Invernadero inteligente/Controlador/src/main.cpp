@@ -1,20 +1,19 @@
 /*------------------------------------------------------------------------------------------------------------------*\
-	Nombre:				Invernadero Inteligente maqueta ESP32 Node32s
-	Desarrollo: 		octubre - diciembre de 2022
-	Primer lanzamiento: 14 de noviembre de 2022
-	Creado por:			Pulido Norberto N., Quintana Santiago E., Riha Fabio, Sacchero Fidel, Inticito.
+	Nombre:				Version hidroponía - Invernadero Inteligente
+	Desarrollo: 		octubre 2022 - diciembre 2023
+	Primer lanzamiento: -
+	Creado por:			Quintana Santiago Esteban
 \*------------------------------------------------------------------------------------------------------------------*/
 
-#include "Control.h"
 #include "Conectividad.h"
+#include "Control.h"
 #include "Declaraciones.h" // contiene <Arduino.h> y todas las librerías
 #include "Display.h"
 #include "EEPROM_manejo.h"
 #include "Firebase.h"
-#include "Graficos.h"
-#include "Sensores.h"
 #include "SD_manejo.h"
-#include "Telegram.h"
+#include "Sensores.h"
+#include "Tiempo.h"
 
 #include "Claves.h"
 
@@ -22,7 +21,7 @@ void setup()
 {
 	// inicializaciones varias
 	#ifdef DEBUG_SERIAL
-		Serial.begin(9600);
+		Serial.begin(115200);
 	#endif
 	for (PinsOut pin : {PinsOut::BOMBA1, PinsOut::BOMBA2, PinsOut::BOMBA3,
 						PinsOut::MARCHA, PinsOut::CONTRAMARCHA,
@@ -33,8 +32,8 @@ void setup()
   	}
 
 	// inicializar display
-	inicializarDisplay();
-	displayLogo();
+	LCDP.inicializar();
+	LCDP.displayLogo();
 
 	// inicializar sensores y SD
 	inicializarSensores();
@@ -44,8 +43,9 @@ void setup()
 	LCSD.leerConfigWiFi();
 	LCSD.leerConfigFirebase();
 
-	// leer o escribir la EEPROM
 	LCEE.inicializar();
+
+	LCCT.configurarModosSalidas();
 
 	delay(3500);
 
@@ -63,32 +63,33 @@ void loop()
 	if (millis() - ultima_vez_invernadero_funciono >= DELAY_ACTIVIDAD_INVERNADERO)
 	{ // idealmente, en lugar de esperas pondríamos al uC en un estado de bajo consumo por un período fijo
 		ultima_vez_invernadero_funciono = millis();
-		
-		LCWF.correr();
 
 		// Leer sensores
 		leerSensores();
+		
+		// Manejar conexiones y comunicaciones
+		LCWF.correr();
+		LCCT.controlarAlarma();
+		LCFB.correr();
 
-		// Manejar Telegram
-		controlarMensajesRecibidosTelegram();
-		controlarAlarma();
-
-		// Actualizar datos mostrables
-		actualizarDisplay();
-		actualizarGraficos();
+		// Datalog
+		//LCFB.datalog(); ahorramos líneas de código llamandola desde LCSD.datalog y pasando los datos como args
+		LCSD.datalog();
 
 		// Tomar decisiones
-		controlarVentilacion();
-		controlarRiego();
-		//controlar_iluminacion();
+		LCCT.controlarBomba1();
+		LCCT.controlarBomba2();
+		LCCT.controlarBomba3();
+		LCCT.controlarVentilacion();
 
-		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // parpadeamos el LED de la placa
+		// Actualizar datos mostrables
+		LCDP.actualizar();
 	}
 
 	// cambiamos el contenido de la pantalla
-	if (millis() - ultima_vez_display_cambio >= DELAY_CAMBIO_DISPLAY)
+	if (millis() - LCDP.ultima_vez_cambio >= DELAY_CAMBIO_DISPLAY)
 	{
-		ultima_vez_display_cambio = millis();
-		cambiarDatoDisplay();
+		LCDP.ultima_vez_cambio = millis();
+		LCDP.cambiarDato();
 	}
 }

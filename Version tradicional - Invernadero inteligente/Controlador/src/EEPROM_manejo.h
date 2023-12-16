@@ -30,7 +30,7 @@ void LocalEEPROM::inicializar() // en "setup()"
 	else
 	{
 		imprimirln("Hay que leer la EEPROM");
-		if (LCWF.cant_redes > 0)
+		if (LCWF.cant_redes > 0  &&  LCFB.tiene_firebase)
 			leerCompleta();
 		else
 			LCSD.leerConfigParametros();
@@ -65,18 +65,20 @@ void LocalEEPROM::leerCompleta()
 {
 	EEPROM.begin(this->espacios);
 	EEPROM.get(this->direccion[PROGRAMADA],						this->eeprom_programada); //	*1
-	EEPROM.get(this->direccion[MODOS_SALIDAS],					this->modos_salidas);
 	EEPROM.get(this->direccion[ALARMA_ACTIVADA],				this->alarma_activada);
 	EEPROM.get(this->direccion[LAPSO_ALARMA_MIN],				this->lapso_alarma_min);
 	EEPROM.get(this->direccion[TEMP_MAXIMA_ALARMA],				this->temp_maxima_alarma);
 	EEPROM.get(this->direccion[TEMP_MINIMA_ALARMA],				this->temp_minima_alarma);
+	EEPROM.get(this->direccion[MODO_RIEGO],						this->modo_riego);
 	EEPROM.get(this->direccion[HUMEDAD_SUELO_MINIMA],			this->humedad_suelo_minima);
 	EEPROM.get(this->direccion[LAPSO_RIEGOS_MIN],				this->lapso_riegos_min);
 	EEPROM.get(this->direccion[TIEMPO_BOMBEO_SEG],				this->tiempo_bombeo_seg);
 	EEPROM.get(this->direccion[TIEMPO_ESPERA_MIN],				this->tiempo_espera_min);
+	EEPROM.get(this->direccion[MODO_CALEFA],					this->modo_calefa);
 	EEPROM.get(this->direccion[TEMP_MINIMA_CALEFA],				this->temp_minima_calefa);
 	EEPROM.get(this->direccion[LAPSO_CALEFAS_MIN],				this->lapso_calefas_min);
 	EEPROM.get(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->tiempo_encendido_calefa_min);
+	EEPROM.get(this->direccion[MODO_VENT],						this->modo_vent);
 	EEPROM.get(this->direccion[TEMP_MAXIMA_VENTILACION],		this->temp_maxima_ventilacion);
 	EEPROM.get(this->direccion[LAPSO_VENTILACIONES_MIN],		this->lapso_ventilaciones_min);
 	EEPROM.get(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->tiempo_apertura_vent_min);
@@ -91,18 +93,20 @@ void LocalEEPROM::cargarValoresPorDefecto()
 {
 	EEPROM.begin(this->espacios);
 	EEPROM.put(this->direccion[PROGRAMADA],						true); // ahora va a estar programada
-	EEPROM.put(this->direccion[MODOS_SALIDAS],					this->MODOS_SALIDAS_DEFECTO);
 	EEPROM.put(this->direccion[ALARMA_ACTIVADA],				this->ALARMA_ACTIVADA_DEFECTO);
 	EEPROM.put(this->direccion[LAPSO_ALARMA_MIN],				this->LAPSO_ALARMA_MIN_DEFECTO);
 	EEPROM.put(this->direccion[TEMP_MAXIMA_ALARMA],				this->TEMP_MAXIMA_ALARMA_DEFECTO);
 	EEPROM.put(this->direccion[TEMP_MINIMA_ALARMA],				this->TEMP_MINIMA_ALARMA_DEFECTO);
+	EEPROM.put(this->direccion[MODO_RIEGO],						this->MODO_RIEGO_DEFECTO);
 	EEPROM.put(this->direccion[HUMEDAD_SUELO_MINIMA],			this->HUMEDAD_SUELO_MINIMA_DEFECTO);
 	EEPROM.put(this->direccion[LAPSO_RIEGOS_MIN],				this->LAPSO_RIEGOS_MIN_DEFECTO);
 	EEPROM.put(this->direccion[TIEMPO_BOMBEO_SEG],				this->TIEMPO_BOMBEO_SEG_DEFECTO);
 	EEPROM.put(this->direccion[TIEMPO_ESPERA_MIN],				this->TIEMPO_ESPERA_MIN_DEFECTO);
+	EEPROM.put(this->direccion[MODO_CALEFA],					this->MODO_CALEFA_DEFECTO);
 	EEPROM.put(this->direccion[TEMP_MINIMA_CALEFA],				this->TEMP_MINIMA_CALEFA_DEFECTO);
 	EEPROM.put(this->direccion[LAPSO_CALEFAS_MIN],				this->LAPSO_CALEFAS_MIN_DEFECTO);
 	EEPROM.put(this->direccion[TIEMPO_ENCENDIDO_CALEFA_MIN],	this->TIEMPO_ENCENDIDO_CALEFA_MIN_DEFECTO);
+	EEPROM.put(this->direccion[MODO_VENT],						this->MODO_VENT_DEFECTO);
 	EEPROM.put(this->direccion[TEMP_MAXIMA_VENTILACION],		this->TEMP_MAXIMA_VENTILACION_DEFECTO);
 	EEPROM.put(this->direccion[LAPSO_VENTILACIONES_MIN],		this->LAPSO_VENTILACIONES_MIN_DEFECTO);
 	EEPROM.put(this->direccion[TIEMPO_APERTURA_VENT_MIN],		this->TIEMPO_APERTURA_VENT_MIN_DEFECTO);
@@ -141,18 +145,20 @@ void LocalEEPROM::imprimirValsDirsReads()
 	Serial.println();
 	Serial.println("Valores recuperados de la EEPROM:");
 	Serial.println(this->eeprom_programada);
-	Serial.println(this->modos_salidas);
 	Serial.println(this->alarma_activada);
 	Serial.println(this->lapso_alarma_min);
 	Serial.println(this->temp_maxima_alarma);
 	Serial.println(this->temp_minima_alarma);
+	Serial.println(this->modo_riego);
 	Serial.println(this->humedad_suelo_minima);
 	Serial.println(this->lapso_riegos_min);
 	Serial.println(this->tiempo_bombeo_seg);
 	Serial.println(this->tiempo_espera_min);
+	Serial.println(this->modo_calefa);
 	Serial.println(this->temp_minima_calefa);
 	Serial.println(this->lapso_calefas_min);
 	Serial.println(this->tiempo_encendido_calefa_min);
+	Serial.println(this->modo_vent);
 	Serial.println(this->temp_maxima_ventilacion);
 	Serial.println(this->lapso_ventilaciones_min);
 	Serial.println(this->tiempo_apertura_vent_min);

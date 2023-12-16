@@ -6,29 +6,28 @@ AHT10Mux::AHT10Mux(PinsAHT10MUX salida_del_mux) {	this->salida_del_mux = static_
 
 bool AHT10Mux::begin()
 {
-	establecerSalidaMUX(salida_del_mux);
+	this->establecerSalidaMUX();
 	return AhtSeleccionado.begin();
 }
 
-float AHT10Mux::readTemperature(bool readI2C = AHT10_FORCE_READ_DATA)
+float AHT10Mux::readTemperature(bool readI2C)
 {
-	establecerSalidaMUX(salida_del_mux);
-	return AhtSeleccionado.readTemperature(readI2C);
+	this->establecerSalidaMUX();
+	this->temperatura = AhtSeleccionado.readTemperature(readI2C);
+	return this->temperatura;
 }
 
-float AHT10Mux::readHumidity(bool readI2C = AHT10_FORCE_READ_DATA)
+float AHT10Mux::readHumidity(bool readI2C)
 {
-	establecerSalidaMUX(salida_del_mux);
+	this->establecerSalidaMUX();
 	return AhtSeleccionado.readHumidity(readI2C);
 }
 
-//==================================================================================================================//
-
-void establecerSalidaMUX(uint8_t salida)
+void AHT10Mux::establecerSalidaMUX()
 {
 	bool bits[3]; // últimos 3 bits del número
 	for (int i = 0;  i < 3;  ++i)
-		bits[i] =  (salida >> i) & 1;
+		bits[i] =  (this->salida_del_mux >> i) & 1;
 
 	digitalWrite(static_cast<uint8_t>(PinsOut::MUX_A), bits[0]);
 	digitalWrite(static_cast<uint8_t>(PinsOut::MUX_B), bits[1]);
@@ -61,77 +60,53 @@ void inicializarSensores()
 
 void leerSensores() // en "loop()"
 {
-	// setea   humedad_aire_interior_promedio  y  temp_interior_promedio
-	leerAHT10Interiores();
-	// setea   humedad_suelo_interior
-	leerSoilInteriores();
-
-	// setea   humedad_aire_exterior  y  temp_exterior
-	leerAHT10Exteriores();
-	// setea   humedad_suelo_exterior
-	leerSoilExteriores();
+	leerSensoresAHT10();
+	leerSensoresSoil();
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-void leerAHT10Interiores() // en leerSensores()
+void leerSensoresAHT10() // en leerSensores()
 {
-	float humedad_aire_interior[3];
-	float temp_interior[3];
-
-	// leer a AhtInteriorHigh
-	humedad_aire_interior[0] = AhtInteriorHigh.readHumidity(); // %
-	temp_interior[0] = AhtInteriorHigh.readTemperature();	  // Celsius
-	// leer a AhtInteriorMid
-	humedad_aire_interior[1] = AhtInteriorMid.readHumidity();
-	temp_interior[1] = AhtInteriorMid.readTemperature();
-	// leer a AhtInteriorLow
-	humedad_aire_interior[2] = AhtInteriorLow.readHumidity();
-	temp_interior[2] = AhtInteriorLow.readTemperature();
-
-	humedad_aire_interior_promedio = (humedad_aire_interior[0] + humedad_aire_interior[1] + humedad_aire_interior[2]) / 3;
-	temp_interior_promedio = (temp_interior[0] + temp_interior[1] + temp_interior[2]) / 3;
+	AhtInteriorHigh.readTemperature();					// Celsius
+	humedad_int_high = AhtInteriorHigh.readHumidity();	// %
+	AhtInteriorMid.readTemperature();
+	humedad_int_mid = AhtInteriorMid.readHumidity();
+	AhtInteriorLow.readTemperature();
+	humedad_int_low = AhtInteriorLow.readHumidity();
+	AhtGeotermico.readTemperature();
+	AhtAgua1.readTemperature();
+	AhtAgua2.readTemperature();
+	AhtAgua3.readTemperature();
+	//humedad_aire_interior_promedio = (humedad_aire_interior[0] + humedad_aire_interior[1] + humedad_aire_interior[2]) / 3;
+	//temp_interior_promedio = (temp_interior[0] + temp_interior[1] + temp_interior[2]) / 3;
 }
 
-//==================================================================================================================//
+//===============================================================================================================================//
 
-void leerSoilInteriores() // en leerSensores()
+void leerSensoresSoil() // en leerSensores()
 {
-	int humedad_suelo_interior_raw[MUESTRAS_HUMEDAD_SUELO];
-	unsigned int humedad_suelo_interior_suma = 0;
-	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; ++i)
-	{
-		humedad_suelo_interior_raw[i] = analogRead(SOIL_INT_PIN);
-		humedad_suelo_interior_suma += humedad_suelo_interior_raw[i];
-	}
-	humedad_suelo_interior = (humedad_suelo_interior_suma / MUESTRAS_HUMEDAD_SUELO);
-	humedad_suelo_interior = map(humedad_suelo_interior, 0, 4095, 100, 0);
+	humedad_suelo1 = analogRead(static_cast<uint8_t>(PinsIn::SOIL1));
+	humedad_suelo1 = map(humedad_suelo1, 0, 4095, 100, 0);
+	humedad_suelo2 = analogRead(static_cast<uint8_t>(PinsIn::SOIL2));
+	humedad_suelo2 = map(humedad_suelo2, 0, 4095, 100, 0);
+	humedad_suelo3 = analogRead(static_cast<uint8_t>(PinsIn::SOIL3));
+	humedad_suelo3 = map(humedad_suelo3, 0, 4095, 100, 0);
+	humedad_suelo4 = analogRead(static_cast<uint8_t>(PinsIn::SOIL4));
+	humedad_suelo4 = map(humedad_suelo4, 0, 4095, 100, 0);
 	// TODO: el 70 % del agua pura debería ser 100 %, y el 29 % del aire debería ser 0 % (ver en tierra verdadera)
 }
 
-//==================================================================================================================//
 
-void leerAHT10Exteriores() // en leerSensores()
+
+/*
+int humedad_suelo_raw[MUESTRAS_HUMEDAD_SUELO];
+unsigned int humedad_suelo_suma = 0;
+for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; ++i)
 {
-	// leer a AhtExterior
-	humedad_aire_exterior = AhtExterior.readHumidity(); // %
-	temp_exterior = AhtExterior.readTemperature();		// Celsius
-	// leer a AhtExteriorGeotermico
-	temp_exterior_geotermica = AhtGeotermico.readTemperature();
+	humedad_suelo_raw[i] = analogRead(static_cast<uint8_t>(PinsIn::SOIL1));
+	humedad_suelo_suma += humedad_suelo_raw[i];
 }
-
-//==================================================================================================================//
-
-void leerSoilExteriores() // en leerSensores()
-{
-	int humedad_suelo_exterior_raw[MUESTRAS_HUMEDAD_SUELO];
-	unsigned int humedad_suelo_exterior_suma = 0;
-	for (int i = 0; i < MUESTRAS_HUMEDAD_SUELO; ++i)
-	{
-		humedad_suelo_exterior_raw[i] = analogRead(SOIL_EXT_PIN);
-		humedad_suelo_exterior_suma += humedad_suelo_exterior_raw[i];
-	}
-	humedad_suelo_exterior = (humedad_suelo_exterior_suma / MUESTRAS_HUMEDAD_SUELO);
-	humedad_suelo_exterior = map(humedad_suelo_exterior, 0, 4095, 100, 0);
-	// TODO: el 70 % del agua pura debería ser 100 %, y el 29 % del aire debería ser 0 % (ver en tierra verdadera)
-}
+humedad_suelo1 = (humedad_suelo_suma / MUESTRAS_HUMEDAD_SUELO);
+humedad_suelo1 = map(humedad_suelo1, 0, 4095, 100, 0);
+*/
