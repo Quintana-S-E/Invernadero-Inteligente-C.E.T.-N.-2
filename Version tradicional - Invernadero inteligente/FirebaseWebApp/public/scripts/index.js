@@ -265,6 +265,48 @@ const setupUI = (user) => {
 					var HAi = jsonData.HAi;
 					var HS1 = jsonData.HS1;
 					var HS2 = jsonData.HS2;
+					var modo_riego;
+					switch (jsonData.mRIE) {
+					case 0:
+						modo_riego = 'auto.';
+						break;
+					case 1:
+						modo_riego = 'deshab.';
+						break;
+					case 2:
+						modo_riego = 'forzado';
+						break;
+					case 3:
+						modo_riego = 'temporiz.';
+					}
+					var modo_calefa;
+					switch (jsonData.mCAL) {
+					case 0:
+						modo_calefa = 'auto.';
+						break;
+					case 1:
+						modo_calefa = 'deshab.';
+						break;
+					case 2:
+						modo_calefa = 'forzada';
+						break;
+					case 3:
+						modo_calefa = 'temporiz.';
+					}
+					var modo_vent;
+					switch (jsonData.mVEN) {
+					case 0:
+						modo_vent = 'auto.';
+						break;
+					case 1:
+						modo_vent = 'deshab.';
+						break;
+					case 2:
+						modo_vent = 'forzada';
+						break;
+					case 3:
+						modo_vent = 'temporiz.';
+					}
 					var riego = jsonData.RIE ? 'encendido' : 'apagado';
 					var calefa = jsonData.CAL ? 'encendida' : 'apagada';
 					var vent = jsonData.VENT ? 'abierta' : 'cerrada';
@@ -283,8 +325,11 @@ const setupUI = (user) => {
 					content += '<td>' + HS1 + '</td>';
 					content += '<td>' + HS2 + '</td>';
 					content += '<td>' + riego + '</td>';
+					content += '<td>' + modo_riego + '</td>';
 					content += '<td>' + calefa + '</td>';
+					content += '<td>' + modo_calefa + '</td>';
 					content += '<td>' + vent + '</td>';
+					content += '<td>' + modo_vent + '</td>';
 					content += '</tr>';
 					$('#tbody').prepend(content);
 					// Save lastReadingTimestamp --> corresponds to the first timestamp on the returned snapshot data
@@ -329,6 +374,48 @@ const setupUI = (user) => {
 							var HAi = element.HAi;
 							var HS1 = element.HS1;
 							var HS2 = element.HS2;
+							var modo_riego;
+							switch (element.mRIE) {
+							case 0:
+								modo_riego = 'auto';
+								break;
+							case 1:
+								modo_riego = 'deshab.';
+								break;
+							case 2:
+								modo_riego = 'forzado';
+								break;
+							case 3:
+								modo_riego = 'temporiz.';
+							}
+							var modo_calefa;
+							switch (element.mCAL) {
+							case 0:
+								modo_calefa = 'auto';
+								break;
+							case 1:
+								modo_calefa = 'deshab.';
+								break;
+							case 2:
+								modo_calefa = 'forzada';
+								break;
+							case 3:
+								modo_calefa = 'temporiz.';
+							}
+							var modo_vent;
+							switch (element.mVEN) {
+							case 0:
+								modo_vent = 'auto';
+								break;
+							case 1:
+								modo_vent = 'deshab.';
+								break;
+							case 2:
+								modo_vent = 'forzada';
+								break;
+							case 3:
+								modo_vent = 'temporiz.';
+							}
 							var riego = element.RIE ? 'encendido' : 'apagado';
 							var calefa = element.CAL ? 'encendida' : 'apagada';
 							var vent = element.VENT ? 'abierta' : 'cerrada';
@@ -347,8 +434,11 @@ const setupUI = (user) => {
 							content += '<td>' + HS1 + '</td>';
 							content += '<td>' + HS2 + '</td>';
 							content += '<td>' + riego + '</td>';
+							content += '<td>' + modo_riego + '</td>';
 							content += '<td>' + calefa + '</td>';
+							content += '<td>' + modo_calefa + '</td>';
 							content += '<td>' + vent + '</td>';
+							content += '<td>' + modo_vent + '</td>';
 							content += '</tr>';
 							$('#tbody').append(content);
 						}

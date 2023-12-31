@@ -13,7 +13,7 @@ body {
 	overflow: hidden;
 	background-color: #049faa;
 	color: white;
-	font-size: 0.85rem;
+	font-size: 0.85rem; /* en tutorial 1 */
 	padding: 5px;
 }
 
@@ -92,12 +92,12 @@ input[type=password] {
 table {
 	width: 100%;
 	text-align: center;
-	font-size: 0.18rem;
+	font-size: 0.18rem; /* en tutorial 0,8 */
 }
 
 tr,
 td {
-	padding: 0.25rem;
+	padding: 0.2rem;
 }
 
 tr:nth-child(even) {
